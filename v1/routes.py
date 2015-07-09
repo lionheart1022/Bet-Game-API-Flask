@@ -38,6 +38,9 @@ class PlayerResource(api.Resource):
         if not id:
             raise MethodNotAllowed
         # TODO
+@app.route('/players/login', ['POST'])
+def player_login():
+    pass
 
 
 # Balance
