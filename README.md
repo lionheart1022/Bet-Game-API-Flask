@@ -16,7 +16,7 @@ Player registration.
  * `push_token` - device identifier for push notifications
  * maybe more...
 
-Returns [player resource] and `201` HTTP code.
+Returns Player resource and `201` HTTP code.
 Also probably returns login token.
 
 
@@ -63,7 +63,7 @@ Accept or decline an invitaton.
 Resources
 ---------
 
-[player resource]:
+### Player resource
 ```json
 {
 	"id": 23, // internal identifier
