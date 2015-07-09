@@ -18,3 +18,56 @@ from .helpers import *
 from .helpers import MyRequestParser as RequestParser # instead of system one
 from .main import app, db, api, before_first_request
 
+# Players
+@api.resource(
+    '/players',
+    '/players/',
+    '/players/<int:id>',
+)
+class PlayerResource(api.Resource):
+    def get(self, id=None):
+        pass
+        # TODO
+
+    def post(self, id=None):
+        if id:
+            raise MethodNotAllowed
+        # TODO
+
+    def patch(self, id=None):
+        if not id:
+            raise MethodNotAllowed
+        # TODO
+
+
+# Balance
+@app.route('/balance', ['GET'])
+def balance_get():
+    pass
+@app.route('/balance/append', ['POST'])
+def balance_append():
+    pass
+@app.route('/balance/withdraw', ['POST'])
+def balance_withdraw():
+    pass
+
+
+# Games
+@api.resource(
+    '/games',
+    '/games/',
+    '/games/<int:id>',
+)
+class GameResource(api.Resource):
+    def get(self, id=None):
+        pass
+
+    def post(self, id=None):
+        if id:
+            raise MethodNotAllowed
+        # TODO
+
+    def patch(self, id=None):
+        if not id:
+            raise MethodNotAllowed
+        # TODO
