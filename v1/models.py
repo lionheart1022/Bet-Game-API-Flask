@@ -50,6 +50,16 @@ class Game(db.Model):
     creator = db.relationship(Player, backref='games_created')
     opponent_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
     opponent = db.relationship(Player, backref='games_invited')
+
+    game_type = db.Column(db.Enum('fifa14', 'fifa15'), nullable=False)
+    game_mode = db.Column(db.Enum(
+        'fifaSeasons',
+        'futSeasons',
+        'fut',
+        'friendlies',
+        'coop',
+    ))
+
     bet = db.Column(db.Float, nullable=False)
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
     state = db.Column(db.Enum('new', 'accepted', 'declined', 'finished'), default='new')
