@@ -16,9 +16,7 @@ import hashlib, uuid
 import requests
 from functools import wraps
 import binascii
-import gcm_clerk
 import apns_clerk
-import boto
 
 import config
 from .models import *
@@ -693,7 +691,6 @@ def sendEvents(events, userclass):
         del current_app._push_queue
 
         # FIXME: verify=False is for buggy python3.4 cert verification
-        gcm = gcm_clerk.GCM(config.GOOGLE_PUSH_API_KEY, verify=False)
         if False: # TODO
             if 'apns_session' in g:
                 apns_session = g.apns_session
@@ -731,14 +728,6 @@ def sendEvents(events, userclass):
                         ios[device.push_token] = device
                     else:
                         log.warn('Warning: push token for unknown os '+device.OS)
-            if android:
-                messages_android.append(
-                    gcm_clerk.JSONMessage(
-                        android.keys(),
-                        data,
-                        dry_run = current_app.debug
-                    )
-                )
             if ios:
                 messages_ios.append(
                     apns_clerk.Message(
@@ -747,33 +736,6 @@ def sendEvents(events, userclass):
                     )
                 )
 
-        def gcm_send(msg, retry=0):
-            log.debug('Sending gcm, try %d' % retry)
-            res = gcm.send(msg)
-            for req_id, msg_id in res.success.items():
-                log.debug('Sent %s with id %s' % (msg_id, req_id))
-            for old_id, new_id in res.canonical.items():
-                log.debug('Replacing old id %s with %s' % (old_id, new_id))
-                android[old_id].push_token = new_id
-            for del_id in res.not_registered:
-                log.info('App uninstalled for id %s' % del_id)
-                db.session.delete(android[del_id])
-            if res.needs_retry():
-                log.info('Retry needed')
-                retry_msg = res.retry()
-                eventlet.spawn_after(res.delay(retry),
-                            gcm_send, retry_msg, retry+1)
-        success=False
-        try:
-            for msg in messages_android:
-                gcm_send(msg)
-            success=True
-        except ValueError as e:
-            log.info('Could not send GCM', exc_info=1)
-            return
-        for msg in messages_ios:
-            # TODO
-            pass
 
         log.info('Done pushing {}, success: {}'.format(event, success))
         if success:
