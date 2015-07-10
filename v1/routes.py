@@ -66,7 +66,13 @@ class PlayerResource(api.Resource):
     def get(self, user, id=None):
         if not id:
             raise NotImplemented
-        pass
+        player = Player.query.get(id)
+        if not player:
+            raise NotFound
+        return marshal(player,
+                       cls.fields_self
+                       if player == user else
+                       cls.fields_public)
 
     def post(self, id=None):
         if id:
