@@ -17,6 +17,12 @@ class Player(db.Model):
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
     balance = db.Column(db.Float, default=0)
 
+    @property
+    def games(self):
+        return Game.query.filter(
+            (Game.creator_id == self.id) | # OR
+            (Game.opponent_id == self.id))
+
     @classmethod
     def find(cls, key):
         """
