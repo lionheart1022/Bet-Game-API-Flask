@@ -233,10 +233,9 @@ def makeToken(user, service=None, refresh_token=None,
     token = jwt.generate_jwt(payload, config.JWT_SECRET, 'HS256',
                              lifetime=None if longterm else config.JWT_LIFETIME)
     return token
-class BadUserClass(Exception): pass
 class BadUserId(Exception): pass
 class TokenExpired(Exception): pass
-def parseToken(token, userclass=None, userid=None, allow_longterm=False):
+def parseToken(token, userid=None, allow_longterm=False):
     """
     Returns a Client/Vendor object if the token is valid,
     raises an exception otherwise.
@@ -261,8 +260,6 @@ def parseToken(token, userclass=None, userid=None, allow_longterm=False):
         cls = Vendor
     else:
         raise ValueError('Bad user type: '+payload['type'])
-    if userclass and cls != userclass:
-        raise BadUserClass
     if not payload['sub']:
         raise ValueError('Invalid userid in token: '+str(payload['sub']))
     if userid and payload['sub'] != userid:
@@ -321,16 +318,6 @@ def check_auth(userid=None,
             # for optional auth, consider incomplete user as no user
             return None
         abort('User data not filled', 401, problem='profile')
-    if userclass is Client:
-        if user.isBanned and not allow_banned:
-            abort('This client is banned', 403, problem='banned')
-    elif userclass is Vendor:
-        if not user.isEmailVerified and not allow_nonverified:
-            abort('Email address not verified', 401, problem='email_verification')
-        if not allow_expired and not user.isActive:
-            abort('Your subscription has expired', 403, problem='subscription')
-    if not user.isVerified and not allow_nonverified:
-        abort('Phone number not verified', 401, problem='verification')
     return user
 
 def require_auth(**params):
