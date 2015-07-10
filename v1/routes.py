@@ -241,8 +241,16 @@ class GameResource(api.Resource):
 
         return marshal(game, self.fields), 201
 
-    def patch(self, id=None):
+    @require_auth
+    def patch(self, user, id=None):
         if not id:
             raise MethodNotAllowed
-        # TODO
+
+        parser = RequestParser()
+        parser.add_argument('state', options=[])
+        args = parser.parse_args()
+
+        game = Game.get(id)
+        if not game:
+            raise NotFound
 
