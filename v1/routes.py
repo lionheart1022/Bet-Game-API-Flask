@@ -170,8 +170,11 @@ class PlayerResource(api.Resource):
 
 # Balance
 @app.route('/balance', ['GET'])
-def balance_get():
-    pass
+@require_auth
+def balance_get(user):
+    return jsonify(
+        balance = user.balance
+    )
 @app.route('/balance/append', ['POST'])
 def balance_append():
     pass
