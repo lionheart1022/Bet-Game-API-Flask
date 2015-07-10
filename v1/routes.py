@@ -144,7 +144,7 @@ class PlayerResource(restful.Resource):
         return marshal(user, self.fields_self)
 
     @classmethod
-    @app.route('/players/login', ['POST'])
+    @app.route('/players/login', methods=['POST'])
     def player_login(cls):
         parser = RequestParser()
         parser.add_argument('email', required=False)
@@ -169,16 +169,16 @@ class PlayerResource(restful.Resource):
 
 
 # Balance
-@app.route('/balance', ['GET'])
+@app.route('/balance', methods=['GET'])
 @require_auth
 def balance_get(user):
     return jsonify(
         balance = user.balance
     )
-@app.route('/balance/append', ['POST'])
+@app.route('/balance/append', methods=['POST'])
 def balance_append():
     pass
-@app.route('/balance/withdraw', ['POST'])
+@app.route('/balance/withdraw', methods=['POST'])
 def balance_withdraw():
     pass
 
