@@ -320,7 +320,7 @@ def check_auth(userid=None,
         abort('User data not filled', 401, problem='profile')
     return user
 
-def require_auth(**params):
+def require_auth(_func=None, **params):
     """
     Decorator version of check_auth.
     This decorator checks if auth token is passed,
@@ -334,6 +334,8 @@ def require_auth(**params):
             # call function
             return func(*args, user=user, **kwargs)
         return caller
+    if hasattr(_func, '__call__'): # used as non-function decorator
+        return decorator(_func)
     return decorator
 
 def secure_only(func):
