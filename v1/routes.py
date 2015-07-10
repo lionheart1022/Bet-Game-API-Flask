@@ -99,16 +99,7 @@ class PlayerResource(api.Resource):
             # TODO?
             raise NotImplemented
 
-        player = None
-        if id == 'me':
-            player = user
-        else:
-            try:
-                player = Player.query.get(int(id))
-            except ValueError:
-                pass
-        if not player:
-            player = Player.query.filter_by(player_nick = id)
+        player = Player.find(id)
         if not player:
             raise NotFound
 
@@ -139,7 +130,7 @@ class PlayerResource(api.Resource):
         if not id:
             raise MethodNotAllowed
 
-        if id not in ('me', str(user.id), user.player_nick):
+        if id.lower() not in ('me', str(user.id), user.player_nick.lower()):
             abort('You cannot edit other player\'s info', 403)
 
         args = self.parser.partial.parse_args()

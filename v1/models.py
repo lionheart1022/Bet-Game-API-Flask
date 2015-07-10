@@ -24,7 +24,7 @@ class Player(db.Model):
         Retrieves user by player id or integer id.
         If id is 'me', will return currently logged in user or None.
         """
-        if key == 'me':
+        if key.lower() == 'me':
             return getattr(g, 'user', None)
 
         p = None
