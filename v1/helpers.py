@@ -554,6 +554,18 @@ class AlternatingNested(restful.fields.Raw):
 
 ### Polling and notification ###
 def poll(gametype, gamemode):
+    def fetch(nick):
+        url = 'https://www.easports.com/fifa/api/'\
+            '{}/match-history/{}/{}'.format(
+                gametype, gamemode, nick)
+        try:
+            return requests.get(url).json()['data']
+        except Exception as e:
+            log.error('Failed to fetch match info '
+                      'for player {}, gt {} gm {}'.format(
+                          nick, gametype, gamemode),
+                      exc_info=True)
+            return []
     games = Game.query.filter_by(
         gametype=gametype,
         gamemode=gamemode,
