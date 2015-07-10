@@ -331,6 +331,7 @@ def require_auth(_func=None, **params):
         @wraps(func)
         def caller(*args, **kwargs):
             user = check_auth(**params)
+            g.user = user
             # call function
             return func(*args, user=user, **kwargs)
         return caller

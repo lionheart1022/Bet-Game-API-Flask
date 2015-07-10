@@ -3,6 +3,7 @@ import math
 from sqlalchemy import sql
 from sqlalchemy.sql.expression import func
 import sqlalchemy
+from flask import g
 
 from .main import db
 import config
@@ -16,6 +17,19 @@ class Player(db.Model):
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
     games = db.relationship('Game')
     balance = db.Column(db.Float, default=0)
+
+    @classmethod
+    def find(cls, key):
+        if key == 'me':
+            return getattr(g, 'user', None)
+
+        p = None
+        try:
+            p = cls.query.get(int(key))
+        except ValueError: pass
+        if not p:
+            p = cls.query.filter_by(player_nick=key).one()
+        return p
 
 
 class Device(db.Model):
