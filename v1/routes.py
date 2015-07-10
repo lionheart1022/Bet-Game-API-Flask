@@ -41,9 +41,28 @@ class PlayerResource(api.Resource):
                     getattr(Player, name),
                     ftype=type))
         return parser
+    @classproperty
+    def fields_self(cls):
+        return dict(
+            id = fields.Integer,
+            player_nick = fields.String,
+            email = fields.String,
+            facebook_connected = fields.Boolean(attribute='facebook_token'),
+            balance = fields.Float,
+            devices = fields.List(fields.Nested(dict(
+                id = fields.Integer,
+                last_login = fields.DateTime,
+            ))),
+            # TODO: some stats
+        )
+    @classproperty
+    def fields_public(cls):
+        copy = cls.fields_self.copy()
+        del copy['balance']
+        del copy['devices']
+        return copy
 
     def get(self, id=None):
-        pass
         # TODO
         pass
 
