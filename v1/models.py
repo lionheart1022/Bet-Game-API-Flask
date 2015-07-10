@@ -54,6 +54,7 @@ class Game(db.Model):
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
     state = db.Column(db.Enum('new', 'accepted', 'declined', 'finished'), default='new')
     accept_date = db.Column(db.DateTime, nullable=True)
+    finish_date = db.Column(db.DateTime, nullable=True)
 
 
 def fast_count(query):
