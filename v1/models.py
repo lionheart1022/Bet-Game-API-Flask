@@ -15,7 +15,9 @@ class Player(db.Model):
     password = db.Column(db.LargeBinary(36))
     facebook_token = db.Column(db.String(128))
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
-    games = db.relationship('Game')
+    games = db.relationship('Game', foreign_keys=[
+        'Game.creator_id', 'Game.opponent_id'
+    ])
     balance = db.Column(db.Float, default=0)
 
     @classmethod
@@ -47,9 +49,9 @@ class Device(db.Model):
 class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     creator_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
-    creator = db.relationship(Player, backref='games_created')
+    creator = db.relationship(Player, foreign_keys='Game.creator_id')
     opponent_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
-    opponent = db.relationship(Player, backref='games_invited')
+    opponent = db.relationship(Player, foreign_keys='Game.opponent_id')
 
     GAMETYPES = [
         'fifa14', 'fifa15',

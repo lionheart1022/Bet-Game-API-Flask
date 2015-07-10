@@ -553,6 +553,56 @@ class AlternatingNested(restful.fields.Raw):
                        self.alternate)
 
 ### Polling and notification ###
+def poll(gametype, gamemode):
+    games = Game.query.filter_by(
+        gametype=gametype,
+        gamemode=gamemode,
+        state = 'accepted',
+    )
+    # map player names to sets of games related to them
+    players = {}
+    for game in games:
+        for player in game.creator, game.opponent:
+            if player.player_nick in players:
+                players[player.player_nick].add(game)
+            else:
+                players[player.player_nick] = set([game])
+
+    # order player names by count of games
+    order = list(map(lambda p: p[0],
+                     sorted(players.items(),
+                            key=lambda p: len(p[1]),
+                            reverse=True)))
+    games_done = set()
+    for player in order:
+        matches = fetch(player)
+        for match in reversed(matches): # from oldest to newest
+            for game in players[player]:
+                # skip already completed games
+                if game.id in games_done:
+                    continue
+                # skip this game if current match ended before game's start
+                if math.floor(game.accept_date.timestamp()) > match['timestamp']:
+                    continue
+                other, who = ((game.opponent, 'opponent')
+                              if game.creator.player_nick == player
+                              else (game.creator, 'creator'))
+                if other.player_nick in match['opponent']['user_info']:
+                    # game matched! change its status
+                    if match['self']['stats']['score'] > match['self']['stats']['score']:
+                        # "self" won, "other" lost
+                        game.winner = 'creator' if who == 'opponent' else 'opponent'
+                    elif match['self']['stats']['score'] > match['self']['stats']['score']:
+                        # "other" won, "self" lost
+                        game.winner = who
+                    else:
+                        game.winner = 'draw'
+                    game.state = 'finished'
+                    game.finish_date = datetime.utcfromtimestamp(match['timestamp'])
+                    games_done.add(game.id)
+    db.session.commit()
+    # TODO: send pushes?
+
 def ensure_polling():
     pass
 
