@@ -196,8 +196,26 @@ def balance_withdraw():
     '/games/<int:id>',
 )
 class GameResource(api.Resource):
+    @classproperty
+    def fields(cls):
+        return {
+            'id': fields.Integer,
+            'creator': fields.Nested(PlayerResource.fields_public),
+            'opponent': fields.Nested(PlayerResource.fields_public),
+            'bet': fields.Float,
+            'create_date': fields.DateTime,
+            'state': fields.String,
+            'accept_date': fields.DateTime,
+        }
     def get(self, id=None):
-        pass
+        # TODO: filters
+        if id:
+            game = Game.query.get(id)
+            if not game:
+                raise NotFound
+            return marshal(game, self.fields)
+
+        raise NotImplemented
 
     def post(self, id=None):
         if id:
