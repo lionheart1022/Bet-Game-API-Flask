@@ -45,11 +45,25 @@ class PlayerResource(api.Resource):
     def get(self, id=None):
         pass
         # TODO
+        pass
 
     def post(self, id=None):
         if id:
             raise MethodNotAllowed
-        # TODO
+        args = self.parser.parse_args()
+        player = Player()
+        for key, val in args.items():
+            if hasattr(player, key):
+                setattr(player, key)
+        # TODO: validate fb token
+        db.session.add(player)
+        db.session.commit()
+
+        # TODO send greeting
+
+        # TODO login etc
+
+        # TODO return
 
     def patch(self, id=None):
         if not id:
