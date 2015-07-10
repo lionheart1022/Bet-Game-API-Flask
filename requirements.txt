@@ -1,0 +1,15 @@
+gunicorn
+Flask
+flask_sqlalchemy
+flask_cors
+--allow-external mysql-connector-python
+mysql-connector-python
+python_jwt
+requests
+eventlet>=0.17.4
+
+flask_restful
+pytz
+aniso8601
+
+apns-clerk
