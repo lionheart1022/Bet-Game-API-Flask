@@ -117,7 +117,7 @@ class PlayerResource(api.Resource):
         player = Player()
         for key, val in args.items():
             if hasattr(player, key):
-                setattr(player, key)
+                setattr(player, key, val)
         # TODO: validate fb token
         db.session.add(player)
         db.session.commit()
@@ -126,9 +126,19 @@ class PlayerResource(api.Resource):
 
         return self.login_do(player, args_login)
 
-    def patch(self, id=None):
+    @require_auth
+    def patch(self, user, id=None):
         if not id:
             raise MethodNotAllowed
+
+        if id not in ('me', user.id, user.player_nick):
+            abort('You cannot edit other player\'s info', 403)
+
+        args = self.parser.partial.parse_args()
+        for key, val in args.items():
+            if hasattr(user, key):
+                setattr(user, key, val)
+
         # TODO
 
     @classmethod
