@@ -217,12 +217,38 @@ class GameResource(api.Resource):
 
         raise NotImplemented
 
-    def post(self, id=None):
+    @require_auth
+    def post(self, user, id=None):
         if id:
             raise MethodNotAllowed
-        # TODO
+
+        parser = RequestParser()
+        parser.add_argument('opponent_id', type=str, required=True)
+        parser.add_argument('bet', type=float, required=True)
+        args = parser.parse_args()
+
+        opponent = Player.find(args.opponent_id)
+        if not opponent:
+            abort('[opponent_id]: no such player')
+        if opponent == user:
+            abort('You cannot compete with yourself')
+
+        if args.bet < 0.99:
+            abort('[bet]: too low amount')
+        if args.bet > user.balance:
+            abort('[bet]: not enough coins')
+
+        game = Game()
+        game.creator = user
+        game.opponent = opponent
+        game.bet = args.bet
+        db.session.add(game)
+        db.session.commit()
+
+        return marshal(game, self.fields), 201
 
     def patch(self, id=None):
         if not id:
             raise MethodNotAllowed
         # TODO
+
