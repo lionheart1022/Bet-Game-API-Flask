@@ -70,9 +70,9 @@ class PlayerResource(api.Resource):
         if not player:
             raise NotFound
         return marshal(player,
-                       cls.fields_self
+                       self.fields_self
                        if player == user else
-                       cls.fields_public)
+                       self.fields_public)
 
     def post(self, id=None):
         if id:
@@ -90,7 +90,7 @@ class PlayerResource(api.Resource):
 
         # TODO login etc
 
-        # TODO return
+        return marshal(player, self.fields_self)
 
     def patch(self, id=None):
         if not id:
