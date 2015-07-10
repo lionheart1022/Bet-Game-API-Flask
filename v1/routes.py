@@ -33,7 +33,7 @@ class PlayerResource(api.Resource):
             ('player_nick', None, True),
             ('email', email, True),
             ('password', encrypt_password, True),
-            ('facebook_token', None, False), # should be last to avoid extra queries
+            ('facebook_token', federatedRenewFacebook, False), # should be last to avoid extra queries
         ]:
             parser.add_argument(
                 name,
