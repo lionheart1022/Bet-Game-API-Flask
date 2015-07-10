@@ -112,6 +112,7 @@ class PlayerResource(api.Resource):
     def post(self, id=None):
         if id:
             raise MethodNotAllowed
+        args_login = self.parser.login.parse_args() # check before others
         args = self.parser.parse_args()
         player = Player()
         for key, val in args.items():
@@ -123,7 +124,7 @@ class PlayerResource(api.Resource):
 
         # TODO send greeting
 
-        return self.login_do(player)
+        return self.login_do(player, args_login)
 
     def patch(self, id=None):
         if not id:
