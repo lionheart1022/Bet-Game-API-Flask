@@ -62,8 +62,10 @@ class PlayerResource(api.Resource):
         del copy['devices']
         return copy
 
-    def get(self, id=None):
-        # TODO
+    @require_auth
+    def get(self, user, id=None):
+        if not id:
+            raise NotImplemented
         pass
 
     def post(self, id=None):
