@@ -28,15 +28,22 @@ class PlayerResource(api.Resource):
     @classproperty
     def parser(cls):
         parser = RequestParser()
+        partial = parser.partial = RequestParser()
         for name, type, required in [
             ('player_nick', None, True),
             ('email', email, True),
-            ('password', password, True),
-            ('facebook_token', None, False),
+            ('password', encrypt_password, True),
+            ('facebook_token', None, False), # should be last to avoid extra queries
         ]:
             parser.add_argument(
                 name,
                 required = required,
+                type=string_field(
+                    getattr(Player, name),
+                    ftype=type))
+            partial.add_argument(
+                name,
+                required = False,
                 type=string_field(
                     getattr(Player, name),
                     ftype=type))
