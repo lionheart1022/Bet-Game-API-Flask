@@ -143,11 +143,14 @@ class PlayerResource(api.Resource):
             abort('You cannot edit other player\'s info', 403)
 
         args = self.parser.partial.parse_args()
+
         for key, val in args.items():
             if hasattr(user, key):
                 setattr(user, key, val)
 
-        # TODO
+        db.session.commit()
+
+        return marshal(user, self.fields_self)
 
     @classmethod
     @app.route('/players/login', ['POST'])
