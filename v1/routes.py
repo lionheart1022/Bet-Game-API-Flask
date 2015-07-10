@@ -22,7 +22,7 @@ from .main import app, db, api, before_first_request
 @api.resource(
     '/players',
     '/players/',
-    '/players/<str:id>',
+    '/players/<id>',
 )
 class PlayerResource(restful.Resource):
     @classproperty
@@ -268,3 +268,7 @@ class GameResource(restful.Resource):
         # TODO: initiate polling
 
         return marshal(game, self.fields)
+
+@before_first_request
+def initiate_poller():
+    ensure_polling()
