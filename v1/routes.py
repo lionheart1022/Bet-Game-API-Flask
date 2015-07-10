@@ -62,6 +62,15 @@ class PlayerResource(api.Resource):
         del copy['devices']
         return copy
 
+    @classmethod
+    def login_do(cls, player):
+        # TODO create device if applicable
+
+        return dict(
+            player = marshal(player, self.fields_self),
+            token = makeToken(player),
+        )
+
     @require_auth
     def get(self, user, id=None):
         if not id:
@@ -88,20 +97,36 @@ class PlayerResource(api.Resource):
 
         # TODO send greeting
 
-        # TODO create device if applicable
-
-        return dict(
-            player = marshal(player, self.fields_self),
-            token = makeToken(player),
-        )
+        return self.login_do(player)
 
     def patch(self, id=None):
         if not id:
             raise MethodNotAllowed
         # TODO
-@app.route('/players/login', ['POST'])
-def player_login():
-    pass
+
+    @classmethod
+    @app.route('/players/login', ['POST'])
+    def player_login(cls):
+        parser = RequestParser()
+        parser.add_argument('email', required=False)
+        parser.add_argument('player_nick', required=False)
+        parser.add_argument('password', required=True)
+        args = parser.parse_args()
+        if args.email:
+            player = Player.query.filter_by(email=args.email).one()
+            if not player:
+                abort('Unknown email', 404)
+        elif args.player_nick:
+            player = Player.query.filter_by(player_nick=args.player_nick).one()
+            if not player:
+                abort('Unknown player nick', 404)
+        else:
+            abort('Please provide either email or player_nick')
+
+        if not check_password(args.password, player.password):
+            abort('Password incorrect', 403)
+
+        return cls.login_do(player)
 
 
 # Balance
