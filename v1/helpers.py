@@ -602,6 +602,14 @@ def poll(gametype, gamemode):
                     games_done.add(game.id)
     db.session.commit()
     # TODO: send pushes?
+def poll_all():
+    for gametype in Game.GAMETYPES:
+        for gamemode in Game.GAMEMODES:
+            try:
+                poll(gamemode, gametype)
+            except Exception as e:
+                log.error('Couldn\'t poll for gametype {} gamemode {}'.format(
+                    gametype, gamemode), exc_info = True)
 
 class classproperty:
     """
