@@ -1,13 +1,11 @@
 from datetime import timedelta
 from secret import DB_URL, JWT_SECRET
-from secret import NEXMO_API_KEY, NEXMO_API_SECRET
-from secret import GOOGLE_PUSH_API_KEY, APPLE_PUSH_API_KEY
-from secret import GOOGLE_AUTH_API_KEY
-from secret import GOOGLE_AUTH_CLIENT_ID, GOOGLE_AUTH_CLIENT_SECRET
-from secret import FACEBOOK_AUTH_CLIENT_ID, FACEBOOK_AUTH_CLIENT_SECRET
-from secret import OPENEXCHANGERATES_APPID
-from secret import AWS_KEY, AWS_SECRET
-from secret import ADMIN_USERS
+#from secret import NEXMO_API_KEY, NEXMO_API_SECRET
+#from secret import GOOGLE_PUSH_API_KEY, APPLE_PUSH_API_KEY
+#from secret import GOOGLE_AUTH_API_KEY
+#from secret import GOOGLE_AUTH_CLIENT_ID, GOOGLE_AUTH_CLIENT_SECRET
+#from secret import FACEBOOK_AUTH_CLIENT_ID, FACEBOOK_AUTH_CLIENT_SECRET
+#from secret import ADMIN_USERS
 try:
     from secret import LOCAL
 except ImportError:
