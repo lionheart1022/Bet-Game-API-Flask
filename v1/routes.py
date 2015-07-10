@@ -196,6 +196,8 @@ class GameResource(restful.Resource):
             'id': fields.Integer,
             'creator': fields.Nested(PlayerResource.fields_public),
             'opponent': fields.Nested(PlayerResource.fields_public),
+            'gamemode': fields.String,
+            'gametype': fields.String,
             'bet': fields.Float,
             'create_date': fields.DateTime,
             'state': fields.String,
