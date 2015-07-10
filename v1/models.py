@@ -20,6 +20,10 @@ class Player(db.Model):
 
     @classmethod
     def find(cls, key):
+        """
+        Retrieves user by player id or integer id.
+        If id is 'me', will return currently logged in user or None.
+        """
         if key == 'me':
             return getattr(g, 'user', None)
 
@@ -48,7 +52,7 @@ class Game(db.Model):
     opponent = db.relationship(Player, backref='games_invited')
     bet = db.Column(db.Float, required=True)
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
-    state = db.Column(db.Enum('new', 'accepted', 'declined'), default='new')
+    state = db.Column(db.Enum('new', 'accepted', 'declined', 'finished'), default='new')
     accept_date = db.Column(db.DateTime, nullable=True)
 
 
