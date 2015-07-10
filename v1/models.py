@@ -10,8 +10,8 @@ import config
 
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    player_nick = db.Column(db.String(64), required=True)
-    email = db.Column(db.String(128), required=True)
+    player_nick = db.Column(db.String(64), nullable=False)
+    email = db.Column(db.String(128), nullable=False)
     password = db.Column(db.LargeBinary(36))
     facebook_token = db.Column(db.String(128))
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
@@ -40,7 +40,7 @@ class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     player_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
     player = db.relationship(Player, backref='devices')
-    push_token = db.Column(db.String(128), required=True)
+    push_token = db.Column(db.String(128), nullable=False)
     last_login = db.Column(db.DateTime, default=datetime.utcnow)
 
 
@@ -50,7 +50,7 @@ class Game(db.Model):
     creator = db.relationship(Player, backref='games_created')
     opponent_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
     opponent = db.relationship(Player, backref='games_invited')
-    bet = db.Column(db.Float, required=True)
+    bet = db.Column(db.Float, nullable=False)
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
     state = db.Column(db.Enum('new', 'accepted', 'declined', 'finished'), default='new')
     accept_date = db.Column(db.DateTime, nullable=True)
