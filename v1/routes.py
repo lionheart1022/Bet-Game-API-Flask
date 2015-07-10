@@ -88,9 +88,12 @@ class PlayerResource(api.Resource):
 
         # TODO send greeting
 
-        # TODO login etc
+        # TODO create device if applicable
 
-        return marshal(player, self.fields_self)
+        return dict(
+            player = marshal(player, self.fields_self),
+            token = makeToken(player),
+        )
 
     def patch(self, id=None):
         if not id:
