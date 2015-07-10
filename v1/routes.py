@@ -96,8 +96,12 @@ class PlayerResource(api.Resource):
     @require_auth
     def get(self, user, id=None):
         if not id:
+            # TODO?
             raise NotImplemented
+
         player = Player.query.get(id)
+        if not player:
+            player = Player.query.filter_by(player_nick = id)
         if not player:
             raise NotFound
         return marshal(player,
