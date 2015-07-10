@@ -202,6 +202,8 @@ class GameResource(restful.Resource):
             'create_date': fields.DateTime,
             'state': fields.String,
             'accept_date': fields.DateTime,
+            'winner': fields.String,
+            'finish_date': fields.DateTime,
         }
     def get(self, id=None):
         # TODO: filters
