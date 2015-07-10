@@ -29,6 +29,7 @@ class PlayerResource(api.Resource):
     def parser(cls):
         parser = RequestParser()
         partial = parser.partial = RequestParser()
+        login = parser.login = RequestParser()
         for name, type, required in [
             ('player_nick', None, True),
             ('email', email, True),
@@ -47,6 +48,8 @@ class PlayerResource(api.Resource):
                 type=string_field(
                     getattr(Player, name),
                     ftype=type))
+        login.add_argument('push_token', type=string_field(Device.push_token),
+                           required=True)
         return parser
     @classproperty
     def fields_self(cls):
@@ -70,8 +73,20 @@ class PlayerResource(api.Resource):
         return copy
 
     @classmethod
-    def login_do(cls, player):
-        # TODO create device if applicable
+    def login_do(cls, player, args=None):
+        if not args:
+            args = cls.parser.login.parse_args()
+        dev = Device.query.filter_by(player = player,
+                                     push_token = args.push_token
+                                     ).one()
+        if not dev:
+            dev = Device()
+            dev.player = player
+            dev.push_token = args.push_token
+            db.session.add(dev)
+        dev.last_login = datetime.utcnow()
+
+        db.session.commit() # to create device id
 
         return dict(
             player = marshal(player, self.fields_self),
