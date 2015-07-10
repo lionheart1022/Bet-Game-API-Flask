@@ -2,8 +2,8 @@
 
 import main, v1
 
-def main():
-    v1.helpers.poll_all()
-
 if __name__ == '__main__':
-    main()
+    # for db access to work
+    main.app.app_context().push()
+
+    v1.helpers.poll_all()
