@@ -553,7 +553,8 @@ class AlternatingNested(restful.fields.Raw):
                        self.alternate)
 
 ### Polling and notification ###
-
+def ensure_polling():
+    pass
 
 class classproperty:
     """
