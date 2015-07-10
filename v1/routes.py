@@ -205,15 +205,25 @@ class GameResource(restful.Resource):
             'winner': fields.String,
             'finish_date': fields.DateTime,
         }
-    def get(self, id=None):
-        # TODO: filters
+    @require_auth
+    def get(self, user, id=None):
         if id:
             game = Game.query.get(id)
             if not game:
                 raise NotFound
+
+            # TODO: allow?
+            if user not in [game.creator, game.opponent]:
+                raise Forbidden
+
             return marshal(game, self.fields)
 
-        raise NotImplemented
+        query = user.games
+        # TODO: filters
+
+        return jsonify(games = marshal(
+            query,
+            fields.List(fields.Nested(self.fields))))
 
     @require_auth
     def post(self, user, id=None):
