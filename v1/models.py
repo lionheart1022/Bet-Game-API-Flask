@@ -15,9 +15,6 @@ class Player(db.Model):
     password = db.Column(db.LargeBinary(36))
     facebook_token = db.Column(db.String(128))
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
-    games = db.relationship('Game', foreign_keys=[
-        'Game.creator_id', 'Game.opponent_id'
-    ])
     balance = db.Column(db.Float, default=0)
 
     @classmethod
