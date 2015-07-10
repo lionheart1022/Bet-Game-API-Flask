@@ -25,6 +25,23 @@ from .main import app, db, api, before_first_request
     '/players/<int:id>',
 )
 class PlayerResource(api.Resource):
+    @classproperty
+    def parser(cls):
+        parser = RequestParser()
+        for name, type, required in [
+            ('player_nick', None, True),
+            ('email', email, True),
+            ('password', password, True),
+            ('facebook_token', None, False),
+        ]:
+            parser.add_argument(
+                name,
+                required = required,
+                type=string_field(
+                    getattr(Player, name),
+                    ftype=type))
+        return parser
+
     def get(self, id=None):
         pass
         # TODO
