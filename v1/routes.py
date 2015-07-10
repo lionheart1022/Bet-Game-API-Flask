@@ -22,7 +22,7 @@ from .main import app, db, api, before_first_request
 @api.resource(
     '/players',
     '/players/',
-    '/players/<int:id>',
+    '/players/<str:id>',
 )
 class PlayerResource(api.Resource):
     @classproperty
@@ -99,11 +99,19 @@ class PlayerResource(api.Resource):
             # TODO?
             raise NotImplemented
 
-        player = Player.query.get(id)
+        player = None
+        if id == 'me':
+            player = user
+        else:
+            try:
+                player = Player.query.get(int(id))
+            except ValueError:
+                pass
         if not player:
             player = Player.query.filter_by(player_nick = id)
         if not player:
             raise NotFound
+
         return marshal(player,
                        self.fields_self
                        if player == user else
@@ -131,7 +139,7 @@ class PlayerResource(api.Resource):
         if not id:
             raise MethodNotAllowed
 
-        if id not in ('me', user.id, user.player_nick):
+        if id not in ('me', str(user.id), user.player_nick):
             abort('You cannot edit other player\'s info', 403)
 
         args = self.parser.partial.parse_args()
