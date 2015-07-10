@@ -273,11 +273,4 @@ class GameResource(restful.Resource):
 
         db.session.commit()
 
-        if args.state == 'accepted':
-            ensure_polling()
-
         return marshal(game, self.fields)
-
-@before_first_request
-def initiate_poller():
-    ensure_polling()

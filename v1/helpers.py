@@ -603,9 +603,6 @@ def poll(gametype, gamemode):
     db.session.commit()
     # TODO: send pushes?
 
-def ensure_polling():
-    pass
-
 class classproperty:
     """
     Cached class property; evaluated only once
