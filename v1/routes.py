@@ -241,16 +241,30 @@ class GameResource(restful.Resource):
 
         return marshal(game, self.fields), 201
 
-    @require_auth
-    def patch(self, user, id=None):
+    def patch(self, id=None):
         if not id:
             raise MethodNotAllowed
 
         parser = RequestParser()
-        parser.add_argument('state', options=[])
+        parser.add_argument('state', options=[
+            'accepted', 'declined'
+        ])
         args = parser.parse_args()
 
         game = Game.get(id)
         if not game:
             raise NotFound
 
+        user = check_auth(Game.creator_id)
+
+        if game.state != 'new':
+            abort('This game is already {}'.format(game.state))
+
+        game.state = args.state
+        game.accept_date = datetime.utcnow()
+
+        db.session.commit()
+
+        # TODO: initiate polling
+
+        return marshal(game, self.fields)
