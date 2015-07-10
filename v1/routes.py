@@ -218,6 +218,8 @@ class GameResource(restful.Resource):
 
         parser = RequestParser()
         parser.add_argument('opponent_id', type=str, required=True)
+        parser.add_argument('gamemode', options=Game.GAMEMODES, required=True)
+        parser.add_argument('gametype', options=Game.GAMETYPES, required=True)
         parser.add_argument('bet', type=float, required=True)
         args = parser.parse_args()
 
@@ -236,6 +238,8 @@ class GameResource(restful.Resource):
         game.creator = user
         game.opponent = opponent
         game.bet = args.bet
+        game.gamemode = args.gamemode
+        game.gametype = args.gametype
         db.session.add(game)
         db.session.commit()
 
