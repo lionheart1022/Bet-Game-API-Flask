@@ -24,7 +24,7 @@ from .main import app, db, api, before_first_request
     '/players/',
     '/players/<str:id>',
 )
-class PlayerResource(api.Resource):
+class PlayerResource(restful.Resource):
     @classproperty
     def parser(cls):
         parser = RequestParser()
@@ -189,7 +189,7 @@ def balance_withdraw():
     '/games/',
     '/games/<int:id>',
 )
-class GameResource(api.Resource):
+class GameResource(restful.Resource):
     @classproperty
     def fields(cls):
         return {
