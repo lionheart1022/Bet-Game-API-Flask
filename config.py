@@ -17,7 +17,7 @@ except ImportError:
 
 # DB_URL format: "mysql+mysqlconnector://USER:PASSWORD@HOST/DATABASE"
 
-JWT_LIFETIME = timedelta(days=1)
+JWT_LIFETIME = timedelta(days=365)
 
 # for Nexmo phone number verification
 SMS_BRAND = "Bet Game"
