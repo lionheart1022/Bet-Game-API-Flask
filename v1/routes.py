@@ -78,7 +78,7 @@ class PlayerResource(restful.Resource):
             args = cls.parser.login.parse_args()
         dev = Device.query.filter_by(player = player,
                                      push_token = args.push_token
-                                     ).one()
+                                     ).first()
         if not dev:
             dev = Device()
             dev.player = player
@@ -152,11 +152,11 @@ class PlayerResource(restful.Resource):
         parser.add_argument('password', required=True)
         args = parser.parse_args()
         if args.email:
-            player = Player.query.filter_by(email=args.email).one()
+            player = Player.query.filter_by(email=args.email).first()
             if not player:
                 abort('Unknown email', 404)
         elif args.player_nick:
-            player = Player.query.filter_by(player_nick=args.player_nick).one()
+            player = Player.query.filter_by(player_nick=args.player_nick).first()
             if not player:
                 abort('Unknown player nick', 404)
         else:
