@@ -113,6 +113,7 @@ class PlayerResource(restful.Resource):
             raise MethodNotAllowed
         args_login = self.parser.login.parse_args() # check before others
         args = self.parser.parse_args()
+
         player = Player()
         for key, val in args.items():
             if hasattr(player, key):

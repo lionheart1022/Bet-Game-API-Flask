@@ -10,8 +10,8 @@ import config
 
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    player_nick = db.Column(db.String(64), nullable=False)
-    email = db.Column(db.String(128), nullable=False)
+    player_nick = db.Column(db.String(64), nullable=False, unique=True)
+    email = db.Column(db.String(128), nullable=False, unique=True)
     password = db.Column(db.LargeBinary(36))
     facebook_token = db.Column(db.String(128))
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
