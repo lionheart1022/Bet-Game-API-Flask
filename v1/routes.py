@@ -89,7 +89,7 @@ class PlayerResource(restful.Resource):
         db.session.commit() # to create device id
 
         return dict(
-            player = marshal(player, self.fields_self),
+            player = marshal(player, cls.fields_self),
             token = makeToken(player),
         )
 
