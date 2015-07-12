@@ -175,7 +175,8 @@ def balance_get(user):
         balance = user.balance_obj,
     )
 @app.route('/balance/append', methods=['POST'])
-def balance_append():
+@require_auth
+def balance_append(user):
     parser = RequestParser()
     parser.add_argument('payment_id', required=True)
     parser.add_argument('total', type=float, required=True)
@@ -188,7 +189,7 @@ def balance_append():
     # verify payment...
     ret = PayPal.call('GET', 'payments/payment/'+args.payment_id)
     if ret.get('state') != 'approved':
-        abort('Payment not approved')
+        abort('Payment not approved', success=False)
 
     transaction = None
     for tr in ret.get('transactions', []):
@@ -199,17 +200,23 @@ def balance_append():
             transaction = tr
             break
     else:
-        abort('No corresponding transaction found')
+        abort('No corresponding transaction found', success=False)
 
     for sale in transaction.get('related_resources', []):
         if sale.get('state') == 'completed':
             break
     else:
-        abort('Sale is not completed')
+        abort('Sale is not completed', success=False)
 
     # now payment should be verified
     log.info('Payment approved, adding coins')
-    # TODO
+
+    # FIXME: conversion rate
+    user.balance += args.total
+    return jsonify(
+        success=True,
+        balance=user.balance_obj,
+    )
 
 @app.route('/balance/withdraw', methods=['POST'])
 @require_auth
