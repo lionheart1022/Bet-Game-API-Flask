@@ -230,7 +230,9 @@ def balance_withdraw(user):
         abort('Couldn\'t complete payout', 500, status=stat,
               transaction_id=ret.get('payout_item_id'),
               success=False)
-    except Exception:
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise
         # restore balance
         user.balance += args.amount
         db.session.commit()
