@@ -236,9 +236,10 @@ def balance_withdraw(user):
             # TODO: wait and retry
             pass
 
-        abort('Couldn\'t complete payout', 500,
+        abort('Couldn\'t complete payout: '+
+              trinfo.get('errors',{}).get('message', 'Unknown error'),
+              500,
               status=stat,
-              details=trinfo.get('errors',{}).get('message'),
               transaction_id=trinfo.get('payout_item_id'),
               paypal_code=ret.get('_code'),
               success=False)
