@@ -103,6 +103,10 @@ Arguments:
  * `gametype`: either `xboxone-fifa14` or `xboxone-fifa15`.
  * `bet`: numeric bet amount, should not exceed your balance.
 
+When creating an invitation, corresponding amount of coins is immediately locked on user's account.
+These coins will be released when invitation is declined
+or when the game finishes with either win or draw of creator.
+
 Returns *Game resource* on success.
 
 ### GET /games
