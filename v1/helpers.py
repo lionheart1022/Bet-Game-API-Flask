@@ -118,8 +118,8 @@ class IPInfo:
 def paypal(method, url, params=None, json=None):
     # TODO: auth
     if not json:
-        json = args
-        args = None
+        json = params
+        params = None
     url = 'https://api.sandbox.paypal.com/v1/' + url
     return requests.request(method, url, params=params, json=json).json()
 
