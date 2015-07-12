@@ -263,7 +263,7 @@ class GameResource(restful.Resource):
 
         db.session.commit()
 
-        notify_user(opponent, game)
+        notify_user(game)
 
         return marshal(game, self.fields), 201
 
@@ -296,6 +296,6 @@ class GameResource(restful.Resource):
 
         db.session.commit()
 
-        notify_user(user, game)
+        notify_user(game)
 
         return marshal(game, self.fields)

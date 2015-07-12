@@ -615,8 +615,7 @@ def poll(gametype, gamemode):
                     game.creator.locked -= game.bet
                     game.opponent.locked -= game.bet
 
-                    notify_user(game.creator, game)
-                    notify_user(game.opponent, game)
+                    notify_user(game)
 
                     games_done.add(game.id)
     db.session.commit()
@@ -633,8 +632,54 @@ def poll_all():
 
 # Notification
 
-def notify_user(player, game):
-    pass
+def notify_user(game):
+    if not isinstance(players, list):
+        players = [players]
+
+    msg = {
+        'new': '{} invites you to compete'.format(game.creator.player_nick),
+        'accepted': '{} accepted your invitation, start playing now!'
+            .format(game.opponent.player_nick),
+        'declined': '{} declined your invitation'.format(game.opponent.player_nick),
+        'finished': 'Game finished, coins moved',
+    }[game.state]
+
+    players = []
+    if game.state in ['new', 'finished']:
+        players.append(game.opponent)
+    if game.state in ['accepted', 'declined', 'finished']:
+        players.append(game.creator)
+    receivers = []
+    for p in players:
+        for d in p.devices:
+            receivers.append(d.push_token)
+
+    from . import routes # for fields list
+    message = apns_clerk.Message(receivers, alert=msg, badge='increment',
+                                 content_available=1,
+                                 game=restful.marshal(
+                                     game, routes.GameResource.fields))
+    session = apns_clerk.Session()
+    # TODO: store session and use get_conn
+    conn = session.new_connection('push', cert_file=None) # TODO
+
+    def do_send(msg):
+        srv = apns_clerk.APNs(conn)
+        try:
+            ret = srv.send(message)
+        except:
+            log.error('Failed to connect to APNs', exc_info=True)
+        else:
+            for token, reason in ret.failed.items():
+                log.warning('Device {} failed by {}, removing'.format(token,reason))
+                db.session.delete(Device.filter_by(push_token=token).first())
+
+            for code, error in ret.errors:
+                log.warning('Error {}: {}'.format(code, error))
+
+            if res.needs_retry():
+                do_send(res.retry)
+    do_send(message)
 
 class classproperty:
     """
