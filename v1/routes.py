@@ -237,8 +237,8 @@ def balance_withdraw(user):
 
     # TODO: rate conversion?
     amount = dict(
-        value = args.amount,
-        currency = 'USD',
+        value = args.amount * Fixer.latest('USD', args.currency),
+        currency = args.currency,
     )
 
     if user.available < args.amount:

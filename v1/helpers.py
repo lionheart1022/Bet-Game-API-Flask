@@ -163,6 +163,9 @@ class Fixer:
     cache_lifetime = timedelta(minutes=15)
     @classmethod
     def latest(cls, src, dst):
+        if src == dst:
+            return 1
+
         now = datetime.now()
         if not cls.rates_ttl or cls.rates_ttl < now:
             # expired data - load new
