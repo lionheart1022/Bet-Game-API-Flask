@@ -230,6 +230,10 @@ def balance_withdraw(user):
     parser.add_argument('dry_run', type=boolean_field, default=False)
     args = parser.parse_args()
 
+    if args.amount < config.WITHDRAW_MINIMUM:
+        abort('Too small amount, minimum withdraw amount is {} coins'
+              .format(config.WITHDRAW_MINIMUM))
+
     amount = dict(
         # TODO: rate conversion
         value = args.amount,

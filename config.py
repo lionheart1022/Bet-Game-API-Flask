@@ -38,3 +38,6 @@ if 'test' in __file__:
 # Papertail logging
 #PT_HOSTNAME = 'logs3.papertrailapp.com'
 #PT_PORT = 12345
+
+# in coins
+WITHDRAW_MINIMUM = 40
