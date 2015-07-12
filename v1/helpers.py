@@ -129,7 +129,7 @@ class PayPal:
             cls.token = ret['access_token']
         return cls.token
     @classmethod
-    def paypal(cls, method, url, params=None, json=None):
+    def call(cls, method, url, params=None, json=None):
         # TODO: auth
         if not json:
             json = params
