@@ -262,7 +262,7 @@ def parseToken(token, userid=None, allow_longterm=False):
         raise ValueError('Invalid userid in token: '+str(payload['sub']))
     if userid and payload['sub'] != userid:
         raise BadUserId
-    user = cls.query.get(payload['sub'])
+    user = Player.query.get(payload['sub'])
     if not user:
         raise ValueError("No such player")
     slt = binascii.hexlify(user.password[-4:]).decode() # last 4 bytes of salt
