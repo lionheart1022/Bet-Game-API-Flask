@@ -311,11 +311,6 @@ def check_auth(userid=None,
     except TokenExpired:
         abort('Token expired, please obtain new one', 403, expired=True)
 
-    if not allow_nonfilled and not user.isComplete:
-        if optional:
-            # for optional auth, consider incomplete user as no user
-            return None
-        abort('User data not filled', 401, problem='profile')
     return user
 
 def require_auth(_func=None, **params):
