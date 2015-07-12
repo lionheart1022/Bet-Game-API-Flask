@@ -121,7 +121,13 @@ def paypal(method, url, params=None, json=None):
         json = params
         params = None
     url = 'https://api.sandbox.paypal.com/v1/' + url
-    return requests.request(method, url, params=params, json=json).json()
+    ret = requests.request(method, url, params=params, json=json)
+    try:
+        return ret.json()
+    except ValueError:
+        return {
+            'error': ret.status_code,
+        }
 
 ### Tokens ###
 def validateFederatedToken(service, refresh_token):
