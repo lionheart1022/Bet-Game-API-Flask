@@ -113,7 +113,8 @@ Sell internal coins for real money.
 Arguments:
 
  * `paypal_email`: email of paypal account which should receive coins
- * `amount`: how many coins do you want to sell
+ * `coins`: how many coins do you want to sell
+ * `currency`: which currency do you want to get as a result
  * `dry_run`: optional; if set to True, don't actually transfer coins but only return rate etc
 
 Result:

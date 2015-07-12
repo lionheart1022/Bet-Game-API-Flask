@@ -235,7 +235,6 @@ def balance_withdraw(user):
         abort('Too small amount, minimum withdraw amount is {} coins'
               .format(config.WITHDRAW_MINIMUM))
 
-    # TODO: rate conversion?
     try:
         amount = dict(
             value = args.coins * Fixer.latest('USD', args.currency),
