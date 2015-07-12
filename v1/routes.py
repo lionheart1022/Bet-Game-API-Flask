@@ -75,7 +75,7 @@ class PlayerResource(restful.Resource):
         return copy
 
     @classmethod
-    def login_do(cls, player, args=None):
+    def login_do(cls, player, args=None, created=False):
         if not args:
             args = cls.parser.login.parse_args()
         dev = Device.query.filter_by(player = player,
@@ -90,10 +90,13 @@ class PlayerResource(restful.Resource):
 
         db.session.commit() # to create device id
 
-        return dict(
+        ret = jsonify(
             player = marshal(player, cls.fields_self),
             token = makeToken(player),
         )
+        if created:
+            ret.status_code = 201
+        return ret
 
     @require_auth
     def get(self, user, id=None):
@@ -120,13 +123,13 @@ class PlayerResource(restful.Resource):
         for key, val in args.items():
             if hasattr(player, key):
                 setattr(player, key, val)
-        # TODO: validate fb token
+        # TODO: validate fb token and nick
         db.session.add(player)
         db.session.commit()
 
         # TODO send greeting
 
-        return self.login_do(player, args_login)
+        return self.login_do(player, args_login, created=True)
 
     @require_auth
     def patch(self, user, id=None):
