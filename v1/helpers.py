@@ -121,7 +121,7 @@ class PayPal:
     @classmethod
     def get_token(cls):
         if not cls.token:
-            ret = requests.get(
+            ret = requests.post(
                 cls.base_url+'oauth2/token',
                 data={'grant_type': 'client_credentials'},
                 auth=(config.PAYPAL_CLIENT, config.PAYPAL_SECRET),
