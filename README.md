@@ -4,6 +4,7 @@ Bet game API
 Authorization
 -------------
 Most API endpoints require authorization.
+(In fact, the only ones not requiring it are user registration and login.)
 For authorization you should include an auth token with your request.
 That token can be included with any of the following ways:
 
@@ -12,6 +13,7 @@ That token can be included with any of the following ways:
 
 Token can be obtained either when registering new user (`POST /players`)
 or with dedicated login method (`POST /players/login`).
+Token is valid for one year, but can be invalidated by changing password.
 
 Parameters for endpoints can be passed either as GET arguments, as POST form data
 or in a JSON object (with corresponding content-type).
@@ -48,7 +50,7 @@ Retrieve given player's data.
 ID may be either integer internal ID, player's nick or `me`.
 
 For the player requesting will return whole info;
-for other players will only return Limited Player resource.
+for other players will only return *Limited Player resource*.
 
 ### PATCH /players/<id>
 Update player's data.
@@ -92,7 +94,14 @@ Sell internal coins for real money
 
 
 ### POST /games
-Create game invitation
+Create game invitation.
+
+Arguments:
+
+ * `opponent_id`: either player nick or internal numeric id of opponent.
+ * `gamemode`: one of game modes - `fifaSeasons`, `futSeasons`, `fut`, `friendlies` or `coop`.
+ * `gametype`: either `xboxone-fifa14` or `xboxone-fifa15`.
+ * `bet`: numeric bet amount, should not exceed your balance.
 
 
 ### GET /games

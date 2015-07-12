@@ -279,6 +279,9 @@ class GameResource(restful.Resource):
         if game.state != 'new':
             abort('This game is already {}'.format(game.state))
 
+        if args.state == 'accepted' and game.bet > user.balance:
+            abort('Not enough coins')
+
         game.state = args.state
         game.accept_date = datetime.utcnow()
 
