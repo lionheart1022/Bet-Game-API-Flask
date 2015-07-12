@@ -58,9 +58,7 @@ class PlayerResource(restful.Resource):
             player_nick = fields.String,
             email = fields.String,
             facebook_connected = fields.Boolean(attribute='facebook_token'),
-            balance_full = fields.Float(attribute='balance'),
-            balance_locked = fields.Float(attribute='locked'),
-            balance_available = fields.Float(attribute='available'),
+            balance = fields.Raw, # because it is already JSON
             devices = fields.List(fields.Nested(dict(
                 id = fields.Integer,
                 last_login = fields.DateTime,
