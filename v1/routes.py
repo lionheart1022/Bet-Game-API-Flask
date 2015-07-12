@@ -176,7 +176,7 @@ def balance_get(user):
 @require_auth
 def balance_append(user):
     parser = RequestParser()
-    parser.add_argument('payment_id', required=True)
+    parser.add_argument('payment_id', required=False)
     parser.add_argument('total', type=float, required=True)
     parser.add_argument('currency', required=True)
     parser.add_argument('dry_run', type=boolean_field, default=False)
@@ -185,9 +185,11 @@ def balance_append(user):
     log.info('Payment received: '+' '.join(
         ['{}: {}'.format(k,v) for k,v in args.items()]))
 
-    coins = args.total # TODO
+    coins = args.total * Fixer.latest(args.currency, 'USD')
 
     if not args.dry_run:
+        if not args.payment_id:
+            abort('[payment_id]: required when dry_run is false')
         # verify payment...
         ret = PayPal.call('GET', 'payments/payment/'+args.payment_id)
         if ret.get('state') != 'approved':
