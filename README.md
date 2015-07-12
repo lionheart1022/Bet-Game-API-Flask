@@ -101,6 +101,7 @@ Returns:
 {
 	"success": true,
 	"dry_run": false,
+	"added": 25, // in coins
 	"balance": { Balance object }
 }
 ```

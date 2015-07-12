@@ -179,40 +179,45 @@ def balance_append(user):
     parser.add_argument('payment_id', required=True)
     parser.add_argument('total', type=float, required=True)
     parser.add_argument('currency', required=True)
+    parser.add_argument('dry_run', type=boolean_field, default=False)
     args = parser.parse_args()
 
     log.info('Payment received: '+' '.join(
         ['{}: {}'.format(k,v) for k,v in args.items()]))
 
-    # verify payment...
-    ret = PayPal.call('GET', 'payments/payment/'+args.payment_id)
-    if ret.get('state') != 'approved':
-        abort('Payment not approved', success=False)
+    coins = args.total # TODO
 
-    transaction = None
-    for tr in ret.get('transactions', []):
-        if tr.get('amount') == dict(
-            total = args.total,
-            currency = args.currency,
-        ):
-            transaction = tr
-            break
-    else:
-        abort('No corresponding transaction found', success=False)
+    if not args.dry_run:
+        # verify payment...
+        ret = PayPal.call('GET', 'payments/payment/'+args.payment_id)
+        if ret.get('state') != 'approved':
+            abort('Payment not approved', success=False)
 
-    for sale in transaction.get('related_resources', []):
-        if sale.get('state') == 'completed':
-            break
-    else:
-        abort('Sale is not completed', success=False)
+        transaction = None
+        for tr in ret.get('transactions', []):
+            if tr.get('amount') == dict(
+                total = args.total,
+                currency = args.currency,
+            ):
+                transaction = tr
+                break
+        else:
+            abort('No corresponding transaction found', success=False)
 
-    # now payment should be verified
-    log.info('Payment approved, adding coins')
+        for sale in transaction.get('related_resources', []):
+            if sale.get('state') == 'completed':
+                break
+        else:
+            abort('Sale is not completed', success=False)
 
-    # FIXME: conversion rate
-    user.balance += args.total
+        # now payment should be verified
+        log.info('Payment approved, adding coins')
+
+        user.balance += coins
     return jsonify(
         success=True,
+        dry_run=args.dry_run,
+        added=coins,
         balance=user.balance_obj,
     )
 
@@ -239,6 +244,7 @@ def balance_withdraw(user):
             success = True,
             paid = amount,
             dry_run = True,
+            balance = user.balance_obj,
         )
 
     # first withdraw coins...
@@ -275,6 +281,7 @@ def balance_withdraw(user):
                 args.paypal_email, args.amount))
             return jsonify(success=True,
                            dry_run=False,
+                           paid = amount,
                            transaction_id=trinfo.get('payout_item_id'),
                            balance = user.balance_obj,
                            )
