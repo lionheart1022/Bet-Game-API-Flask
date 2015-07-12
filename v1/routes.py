@@ -210,7 +210,11 @@ def balance_withdraw(user):
             items = [
                 dict(
                     recipient_type = 'EMAIL',
-                    amount = args.amount, # TODO: rate conversion?
+                    amount = dict(
+                        # TODO: rate conversion?
+                        value = args.amount,
+                        currency = 'USD',
+                    ),
                     receiver = args.paypal_email,
                 ),
             ],
