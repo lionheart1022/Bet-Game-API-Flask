@@ -158,30 +158,32 @@ class PayPal:
         return jret
 
 class Fixer:
-    rates = None
-    rates_ttl = None
-    cache_lifetime = timedelta(minutes=15)
+    # fixer rates are updated daily, but it should be enough for us
+    item = namedtuple('item', ['ttl','rate'])
+    cache = OrderedDict()
+    cache_max = 100
+    cache_ttl = timedelta(minutes=15)
     @classmethod
     def latest(cls, src, dst):
         if src == dst:
             return 1
 
         now = datetime.now()
-        if not cls.rates_ttl or cls.rates_ttl < now:
-            # expired data - load new
-            result = requests.get(
-                'http://openexchangerates.org/api/latest.json', params={
-                    'app_id': config.OPENEXCHANGERATES_APPID,
-                    'base': 'USD',
-                }).json()
-            if 'rates' not in result:
-                log.error('No rates returned from OXR!')
-                log.error(result)
-                raise ValueError(result)
-            cls.rates = result['rates']
-            cls.rates_ttl = now + cls.cache_lifetime
+        if (src,dst) in cls.cache:
+            cls.cache.move_to_end((src,dst))
+            if cls.cache[(src,dst)].ttl > now:
+                return cls.cache[(src,dst)].rate
 
-        rate = cls.rates[dst] / cls.rates[src]
+        result = requests.get('http://api.fixer.io/latest', params={
+            'base': src, 'symbols': dst}).json()
+        if 'rates' not in result:
+            print('WARNING: failure with Fixer api', result)
+            return None
+        rate = result.get('rates').get(dst)
+
+        cls.cache[(src,dst)] = cls.item(now+cls.cache_ttl, rate)
+        if len(cls.cache) > cls.cache_max:
+            cls.popitem(last=False)
 
         return rate
 
