@@ -217,8 +217,12 @@ def balance_withdraw(user):
         ))
         stat = ret.get('transaction_status')
         if stat == 'SUCCESS':
+            log.info('Payout succeeded to {}, {} coins'.format(
+                arts.paypal_email, args.amount))
             return jsonify(success=True,
                            transaction_id=ret.get('payout_item_id'))
+        log.warning('Payout failed to {}, {} coins, stat {}'.format(
+            arts.paypal_email, args.amount, stat))
         if stat in ['PENDING', 'PROCESSING']:
             # TODO: wait and retry
             pass
@@ -230,6 +234,8 @@ def balance_withdraw(user):
         # restore balance
         user.balance += args.amount
         db.session.commit()
+
+        log.error('Exception while performing payout', exc_info=True)
 
         abort('Couldn\'t complete payout', 500, success=False)
 
