@@ -157,8 +157,10 @@ Resources
 	"player_nick": "DERP HACKER",
 	"email": "user@name.org",
 	"facebook_connected": true, // boolean
-	"balance": 135.2, // in coins
 	"devices": [ list of Device resources ],
+	"balance_full": 135.2, // how many coins are there
+	"balance_locked": 10, // locked coins are ones placed on the table for some active games
+	"balance_available": 125.2, // how many coins can you freely use or withdraw - this is full minus locked
 	... // some stats will be added
 }
 ```
