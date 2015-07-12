@@ -229,6 +229,7 @@ def balance_withdraw(user):
 
         abort('Couldn\'t complete payout', 500, status=stat,
               transaction_id=ret.get('payout_item_id'),
+              paypal_err=ret.get('error'),
               success=False)
     except Exception as e:
         if isinstance(e, HTTPException):
