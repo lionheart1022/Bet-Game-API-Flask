@@ -203,7 +203,7 @@ def balance_withdraw(user):
             sync_mode = True,
         ), dict(
             sender_batch_header = dict(
-                sender_batch_id = None,
+#                sender_batch_id = None,
                 email_subject = 'You have a payout',
                 recipient_type = 'EMAIL',
             ),
