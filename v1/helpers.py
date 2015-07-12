@@ -133,6 +133,7 @@ def paypal(method, url, params=None, json=None):
     try:
         return ret.json()
     except ValueError:
+        log.error('Paypal failure', exc_info=True);
         return {
             'error': ret.status_code,
         }
