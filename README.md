@@ -85,7 +85,7 @@ Result:
 ```
 
 
-### POST /balance/append
+### POST /balance/deposit
 Buy internal coins for real money.
 You should use [https://github.com/paypal/PayPal-iOS-SDK](PayPal SDK for iOS) or similar.
 

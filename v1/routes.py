@@ -172,9 +172,9 @@ def balance_get(user):
     return jsonify(
         balance = user.balance_obj,
     )
-@app.route('/balance/append', methods=['POST'])
+@app.route('/balance/deposit', methods=['POST'])
 @require_auth
-def balance_append(user):
+def balance_deposit(user):
     parser = RequestParser()
     parser.add_argument('payment_id', required=False)
     parser.add_argument('total', type=float, required=True)
