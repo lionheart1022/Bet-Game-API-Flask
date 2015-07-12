@@ -124,8 +124,12 @@ class PayPal:
             ret = requests.get(
                 cls.base_url+'oauth2/token',
                 data={'grant_type': 'client_credentials'},
-                auth=(config.PAYPAL_CLIENT,config.PAYPAL_SECRET),
-            ).json()
+                auth=(config.PAYPAL_CLIENT, config.PAYPAL_SECRET),
+            )
+            if ret.status_code != 200:
+                log.error('Couldn\'t get token: {}'.format(ret.status_code))
+                return
+            ret = ret.json()
             cls.token = ret['access_token']
         return cls.token
     @classmethod
