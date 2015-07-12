@@ -215,18 +215,28 @@ def balance_withdraw(user):
             items = [
                 dict(
                     recipient_type = 'EMAIL',
-                    amount = args.amount,
+                    amount = args.amount, # TODO: rate conversion?
                     receiver = args.paypal_email,
                 ),
             ],
         ))
+        stat = ret.get('transaction_status')
+        if stat == 'SUCCESS':
+            return jsonify(success=True,
+                           transaction_id=ret.get('payout_item_id'))
+        if stat in ['PENDING', 'PROCESSING']:
+            # TODO: wait and retry
+            pass
+
+        abort('Couldn\'t complete payout', 500, status=stat,
+              success=False)
     finally:
         if not success:
             # restore balance
             user.balance += args.amount
             db.session.commit()
 
-    return jsonify(success=success)
+    abort('Couldn\'t complete payout', 500, success=False)
 
 
 # Games
