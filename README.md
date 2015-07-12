@@ -103,14 +103,44 @@ Arguments:
  * `gametype`: either `xboxone-fifa14` or `xboxone-fifa15`.
  * `bet`: numeric bet amount, should not exceed your balance.
 
+Returns *Game resource* on success.
 
 ### GET /games
 Retrieve games (both accepted and not accepted yet) available for current player -
 i.e. either initiated by or sent to them.
 
+Return:
+```json
+{
+	"games": [
+		list of Game resource objects
+	]
+}
+```
 
-### PATCH /games
+
+### GET /games/<id>
+Returns details on particular game based on its ID.
+Will not return data on games not related to current user.
+
+Return: Game resource
+
+
+### PATCH /games/<id>
 Accept or decline an invitaton.
+
+Arguments possible:
+
+ * `state`: either `accepted` or `declined`
+
+Accepting game will immediately lock corresponding amount on player's balance
+and the game will be considered started.
+
+If trying to accept and there is no coins enough to cover game's bet amount,
+this request will fail with `400` code and additional `problem` field with value `coins`.
+In such situation the user should be advised to buy more coins.
+
+Returns *Game resource* object on success.
 
 
 Resources
@@ -147,5 +177,29 @@ Doesn't include sensitive information like `balance` or `devices`.
 {
 	"id": 10, // internal id
 	"last_login": "some date"
+}
+```
+
+### Game resource
+Possible game states:
+
+ * `new`: this game is in invitation phase
+ * `declined`: opponent declined an offer
+ * `accepted`: opponent accepted an offer and game is considered ongoing, system polls EA servers for result
+ * `finished`: system got game outcome from EA servers and already moved bets accordingly
+
+```json
+{
+	"id": 15, // internal id
+	"creator": { Limited Player resource },
+	"opponent": { Limited Player resource },
+	"gamemode": "friendlies", // or any other, see POST /games for details
+	"gametype": "xboxone-fifa15", // see POST /games for options
+	"bet": 5.29, // bet amount
+	"create_date": "RFC datetime",
+	"state": "finished", // see above
+	"accept_date": "RFC datetime", // date of eiter accepting or declining game, null for new games
+	"winner": "opponent", // either "creator", "opponent" or "draw"
+	"finish_date": "RFC datetime" // date when this game was finished, according to EA servers
 }
 ```
