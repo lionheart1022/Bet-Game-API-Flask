@@ -20,6 +20,13 @@ class Player(db.Model):
     @property
     def available(self):
         return self.balance - self.locked
+    @property
+    def balance_obj(self):
+        return {
+            'full': self.balance,
+            'locked': self.locked,
+            'available': self.available,
+        }
 
     @property
     def games(self):

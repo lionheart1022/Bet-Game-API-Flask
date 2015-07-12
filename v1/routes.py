@@ -172,9 +172,7 @@ class PlayerResource(restful.Resource):
 @require_auth
 def balance_get(user):
     return jsonify(
-        balance = user.balance,
-        locked = user.locked,
-        available = user.available,
+        balance = user.balance_obj,
     )
 @app.route('/balance/append', methods=['POST'])
 def balance_append():
