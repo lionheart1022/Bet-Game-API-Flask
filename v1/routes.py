@@ -277,7 +277,9 @@ def balance_withdraw(user):
                 args.paypal_email, args.amount))
             return jsonify(success=True,
                            dry_run=False,
-                           transaction_id=trinfo.get('payout_item_id'))
+                           transaction_id=trinfo.get('payout_item_id'),
+                           balance = user.balance_obj,
+                           )
         log.debug(str(ret))
         log.warning('Payout failed to {}, {} coins, stat {}'.format(
             args.paypal_email, args.amount, stat))
