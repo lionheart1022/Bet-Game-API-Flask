@@ -219,7 +219,11 @@ def balance_withdraw(user):
                 ),
             ],
         ))
-        stat = ret.get('transaction_status')
+        try:
+            trinfo = ret['items'][0]
+        except IndexError:
+            trinfo = None
+        stat = trinfo.get('transaction_status')
         if stat == 'SUCCESS':
             log.info('Payout succeeded to {}, {} coins'.format(
                 args.paypal_email, args.amount))
