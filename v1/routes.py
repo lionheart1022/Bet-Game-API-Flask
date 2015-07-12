@@ -228,7 +228,7 @@ def balance_withdraw(user):
             log.info('Payout succeeded to {}, {} coins'.format(
                 args.paypal_email, args.amount))
             return jsonify(success=True,
-                           transaction_id=ret.get('payout_item_id'))
+                           transaction_id=trinfo.get('payout_item_id'))
         log.debug(str(ret))
         log.warning('Payout failed to {}, {} coins, stat {}'.format(
             args.paypal_email, args.amount, stat))
@@ -236,8 +236,10 @@ def balance_withdraw(user):
             # TODO: wait and retry
             pass
 
-        abort('Couldn\'t complete payout', 500, status=stat,
-              transaction_id=ret.get('payout_item_id'),
+        abort('Couldn\'t complete payout', 500,
+              status=stat,
+              details=trinfo.get('errors',{}).get('message'),
+              transaction_id=trinfo.get('payout_item_id'),
               paypal_code=ret.get('_code'),
               success=False)
     except Exception as e:
