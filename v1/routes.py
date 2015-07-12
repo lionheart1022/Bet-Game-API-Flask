@@ -198,7 +198,6 @@ def balance_withdraw(user):
     # ... and only then do actual transaction;
     # will return balance if failure happens
 
-    success = False
     try:
         ret = paypal('POST', 'payments/payouts', dict(
             sync_mode = True,
@@ -225,12 +224,12 @@ def balance_withdraw(user):
             pass
 
         abort('Couldn\'t complete payout', 500, status=stat,
+              transaction_id=ret.get('payout_item_id'),
               success=False)
     except Exception:
-        if not success:
-            # restore balance
-            user.balance += args.amount
-            db.session.commit()
+        # restore balance
+        user.balance += args.amount
+        db.session.commit()
 
         abort('Couldn\'t complete payout', 500, success=False)
 
