@@ -6,6 +6,7 @@ from secret import DB_URL, JWT_SECRET
 #from secret import GOOGLE_AUTH_CLIENT_ID, GOOGLE_AUTH_CLIENT_SECRET
 #from secret import FACEBOOK_AUTH_CLIENT_ID, FACEBOOK_AUTH_CLIENT_SECRET
 #from secret import ADMIN_USERS
+from secret import PAYPAL_CLIENT, PAYPAL_SECRET
 try:
     from secret import LOCAL
 except ImportError:

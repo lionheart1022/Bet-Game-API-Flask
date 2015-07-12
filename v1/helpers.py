@@ -121,7 +121,15 @@ def paypal(method, url, params=None, json=None):
         json = params
         params = None
     url = 'https://api.sandbox.paypal.com/v1/' + url
-    ret = requests.request(method, url, params=params, json=json)
+    headers = {
+        #TODO: 'PayPal-Request-Id': None, # use generated nonce
+    }
+    ret = requests.request(method, url,
+                           params=params,
+                           json=json,
+                           auth=(config.PAYPAL_CLIENT,config.PAYPAL_SECRET),
+                           headers = headers,
+                           )
     try:
         return ret.json()
     except ValueError:
