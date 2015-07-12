@@ -115,6 +115,13 @@ class IPInfo:
             cls.cache.popitem(last=False)
         return result or default
 
+def paypal(method, url, params=None, json=None):
+    # TODO: auth
+    if not json:
+        json = args
+        args = None
+    url = 'https://api.sandbox.paypal.com/v1/' + url
+    return requests.request(method, url, params=params, json=json).json()
 
 ### Tokens ###
 def validateFederatedToken(service, refresh_token):

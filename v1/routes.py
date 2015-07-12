@@ -182,10 +182,51 @@ def balance_get(user):
     )
 @app.route('/balance/append', methods=['POST'])
 def balance_append():
-    pass
+    paypal('POST', 'payments/payment')
+
 @app.route('/balance/withdraw', methods=['POST'])
-def balance_withdraw():
-    pass
+@require_auth
+def balance_withdraw(user):
+    parser = RequestParser()
+    parser.add_argument('amount', type=float, required=True)
+    parser.add_argument('paypal_email', type=email, required=True)
+    args = parser.parse_args()
+
+    if user.available < args.amount:
+        abort('Not enough coins')
+
+    # first withdraw coins...
+    user.balance -= args.amount
+    db.session.commit()
+
+    # ... and only then do actual transaction;
+    # will return balance if failure happens
+
+    success = False
+    try:
+        ret = paypal('POST', 'payments/payouts', dict(
+            sync_mode = True,
+        ), dict(
+            sender_batch_header = dict(
+                sender_batch_id = None,
+                email_subject = 'You have a payout',
+                recipient_type = 'EMAIL',
+            ),
+            items = [
+                dict(
+                    recipient_type = 'EMAIL',
+                    amount = args.amount,
+                    receiver = args.paypal_email,
+                ),
+            ],
+        ))
+    finally:
+        if not success:
+            # restore balance
+            user.balance += args.amount
+            db.session.commit()
+
+    return jsonify(success=success)
 
 
 # Games
