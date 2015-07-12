@@ -263,6 +263,8 @@ class GameResource(restful.Resource):
 
         db.session.commit()
 
+        notify_user(opponent, game)
+
         return marshal(game, self.fields), 201
 
     def patch(self, id=None):
@@ -293,5 +295,7 @@ class GameResource(restful.Resource):
         user.locked += game.bet
 
         db.session.commit()
+
+        notify_user(user, game)
 
         return marshal(game, self.fields)

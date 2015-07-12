@@ -545,6 +545,7 @@ class AlternatingNested(restful.fields.Raw):
                        if self.condition(obj, value) else
                        self.alternate)
 
+
 ### Polling and notification ###
 def poll(gametype, gamemode):
     def fetch(nick):
@@ -614,6 +615,9 @@ def poll(gametype, gamemode):
                     game.creator.locked -= game.bet
                     game.opponent.locked -= game.bet
 
+                    notify_user(game.creator, game)
+                    notify_user(game.opponent, game)
+
                     games_done.add(game.id)
     db.session.commit()
     # TODO: send pushes?
@@ -625,6 +629,12 @@ def poll_all():
             except Exception as e:
                 log.error('Couldn\'t poll for gametype {} gamemode {}'.format(
                     gametype, gamemode), exc_info = True)
+
+
+# Notification
+
+def notify_user(player, game):
+    pass
 
 class classproperty:
     """
