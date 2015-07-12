@@ -80,7 +80,7 @@ Arguments: none
 Result:
 ```json
 {
-	"balance": amount // float
+	"balance": { Balance resource }
 }
 ```
 
@@ -106,7 +106,9 @@ Result:
 		"currency": "USD",
 		"value": 10.5,
 	},
-	"dry_run": false
+	"dry_run": false,
+	"transaction_id": "Transaction Identifier",
+	"balance": { Balance resource }
 }
 ```
 
@@ -176,13 +178,18 @@ Resources
 	"email": "user@name.org",
 	"facebook_connected": true, // boolean
 	"devices": [ list of Device resources ],
-	"balance_full": 135.2, // how many coins are there
-	"balance_locked": 10, // locked coins are ones placed on the table for some active games
-	"balance_available": 125.2, // how many coins can you freely use or withdraw - this is full minus locked
+	"balance": { Balance resource },
 	... // some stats will be added
 }
 ```
 
+### Balance resource
+```json
+{
+	"full": 135.2, // how many coins are there
+	"locked": 10, // locked coins are ones placed on the table for some active games
+	"available": 125.2, // how many coins can you freely use or withdraw - this is full minus locked
+}
 ### Limited Player resource
 Returned if you want to get info about other players.
 Doesn't include sensitive information like `balance` or `devices`.
