@@ -41,7 +41,7 @@ class Player(db.Model):
             p = cls.query.get(int(key))
         except ValueError: pass
         if not p:
-            p = cls.query.filter_by(player_nick=key).one()
+            p = cls.query.filter_by(player_nick=key).first()
         return p
 
 
