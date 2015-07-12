@@ -90,7 +90,25 @@ Buy internal coins for real money
 
 
 ### POST /balance/withdraw
-Sell internal coins for real money
+Sell internal coins for real money.
+
+Arguments:
+
+ * `paypal_email`: email of paypal account which should receive coins
+ * `amount`: how many coins do you want to sell
+ * `dry_run`: optional; if set to True, don't actually transfer coins but only return rate etc
+
+Result:
+```json
+{
+	"success": true, // boolean
+	"paid": {
+		"currency": "USD",
+		"value": 10.5,
+	},
+	"dry_run": false
+}
+```
 
 
 ### POST /games

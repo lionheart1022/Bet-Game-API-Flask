@@ -186,10 +186,24 @@ def balance_withdraw(user):
     parser = RequestParser()
     parser.add_argument('amount', type=float, required=True)
     parser.add_argument('paypal_email', type=email, required=True)
+    parser.add_argument('dry_run', type=boolean_field, default=False)
     args = parser.parse_args()
+
+    amount = dict(
+        # TODO: rate conversion
+        value = args.amount,
+        currency = 'USD',
+    )
 
     if user.available < args.amount:
         abort('Not enough coins')
+
+    if args.dry_run:
+        return jsonify(
+            success = True,
+            paid = amount,
+            dry_run = True,
+        )
 
     # first withdraw coins...
     user.balance -= args.amount
@@ -210,11 +224,7 @@ def balance_withdraw(user):
             items = [
                 dict(
                     recipient_type = 'EMAIL',
-                    amount = dict(
-                        # TODO: rate conversion?
-                        value = args.amount,
-                        currency = 'USD',
-                    ),
+                    amount = amount,
                     receiver = args.paypal_email,
                 ),
             ],
@@ -228,6 +238,7 @@ def balance_withdraw(user):
             log.info('Payout succeeded to {}, {} coins'.format(
                 args.paypal_email, args.amount))
             return jsonify(success=True,
+                           dry_run=False,
                            transaction_id=trinfo.get('payout_item_id'))
         log.debug(str(ret))
         log.warning('Payout failed to {}, {} coins, stat {}'.format(
@@ -242,7 +253,9 @@ def balance_withdraw(user):
               status=stat,
               transaction_id=trinfo.get('payout_item_id'),
               paypal_code=ret.get('_code'),
-              success=False)
+              success=False,
+              dry_run=False,
+              )
     except Exception as e:
         if isinstance(e, HTTPException):
             raise
@@ -252,7 +265,8 @@ def balance_withdraw(user):
 
         log.error('Exception while performing payout', exc_info=True)
 
-        abort('Couldn\'t complete payout', 500, success=False)
+        abort('Couldn\'t complete payout', 500,
+              success=False, dry_run=False)
 
 
 # Games
