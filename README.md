@@ -86,7 +86,24 @@ Result:
 
 
 ### POST /balance/append
-Buy internal coins for real money
+Buy internal coins for real money.
+You should use [https://github.com/paypal/PayPal-iOS-SDK](PayPal SDK for iOS) or similar.
+
+Arguments:
+
+ * `currency`
+ * `total` (value in that currency)
+ * `transaction_id` (for real transactions)
+ * `dry_run` - set to True and omit `transaction_id` if you want to just determine current exchange rate.
+
+Returns:
+```json
+{
+	"success": true,
+	"dry_run": false,
+	"balance": { Balance object }
+}
+```
 
 
 ### POST /balance/withdraw
