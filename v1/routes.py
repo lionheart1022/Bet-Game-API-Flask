@@ -147,23 +147,17 @@ class PlayerResource(restful.Resource):
         return marshal(user, self.fields_self)
 
     @classmethod
-    @app.route('/players/login', methods=['POST'])
-    def player_login(cls):
+    @app.route('/players/<id>/login', methods=['POST'])
+    def player_login(cls, id):
         parser = RequestParser()
-        parser.add_argument('email', required=False)
-        parser.add_argument('player_nick', required=False)
         parser.add_argument('password', required=True)
         args = parser.parse_args()
-        if args.email:
-            player = Player.query.filter_by(email=args.email).first()
-            if not player:
-                abort('Unknown email', 404)
-        elif args.player_nick:
-            player = Player.query.filter_by(player_nick=args.player_nick).first()
-            if not player:
-                abort('Unknown player nick', 404)
-        else:
-            abort('Please provide either email or player_nick')
+
+        player = Player.query.filter_by(player_nick=id).first()
+        if not player:
+            player = Player.query.filter_by(email=id).first()
+        if not player:
+            abort('Unknown player nick or email', 404)
 
         if not check_password(args.password, player.password):
             abort('Password incorrect', 403)

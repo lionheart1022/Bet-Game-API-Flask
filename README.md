@@ -61,13 +61,13 @@ ID may be either integer internal ID, player's nick or `me`.
 Returns Player resource.
 
 
-### POST /players/login
+### POST /players/<nick>/login
 Receive a login token.
+
+In url you can include either `player_nick` or email address.
 
 *Arguments*:
 
- * `email`
- * `player_nick` (can be specified instead of email)
  * `password`
  * `push_token` of the current device
 
