@@ -146,9 +146,8 @@ class PlayerResource(restful.Resource):
 
         return marshal(user, self.fields_self)
 
-    @classmethod
     @app.route('/players/<id>/login', methods=['POST'])
-    def player_login(cls, id):
+    def player_login(id):
         parser = RequestParser()
         parser.add_argument('password', required=True)
         args = parser.parse_args()
@@ -162,7 +161,7 @@ class PlayerResource(restful.Resource):
         if not check_password(args.password, player.password):
             abort('Password incorrect', 403)
 
-        return cls.login_do(player)
+        return PlayerResource.login_do(player)
 
 
 # Balance
