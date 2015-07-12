@@ -174,7 +174,9 @@ class PlayerResource(restful.Resource):
 @require_auth
 def balance_get(user):
     return jsonify(
-        balance = user.balance
+        balance = user.balance,
+        locked = user.locked,
+        available = user.available,
     )
 @app.route('/balance/append', methods=['POST'])
 def balance_append():
@@ -245,9 +247,9 @@ class GameResource(restful.Resource):
             abort('You cannot compete with yourself')
 
         if args.bet < 0.99:
-            abort('[bet]: too low amount')
-        if args.bet > user.balance:
-            abort('[bet]: not enough coins')
+            abort('[bet]: too low amount', problem='bet')
+        if args.bet > user.available:
+            abort('[bet]: not enough coins', problem='coins')
 
         game = Game()
         game.creator = user
@@ -256,6 +258,9 @@ class GameResource(restful.Resource):
         game.gamemode = args.gamemode
         game.gametype = args.gametype
         db.session.add(game)
+
+        user.locked += game.bet
+
         db.session.commit()
 
         return marshal(game, self.fields), 201
@@ -279,11 +284,13 @@ class GameResource(restful.Resource):
         if game.state != 'new':
             abort('This game is already {}'.format(game.state))
 
-        if args.state == 'accepted' and game.bet > user.balance:
+        if args.state == 'accepted' and game.bet > user.available:
             abort('Not enough coins', problem='coins')
 
         game.state = args.state
         game.accept_date = datetime.utcnow()
+
+        user.locked += game.bet
 
         db.session.commit()
 

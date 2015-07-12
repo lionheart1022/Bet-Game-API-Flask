@@ -16,6 +16,10 @@ class Player(db.Model):
     facebook_token = db.Column(db.String(128))
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
     balance = db.Column(db.Float, default=0)
+    locked = db.Column(db.Float, default=0)
+    @property
+    def available(self):
+        return self.balance - self.locked
 
     @property
     def games(self):
