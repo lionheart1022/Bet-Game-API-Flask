@@ -115,28 +115,42 @@ class IPInfo:
             cls.cache.popitem(last=False)
         return result or default
 
-def paypal(method, url, params=None, json=None):
-    # TODO: auth
-    if not json:
-        json = params
-        params = None
-    url = 'https://api.sandbox.paypal.com/v1/' + url
-    headers = {
-        #TODO: 'PayPal-Request-Id': None, # use generated nonce
-    }
-    ret = requests.request(method, url,
-                           params=params,
-                           json=json,
-                           auth=(config.PAYPAL_CLIENT,config.PAYPAL_SECRET),
-                           headers = headers,
-                           )
-    try:
-        return ret.json()
-    except ValueError:
-        log.error('Paypal failure', exc_info=True);
-        return {
-            'error': ret.status_code,
+class PayPal:
+    token = None
+    base_url = 'https://api.sandbox.paypal.com/v1/'
+    @classmethod
+    def get_token(cls):
+        if not cls.token:
+            ret = requests.get(
+                cls.base_url+'oauth2/token',
+                data={'grant_type': 'client_credentials'},
+                auth=(config.PAYPAL_CLIENT,config.PAYPAL_SECRET),
+            ).json()
+            cls.token = ret['access_token']
+        return cls.token
+    @classmethod
+    def paypal(cls, method, url, params=None, json=None):
+        # TODO: auth
+        if not json:
+            json = params
+            params = None
+        url = cls.base_url + url
+        headers = {
+            'Authorization': 'Bearer '+cls.get_token(),
+            #TODO: 'PayPal-Request-Id': None, # use generated nonce
         }
+        ret = requests.request(method, url,
+                            params=params,
+                            json=json,
+                            headers = headers,
+                            )
+        try:
+            return ret.json()
+        except ValueError:
+            log.error('Paypal failure', exc_info=True);
+            return {
+                'error': ret.status_code,
+            }
 
 ### Tokens ###
 def validateFederatedToken(service, refresh_token):

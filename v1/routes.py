@@ -199,7 +199,7 @@ def balance_withdraw(user):
     # will return balance if failure happens
 
     try:
-        ret = paypal('POST', 'payments/payouts', dict(
+        ret = PayPal.call('POST', 'payments/payouts', dict(
             sync_mode = True,
         ), dict(
             sender_batch_header = dict(
