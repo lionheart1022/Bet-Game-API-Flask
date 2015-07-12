@@ -117,6 +117,7 @@ class IPInfo:
 
 class PayPal:
     token = None
+    # FIXME: token lifetime
     base_url = 'https://api.sandbox.paypal.com/v1/'
     @classmethod
     def get_token(cls):
@@ -155,6 +156,32 @@ class PayPal:
             jret = {}
         jret['_code'] = ret.status_code
         return jret
+
+class Fixer:
+    rates = None
+    rates_ttl = None
+    cache_lifetime = timedelta(minutes=15)
+    @classmethod
+    def latest(cls, src, dst):
+        now = datetime.now()
+        if not cls.rates_ttl or cls.rates_ttl < now:
+            # expired data - load new
+            result = requests.get(
+                'http://openexchangerates.org/api/latest.json', params={
+                    'app_id': config.OPENEXCHANGERATES_APPID,
+                    'base': 'USD',
+                }).json()
+            if 'rates' not in result:
+                log.error('No rates returned from OXR!')
+                log.error(result)
+                raise ValueError(result)
+            cls.rates = result['rates']
+            cls.rates_ttl = now + cls.cache_lifetime
+
+        rate = cls.rates[dst] / cls.rates[src]
+
+        return rate
+
 
 ### Tokens ###
 def validateFederatedToken(service, refresh_token):

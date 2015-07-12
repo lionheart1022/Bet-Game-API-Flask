@@ -226,6 +226,7 @@ def balance_append(user):
 def balance_withdraw(user):
     parser = RequestParser()
     parser.add_argument('amount', type=float, required=True)
+    parser.add_argument('currency', default='USD')
     parser.add_argument('paypal_email', type=email, required=True)
     parser.add_argument('dry_run', type=boolean_field, default=False)
     args = parser.parse_args()
@@ -234,8 +235,8 @@ def balance_withdraw(user):
         abort('Too small amount, minimum withdraw amount is {} coins'
               .format(config.WITHDRAW_MINIMUM))
 
+    # TODO: rate conversion?
     amount = dict(
-        # TODO: rate conversion
         value = args.amount,
         currency = 'USD',
     )
