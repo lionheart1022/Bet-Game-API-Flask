@@ -615,7 +615,7 @@ def poll(gametype, gamemode):
                     game.creator.locked -= game.bet
                     game.opponent.locked -= game.bet
 
-                    notify_user(game)
+                    notify_users(game)
 
                     games_done.add(game.id)
     db.session.commit()
@@ -631,8 +631,7 @@ def poll_all():
 
 
 # Notification
-
-def notify_user(game):
+def notify_users(game):
     if not isinstance(players, list):
         players = [players]
 
