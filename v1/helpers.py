@@ -211,7 +211,6 @@ def makeToken(user, service=None, refresh_token=None,
                 return from_token
     payload = {
         'sub': user.id,
-        'type': user.__class__.__name__.lower(),
     }
     if service: # federated token
         if not isinstance(user, Client):
@@ -248,23 +247,17 @@ def parseToken(token, userid=None, allow_longterm=False):
         if str(e) == 'expired':
             raise TokenExpired
         raise ValueError("Bad token: "+str(e))
-    if 'type' not in payload or 'sub' not in payload:
+    if 'sub' not in payload:
         raise ValueError('Invalid token provided')
     if not allow_longterm and 'longterm' in payload:
         raise ValueError('Longterm token not allowed, use short-living one')
-    if payload['type'] == 'client':
-        cls = Client
-    elif payload['type'] == 'vendor':
-        cls = Vendor
-    else:
-        raise ValueError('Bad user type: '+payload['type'])
     if not payload['sub']:
         raise ValueError('Invalid userid in token: '+str(payload['sub']))
     if userid and payload['sub'] != userid:
         raise BadUserId
     user = cls.query.get(payload['sub'])
     if not user:
-        raise ValueError("No such "+payload['type'])
+        raise ValueError("No such player")
     slt = binascii.hexlify(user.password[-4:]).decode() # last 4 bytes of salt
     if payload.get('pass') != slt:
         raise ValueError('Password was changed, please login again')
