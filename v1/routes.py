@@ -236,10 +236,13 @@ def balance_withdraw(user):
               .format(config.WITHDRAW_MINIMUM))
 
     # TODO: rate conversion?
-    amount = dict(
-        value = args.coins * Fixer.latest('USD', args.currency),
-        currency = args.currency,
-    )
+    try:
+        amount = dict(
+            value = args.coins * Fixer.latest('USD', args.currency),
+            currency = args.currency,
+        )
+    except ValueError:
+        abort('Unknown currency provided')
 
     if user.available < args.coins:
         abort('Not enough coins')

@@ -180,6 +180,8 @@ class Fixer:
             print('WARNING: failure with Fixer api', result)
             return None
         rate = result.get('rates').get(dst)
+        if rate is None:
+            raise ValueError('Unknown currency '+dst)
 
         cls.cache[(src,dst)] = cls.item(now+cls.cache_ttl, rate)
         if len(cls.cache) > cls.cache_max:
