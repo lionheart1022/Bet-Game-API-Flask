@@ -1,6 +1,21 @@
 Bet game API
 ============
 
+Authorization
+-------------
+Most API endpoints require authorization.
+For authorization you should include an auth token with your request.
+That token can be included with any of the following ways:
+
+ * Add an `Authorization` header with value of `Bearer your.token.here`
+ * Add a `token` parameter to the request.
+
+Token can be obtained either when registering new user (`POST /players`)
+or with dedicated login method (`POST /players/login`).
+
+Parameters for endpoints can be passed either as GET arguments, as POST form data
+or in a JSON object (with corresponding content-type).
+
 Endpoints
 ---------
 
@@ -56,7 +71,16 @@ Receive a login token.
 
 
 ### GET /balance
-Learn current balance
+Learn current player's balance.
+
+Arguments: none
+
+Result:
+```json
+{
+	"balance": amount // float
+}
+```
 
 
 ### POST /balance/append
