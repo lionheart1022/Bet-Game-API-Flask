@@ -149,12 +149,12 @@ class PayPal:
                             headers = headers,
                             )
         try:
-            return ret.json()
+            jret = ret.json()
         except ValueError:
             log.error('Paypal failure', exc_info=True);
-            return {
-                'error': ret.status_code,
-            }
+            jret = {}
+        jret['_code'] = ret.status_code
+        return jret
 
 ### Tokens ###
 def validateFederatedToken(service, refresh_token):
