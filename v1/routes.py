@@ -226,13 +226,13 @@ def balance_withdraw(user):
 
         abort('Couldn\'t complete payout', 500, status=stat,
               success=False)
-    finally:
+    except Exception:
         if not success:
             # restore balance
             user.balance += args.amount
             db.session.commit()
 
-    abort('Couldn\'t complete payout', 500, success=False)
+        abort('Couldn\'t complete payout', 500, success=False)
 
 
 # Games
