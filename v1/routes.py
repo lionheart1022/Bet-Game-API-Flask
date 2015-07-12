@@ -225,23 +225,23 @@ def balance_append(user):
 @require_auth
 def balance_withdraw(user):
     parser = RequestParser()
-    parser.add_argument('amount', type=float, required=True)
+    parser.add_argument('coins', type=float, required=True)
     parser.add_argument('currency', default='USD')
     parser.add_argument('paypal_email', type=email, required=True)
     parser.add_argument('dry_run', type=boolean_field, default=False)
     args = parser.parse_args()
 
-    if args.amount < config.WITHDRAW_MINIMUM:
+    if args.coins < config.WITHDRAW_MINIMUM:
         abort('Too small amount, minimum withdraw amount is {} coins'
               .format(config.WITHDRAW_MINIMUM))
 
     # TODO: rate conversion?
     amount = dict(
-        value = args.amount * Fixer.latest('USD', args.currency),
+        value = args.coins * Fixer.latest('USD', args.currency),
         currency = args.currency,
     )
 
-    if user.available < args.amount:
+    if user.available < args.coins:
         abort('Not enough coins')
 
     if args.dry_run:
@@ -253,7 +253,7 @@ def balance_withdraw(user):
         )
 
     # first withdraw coins...
-    user.balance -= args.amount
+    user.balance -= args.coins
     db.session.commit()
 
     # ... and only then do actual transaction;
@@ -283,7 +283,7 @@ def balance_withdraw(user):
         stat = trinfo.get('transaction_status')
         if stat == 'SUCCESS':
             log.info('Payout succeeded to {}, {} coins'.format(
-                args.paypal_email, args.amount))
+                args.paypal_email, args.coins))
             return jsonify(success=True,
                            dry_run=False,
                            paid = amount,
@@ -292,7 +292,7 @@ def balance_withdraw(user):
                            )
         log.debug(str(ret))
         log.warning('Payout failed to {}, {} coins, stat {}'.format(
-            args.paypal_email, args.amount, stat))
+            args.paypal_email, args.coins, stat))
         if stat in ['PENDING', 'PROCESSING']:
             # TODO: wait and retry
             pass
@@ -310,7 +310,7 @@ def balance_withdraw(user):
         if isinstance(e, HTTPException):
             raise
         # restore balance
-        user.balance += args.amount
+        user.balance += args.coins
         db.session.commit()
 
         log.error('Exception while performing payout', exc_info=True)
