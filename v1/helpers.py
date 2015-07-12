@@ -604,6 +604,16 @@ def poll(gametype, gamemode):
                         game.winner = 'draw'
                     game.state = 'finished'
                     game.finish_date = datetime.utcfromtimestamp(match['timestamp'])
+
+                    # move funds...
+                    if game.winner == 'creator':
+                        game.creator.balance += game.bet
+                    elif game.winner == 'opponent':
+                        game.opponent.balance += game.bet
+                    # and unlock bets
+                    game.creator.locked -= game.bet
+                    game.opponent.locked -= game.bet
+
                     games_done.add(game.id)
     db.session.commit()
     # TODO: send pushes?
