@@ -174,8 +174,8 @@ class PlayerResource(restful.Resource):
 
         # send password recovery link
         ret = mailsend(player, 'recover',
-                 link='https://betgame.co.uk/'
-                 '#action=password&userid={}&token={}'.format(
+                 link='https://betgame.co.uk/password.html'
+                 '#userid={}&token={}'.format(
                      player.id,
                      makeToken(player)
                  ))
