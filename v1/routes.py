@@ -358,11 +358,25 @@ class GameResource(restful.Resource):
 
             return marshal(game, self.fields)
 
+        parser = RequestParser()
+        parser.add_argument('page', type=int, default=1)
+        parser.add_argument('results_per_page', type=int, default=10)
+        args = parser.parse_args()
+        # cap
+        args.results_per_page = min(args.results_per_page, 50)
+
         query = user.games
         # TODO: filters
+        total_count = query.count()
+        query = query.paginate(args.page, args.results_per_page,
+                               error_out = False)
 
-        return jsonify(games = fields.List(fields.Nested(self.fields))
-                       .format(query))
+        return jsonify(
+            games = fields.List(fields.Nested(self.fields)).format(query),
+            num_results = total_count,
+            total_pages = math.ceil(total_count/args.results_per_page),
+            page = args.page,
+        )
 
     @require_auth
     def post(self, user, id=None):
