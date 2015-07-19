@@ -218,7 +218,12 @@ def mailsend(user, mtype, **kwargs):
     )
     try:
         jret = ret.json()
-        return 'message' in jret
+        if 'id' in jret:
+            log.info('mail sent: '+jret['message'])
+            return True
+        else:
+            log.error('mail sending failed: '+jret['message'])
+            return False
     except Exception:
         return False
 
