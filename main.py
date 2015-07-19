@@ -68,7 +68,7 @@ def setup_logging(app, f = None, level = logging.DEBUG):
     # papertail logging
     logger = SysLogHandler(address=(config.PT_HOSTNAME, config.PT_PORT))
     logger.setFormatter(logging.Formatter(
-        '%(asctime)s MaxChangeAPI{}: '
+        '%(asctime)s BetGameAPI{}: '
         '[%(levelname)s] %(message)s'.format('-test' if config.TEST else ''),
         datefmt='%b %d %H:%M:%S'))
     logger.setLevel(level)
