@@ -772,9 +772,6 @@ def poll_all():
 
 # Notification
 def notify_users(game):
-    if not isinstance(players, list):
-        players = [players]
-
     msg = {
         'new': '{} invites you to compete'.format(game.creator.player_nick),
         'accepted': '{} accepted your invitation, start playing now!'
