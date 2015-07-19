@@ -408,7 +408,7 @@ class GameResource(restful.Resource):
             raise MethodNotAllowed
 
         parser = RequestParser()
-        parser.add_argument('opponent_id', type=gamertag_field, required=True)
+        parser.add_argument('opponent_id', required=True)
         parser.add_argument('gamemode', options=Game.GAMEMODES, required=True)
         parser.add_argument('gametype', options=Game.GAMETYPES, required=True)
         parser.add_argument('bet', type=float, required=True)
