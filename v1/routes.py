@@ -172,7 +172,17 @@ class PlayerResource(restful.Resource):
             abort('Unknown player nick or email', 404)
 
         # send password recovery link
-        # TODO
+        mailsend(player, 'recover',
+                 link='https://betgame.co.uk/'
+                 '#action=password&userid={}&token={}'.format(
+                     player.id,
+                     makeToken(player)
+                 ))
+
+        return jsonify(
+            success=True,
+            message='Password recovery link sent to your email address',
+        )
 
 
 # Balance

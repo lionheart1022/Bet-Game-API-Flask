@@ -189,6 +189,9 @@ class Fixer:
 
         return rate
 
+def mailsend(user, message, **kwargs):
+    # TODO
+    pass
 
 ### Tokens ###
 def validateFederatedToken(service, refresh_token):
