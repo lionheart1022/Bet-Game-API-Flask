@@ -206,10 +206,10 @@ def mailsend(user, mtype, **kwargs):
         txt = f.read()
         for key,val in values.items():
             txt = txt.replace('{%s}' % key, val)
-        if base:
+        if not base:
             txt = load('base', ext, dict(
                 content = txt,
-            ))
+            ), base=True)
         return txt
 
     ret = requests.post(
@@ -220,7 +220,7 @@ def mailsend(user, mtype, **kwargs):
             'to': '{} <{}>'.format(user.player_nick, user.email),
             'subject': subjects[mtype],
             'text': load(mtype, 'txt', kwargs),
-            'html': load(mtype, 'html', kwargs, base=True),
+            'html': load(mtype, 'html', kwargs),
         },
     )
     try:
