@@ -773,6 +773,11 @@ def poll_all():
 
 # Notification
 def notify_users(game):
+    """
+    This method sends PUSH notifications about game state change
+    to all interested users.
+    It will also send congratulations email to game winner.
+    """
     msg = {
         'new': '{} invites you to compete'.format(game.creator.player_nick),
         'accepted': '{} accepted your invitation, start playing now!'
@@ -800,7 +805,7 @@ def notify_users(game):
     # TODO: store session and use get_conn
     conn = session.new_connection('push', cert_file=None) # TODO
 
-    def do_send(msg):
+    def send_push(msg):
         srv = apns_clerk.APNs(conn)
         try:
             ret = srv.send(message)
@@ -816,7 +821,26 @@ def notify_users(game):
 
             if res.needs_retry():
                 do_send(res.retry)
-    do_send(message)
+
+    def send_mail(game):
+        if game.state == 'finished':
+            if game.winner == 'creator':
+                winner = game.creator
+            elif game.winner == 'opponent':
+                winner = game.opponent
+            else:
+                log.error('Internal error: incorrect game winner '+game.winner
+                          +' for state '+game.state)
+                return
+            mailsend(
+                winner, 'win',
+                date = game.finish_date.strftime('%d.%m.%Y %H:%M:%S UTC'),
+                bet = game.bet,
+            )
+
+    send_push(message)
+    # and send email if applicable
+    send_mail(game)
 
 class classproperty:
     """
