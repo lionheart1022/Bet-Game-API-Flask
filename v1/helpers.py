@@ -201,11 +201,15 @@ def mailsend(user, mtype, **kwargs):
     kwargs['email'] = user.email
 
     subject = subjects[mtype]
-    def load(ext):
-        f = open('templates/{}.{}'.format(mtype, ext), 'r')
+    def load(name, ext, values, base=False):
+        f = open('templates/{}.{}'.format(name, ext), 'r')
         txt = f.read()
-        for key,val in kwargs.items():
+        for key,val in values.items():
             txt = txt.replace('{%s}' % key, val)
+        if base:
+            txt = load('base', ext, dict(
+                content = txt,
+            ))
         return txt
 
     ret = requests.post(
@@ -215,8 +219,8 @@ def mailsend(user, mtype, **kwargs):
             'from': config.MAIL_SENDER,
             'to': '{} <{}>'.format(user.player_nick, user.email),
             'subject': subjects[mtype],
-            'text': load('txt'),
-            'html': load('html'),
+            'text': load(mtype, 'txt', kwargs),
+            'html': load(mtype, 'html', kwargs, base=True),
         },
     )
     try:
