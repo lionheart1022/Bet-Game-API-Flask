@@ -689,8 +689,8 @@ class AlternatingNested(restful.fields.Raw):
 
 ### Polling and notification ###
 def poll(gametype, gamemode):
-    games = 0
-    ended = 0
+    count_games = 0
+    count_ended = 0
     def fetch(nick):
         url = 'https://www.easports.com/fifa/api/'\
             '{}/match-history/{}/{}'.format(
@@ -711,7 +711,7 @@ def poll(gametype, gamemode):
     # map player names to sets of games related to them
     players = {}
     for game in games:
-        games += 1
+        count_games += 1
         for player in game.creator, game.opponent:
             if player.player_nick in players:
                 players[player.player_nick].add(game)
@@ -750,7 +750,7 @@ def poll(gametype, gamemode):
                     game.state = 'finished'
                     game.finish_date = datetime.utcfromtimestamp(match['timestamp'])
 
-                    ended += 1
+                    count_ended += 1
 
                     # move funds...
                     if game.winner == 'creator':
@@ -766,7 +766,7 @@ def poll(gametype, gamemode):
                     games_done.add(game.id)
     db.session.commit()
 
-    return games, ended
+    return count_games, count_ended
 def poll_all():
     log.info('Starting polling')
     for gametype in Game.GAMETYPES:
