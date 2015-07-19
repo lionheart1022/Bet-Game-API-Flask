@@ -205,7 +205,7 @@ def mailsend(user, mtype, **kwargs):
             txt = txt.replace('{%s}' % key, val)
         return txt
 
-    ret = requests.get(
+    ret = requests.post(
         'https://api.mailgun.net/v3/{}/messages'.format(config.MAIL_DOMAIN),
         auth=('api',config.MAILGUN_KEY),
         params={

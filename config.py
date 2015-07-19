@@ -26,7 +26,7 @@ SMS_BRAND = "Bet Game"
 SMS_SENDER = "BetGame"
 
 # for mail sending
-MAIL_DOMAIN = 'betgame.co.uk'
+MAIL_DOMAIN = 'mg.betgame.co.uk'
 MAIL_SENDER = 'BetGame <noreply@betgame.co.uk>'
 
 CORS_ORIGINS = [
