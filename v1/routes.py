@@ -363,7 +363,8 @@ class GameResource(restful.Resource):
         parser.add_argument('results_per_page', type=int, default=10)
         args = parser.parse_args()
         # cap
-        args.results_per_page = min(args.results_per_page, 50)
+        if args.results_per_page > 50:
+            abort('[results_per_page]: max is 50')
 
         query = user.games
         # TODO: filters

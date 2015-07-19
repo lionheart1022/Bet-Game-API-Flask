@@ -152,12 +152,20 @@ Returns *Game resource* on success.
 Retrieve games (both accepted and not accepted yet) available for current player -
 i.e. either initiated by or sent to them.
 
+This request supports pagination:
+
+ * `page`: page to return (defaults to 1)
+ * `results_per_page`: how many games to include per page (defaults to 10, max is 50)
+
 Return:
 ```json
 {
 	"games": [
 		list of Game resource objects
-	]
+	],
+	"page": 1 // current page
+	"total_pages": 9,
+	"num_results": 83, // total count
 }
 ```
 
