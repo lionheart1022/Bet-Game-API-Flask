@@ -836,6 +836,7 @@ def notify_users(game):
                 winner, 'win',
                 date = game.finish_date.strftime('%d.%m.%Y %H:%M:%S UTC'),
                 bet = game.bet,
+                balance = winner.available,
             )
 
     send_push(message)
