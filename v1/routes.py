@@ -125,7 +125,8 @@ class PlayerResource(restful.Resource):
         db.session.add(player)
         db.session.commit()
 
-        # TODO send greeting
+        mailsend(player, 'greeting')
+        # we don't check result as it is not critical if this email is not sent
 
         return self.login_do(player, args_login, created=True)
 
