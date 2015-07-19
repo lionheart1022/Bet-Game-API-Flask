@@ -163,6 +163,7 @@ class PlayerResource(restful.Resource):
             abort('Password incorrect', 403)
 
         return PlayerResource.login_do(player)
+
     @app.route('/players/<id>/resetPassword', methods=['POST'])
     def reset_password(id):
         player = Player.query.filter_by(player_nick=id).first()

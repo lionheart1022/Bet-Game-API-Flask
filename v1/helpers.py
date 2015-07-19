@@ -201,7 +201,7 @@ def mailsend(user, mtype, **kwargs):
     def load(ext):
         f = open('templates/{}.{}'.format(mtype, ext), 'r')
         txt = f.read()
-        for key,val in kwargs.pairs():
+        for key,val in kwargs.items():
             txt = txt.replace('{%s}' % key, val)
         return txt
 
