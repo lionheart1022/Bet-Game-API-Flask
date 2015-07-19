@@ -193,6 +193,7 @@ def mailsend(user, mtype, **kwargs):
     subjects = dict(
         greeting = 'Welcome to BetGame',
         recover = 'BetGame password recovery',
+        win = 'BetGame win notification',
     )
     if mtype not in subjects:
         raise ValueError('Unknown message type {}'.format(mtype))
