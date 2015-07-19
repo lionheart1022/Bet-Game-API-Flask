@@ -532,19 +532,27 @@ def boolean_field(val):
         return True
     raise ValueError(str(val)+' is not boolean')
 
+gamertag_cache = {}
 def gamertag_field(nick):
+    if nick.lower() in gamertag_cache:
+        if gamertag_cache[nick.lower()]:
+            return gamertag_cache[nick.lower()]
+        raise ValueError('Unknown gamertag: '+nick)
+
     url = 'https://www.easports.com/fifa/api/'\
         'fifa15-xboxone/match-history/fut/{}'.format(nick)
     try:
         ret = requests.get(url).json()['data'].json()
         if ret.get('code') == 404:
+            # don't cache not-registered nicks as they can appear in future
+            #gamertag_cache[nick.lower()] = None
             raise ValueError('Unknown gamertag: {}'.format(nick))
         data = ret['data']
-        if not data:
-            # no data so cannot know correct capitalizing; return as is
-            return nick
         # normalized gamertag (with correct capitalizing)
-        return data[0]['self']['user_info'][0]
+        # no data so cannot know correct capitalizing; return as is
+        goodnick = data[0]['self']['user_info'][0] if data else nick
+        gamertag_cache[nick.lower()] = goodnick
+        return goodnick
     except Exception as e:
         raise ValueError('Couldn\'t validate this gamertag: {}'.format(nick))
 
