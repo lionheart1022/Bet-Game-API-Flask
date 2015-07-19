@@ -68,7 +68,7 @@ class Game(db.Model):
     opponent = db.relationship(Player, foreign_keys='Game.opponent_id')
 
     GAMETYPES = [
-        'xboxone-fifa14', 'xboxone-fifa15',
+        'fifa14-xboxone', 'fifa15-xboxone',
     ]
     GAMEMODES = [
         'fifaSeasons',

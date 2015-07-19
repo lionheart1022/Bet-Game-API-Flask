@@ -139,7 +139,7 @@ Arguments:
 
  * `opponent_id`: either player nick or internal numeric id of opponent.
  * `gamemode`: one of game modes - `fifaSeasons`, `futSeasons`, `fut`, `friendlies` or `coop`.
- * `gametype`: either `xboxone-fifa14` or `xboxone-fifa15`.
+ * `gametype`: either `fifa14-xboxone` or `fifa15-xboxone`.
  * `bet`: numeric bet amount, should not exceed your balance.
 
 When creating an invitation, corresponding amount of coins is immediately locked on user's account.
