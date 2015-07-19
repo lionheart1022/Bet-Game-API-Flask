@@ -553,7 +553,8 @@ def gamertag_field(nick):
         goodnick = data[0]['self']['user_info'][0] if data else nick
         gamertag_cache[nick.lower()] = goodnick
         return goodnick
-    except Exception as e:
+    except Exception as e: # json failure or missing key
+        log.error('Failed to validate gamertag '+nick, exc_info=True)
         raise ValueError('Couldn\'t validate this gamertag: {}'.format(nick))
 
 def encrypt_password(val):
