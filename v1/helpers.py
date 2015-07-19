@@ -189,9 +189,38 @@ class Fixer:
 
         return rate
 
-def mailsend(user, message, **kwargs):
-    # TODO
-    pass
+def mailsend(user, mtype, **kwargs):
+    subjects = dict(
+        greeting = 'Welcome to BetGame',
+        recover = 'BetGame password recovery',
+    )
+    if mtype not in subjects:
+        raise ValueError('Unknown message type {}'.format(mtype))
+
+    subject = subjects[mtype]
+    def load(ext):
+        f = open('templates/{}.{}'.format(mtype, ext), 'r')
+        txt = f.read()
+        for key,val in kwargs.pairs():
+            txt = txt.replace('{%s}' % key, val)
+        return txt
+
+    ret = requests.get(
+        'https://api.mailgun.net/v3/{}/messages'.format(config.MAIL_DOMAIN),
+        auth=('api',config.MAILGUN_KEY),
+        params={
+            'from': config.MAIL_SENDER,
+            'to': '{} <{}>'.format(user.player_nick, user.email),
+            'subject': subjects[mtype],
+            'text': load('txt'),
+            'html': load('html'),
+        },
+    )
+    try:
+        jret = ret.json()
+        return 'message' in jret
+    except Exception:
+        return False
 
 ### Tokens ###
 def validateFederatedToken(service, refresh_token):

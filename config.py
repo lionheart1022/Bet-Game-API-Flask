@@ -7,6 +7,7 @@ from secret import DB_URL, JWT_SECRET
 #from secret import FACEBOOK_AUTH_CLIENT_ID, FACEBOOK_AUTH_CLIENT_SECRET
 #from secret import ADMIN_USERS
 from secret import PAYPAL_CLIENT, PAYPAL_SECRET
+from secret import MAILGUN_KEY
 try:
     from secret import LOCAL
 except ImportError:
@@ -23,6 +24,10 @@ JWT_LIFETIME = timedelta(days=365)
 # for Nexmo phone number verification
 SMS_BRAND = "Bet Game"
 SMS_SENDER = "BetGame"
+
+# for mail sending
+MAIL_DOMAIN = 'betgame.co.uk'
+MAIL_SENDER = 'BetGame <noreply@betgame.co.uk>'
 
 CORS_ORIGINS = [
     'https://betgame.co.uk',
@@ -41,3 +46,4 @@ if 'test' in __file__:
 
 # in coins
 WITHDRAW_MINIMUM = 40
+
