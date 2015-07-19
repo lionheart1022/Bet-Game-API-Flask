@@ -542,7 +542,7 @@ def gamertag_field(nick):
     url = 'https://www.easports.com/fifa/api/'\
         'fifa15-xboxone/match-history/fut/{}'.format(nick)
     try:
-        ret = requests.get(url).json()['data'].json()
+        ret = requests.get(url).json()
         if ret.get('code') == 404:
             # don't cache not-registered nicks as they can appear in future
             #gamertag_cache[nick.lower()] = None
