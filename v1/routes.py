@@ -31,7 +31,7 @@ class PlayerResource(restful.Resource):
         partial = parser.partial = RequestParser()
         login = parser.login = RequestParser()
         for name, type, required in [
-            ('player_nick', None, True),
+            ('player_nick', gamertag_field, True),
             ('email', email, True),
             ('password', encrypt_password, True),
             ('facebook_token', federatedRenewFacebook, False), # should be last to avoid extra queries
@@ -408,7 +408,7 @@ class GameResource(restful.Resource):
             raise MethodNotAllowed
 
         parser = RequestParser()
-        parser.add_argument('opponent_id', type=str, required=True)
+        parser.add_argument('opponent_id', type=gamertag_field, required=True)
         parser.add_argument('gamemode', options=Game.GAMEMODES, required=True)
         parser.add_argument('gametype', options=Game.GAMETYPES, required=True)
         parser.add_argument('bet', type=float, required=True)
