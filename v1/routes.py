@@ -361,9 +361,8 @@ class GameResource(restful.Resource):
         query = user.games
         # TODO: filters
 
-        return jsonify(games = marshal(
-            query,
-            fields.List(fields.Nested(self.fields))))
+        return jsonify(games = fields.List(fields.Nested(self.fields))
+                       .format(query))
 
     @require_auth
     def post(self, user, id=None):
