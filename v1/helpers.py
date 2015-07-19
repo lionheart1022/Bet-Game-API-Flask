@@ -197,6 +197,9 @@ def mailsend(user, mtype, **kwargs):
     if mtype not in subjects:
         raise ValueError('Unknown message type {}'.format(mtype))
 
+    kwargs['name'] = user.player_nick
+    kwargs['email'] = user.email
+
     subject = subjects[mtype]
     def load(ext):
         f = open('templates/{}.{}'.format(mtype, ext), 'r')
