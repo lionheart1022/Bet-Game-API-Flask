@@ -140,7 +140,7 @@ class PlayerResource(restful.Resource):
         args = self.parser.partial.parse_args()
 
         for key, val in args.items():
-            if hasattr(user, key):
+            if val and hasattr(user, key):
                 setattr(user, key, val)
 
         db.session.commit()
