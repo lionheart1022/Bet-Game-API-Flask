@@ -555,7 +555,9 @@ def gamertag_field(nick):
         return goodnick
     except Exception as e: # json failure or missing key
         log.error('Failed to validate gamertag '+nick, exc_info=True)
-        raise ValueError('Couldn\'t validate this gamertag: {}'.format(nick))
+        log.error('Allowing it...')
+        #raise ValueError('Couldn\'t validate this gamertag: {}'.format(nick))
+        return nick
 
 def encrypt_password(val):
     """
