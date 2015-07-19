@@ -775,7 +775,7 @@ def poll_all():
                 games, ended = poll(gamemode, gametype)
                 log.info(
                     '{gametype}, {gamemode}: '
-                    'ended {ended} of {games} games'.format(vars()))
+                    'ended {ended} of {games} games'.format(**vars()))
             except Exception as e:
                 log.error('Couldn\'t poll for gametype {} gamemode {}'.format(
                     gametype, gamemode), exc_info = True)
