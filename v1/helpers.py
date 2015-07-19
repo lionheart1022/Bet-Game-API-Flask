@@ -532,6 +532,22 @@ def boolean_field(val):
         return True
     raise ValueError(str(val)+' is not boolean')
 
+def gamertag_field(nick):
+    url = 'https://www.easports.com/fifa/api/'\
+        'fifa15-xboxone/match-history/fut/{}'.format(nick)
+    try:
+        ret = requests.get(url).json()['data'].json()
+        if ret.get('code') == 404:
+            raise ValueError('Unknown gamertag: {}'.format(nick))
+        data = ret['data']
+        if not data:
+            # no data so cannot know correct capitalizing; return as is
+            return nick
+        # normalized gamertag (with correct capitalizing)
+        return data[0]['self']['user_info'][0]
+    except Exception as e:
+        raise ValueError('Couldn\'t validate this gamertag: {}'.format(nick))
+
 def encrypt_password(val):
     """
     Check password for weakness, and convert it to its hash.
