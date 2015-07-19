@@ -374,7 +374,7 @@ def parseToken(token, userid=None, allow_longterm=False):
         raise ValueError("No such player")
     slt = binascii.hexlify(user.password[-4:]).decode() # last 4 bytes of salt
     if payload.get('pass') != slt:
-        raise ValueError('Password was changed, please login again')
+        raise ValueError('Your password was changed, please login again')
     if 'svc' in payload and cls == Client and 'longterm' in payload:
         if 'longterm' in payload:
             validateFederatedToken(payload.get('svc'), payload.get('refresh'))
