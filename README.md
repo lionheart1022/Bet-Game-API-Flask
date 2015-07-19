@@ -71,6 +71,21 @@ In url you can include either `player_nick` or email address.
  * `password`
  * `push_token` of the current device
 
+### POST /players/<nick>/reset_password
+Initiate password recovery.
+Will send password changing link to user's registered email.
+User can be identified by either gamertag or email address.
+
+*Arguments*: none.
+
+*Result*:
+```json
+{
+	"success": true, // or false if some error occurs
+	"message": "Descripting message" // probably error description
+}
+```
+
 
 ### GET /balance
 Learn current player's balance.

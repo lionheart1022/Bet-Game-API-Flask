@@ -164,7 +164,7 @@ class PlayerResource(restful.Resource):
 
         return PlayerResource.login_do(player)
 
-    @app.route('/players/<id>/resetPassword', methods=['POST'])
+    @app.route('/players/<id>/reset_password', methods=['POST'])
     def reset_password(id):
         player = Player.query.filter_by(player_nick=id).first()
         if not player:
