@@ -410,8 +410,8 @@ class GameResource(restful.Resource):
 
         parser = RequestParser()
         parser.add_argument('opponent_id', required=True)
-        parser.add_argument('gamemode', options=Game.GAMEMODES, required=True)
-        parser.add_argument('gametype', options=Game.GAMETYPES, required=True)
+        parser.add_argument('gamemode', choices=Game.GAMEMODES, required=True)
+        parser.add_argument('gametype', choices=Game.GAMETYPES, required=True)
         parser.add_argument('bet', type=float, required=True)
         args = parser.parse_args()
 
