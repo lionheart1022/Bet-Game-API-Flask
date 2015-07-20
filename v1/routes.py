@@ -409,16 +409,14 @@ class GameResource(restful.Resource):
             raise MethodNotAllowed
 
         parser = RequestParser()
-        parser.add_argument('opponent_id', required=True)
+        parser.add_argument('opponent_id', type=lambda k: Player.find_or_fail(k),
+                            required=True, dest='opponent')
         parser.add_argument('gamemode', choices=Game.GAMEMODES, required=True)
         parser.add_argument('gametype', choices=Game.GAMETYPES, required=True)
         parser.add_argument('bet', type=float, required=True)
         args = parser.parse_args()
 
-        opponent = Player.find(args.opponent_id)
-        if not opponent:
-            abort('[opponent_id]: no such player')
-        if opponent == user:
+        if args.opponent == user:
             abort('You cannot compete with yourself')
 
         if args.bet < 0.99:
@@ -428,7 +426,7 @@ class GameResource(restful.Resource):
 
         game = Game()
         game.creator = user
-        game.opponent = opponent
+        game.opponent = args.opponent
         game.bet = args.bet
         game.gamemode = args.gamemode
         game.gametype = args.gametype

@@ -51,6 +51,12 @@ class Player(db.Model):
             p = cls.query.filter_by(player_nick=key).first()
         return p
 
+    @classmethod
+    def find_or_fail(cls, key):
+        player = cls.find(key)
+        if not player:
+            raise ValueError('No such player - {}'.format(key))
+        return player
 
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
