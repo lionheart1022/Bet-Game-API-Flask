@@ -394,7 +394,7 @@ class GameResource(restful.Resource):
         # TODO: filters
         total_count = query.count()
         query = query.paginate(args.page, args.results_per_page,
-                               error_out = False)
+                               error_out = False).items
 
         return jsonify(
             games = fields.List(fields.Nested(self.fields)).format(query),
