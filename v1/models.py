@@ -55,7 +55,7 @@ class Player(db.Model):
     def find_or_fail(cls, key):
         player = cls.find(key)
         if not player:
-            raise ValueError('No such player - {}'.format(key))
+            raise ValueError('Player {} is not registered on BetGame'.format(key))
         return player
 
 class Device(db.Model):
