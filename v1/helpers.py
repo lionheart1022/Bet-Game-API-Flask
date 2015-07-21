@@ -703,7 +703,7 @@ class AlternatingNested(restful.fields.Raw):
 
 
 ### Polling and notification ###
-def poll(gametype, gamemode):
+def poll_fifa(gametype, gamemode):
     count_games = 0
     count_ended = 0
     def fetch(nick):
@@ -725,13 +725,19 @@ def poll(gametype, gamemode):
     )
     # map player names to sets of games related to them
     players = {}
-    for game in games:
+    def add_game(game):
+        for player in game.creator, game.opponent:
+            if not player.ea_gamertag:
+                log.warning('Game {} has player without gamertag. Failing!')
+                return
         count_games += 1
         for player in game.creator, game.opponent:
             if player.ea_gamertag in players:
                 players[player.ea_gamertag].add(game)
             else:
                 players[player.ea_gamertag] = set([game])
+    for game in games:
+        add_game(game)
 
     # order player names by count of games
     order = list(map(lambda p: p[0],
@@ -784,10 +790,10 @@ def poll(gametype, gamemode):
     return count_games, count_ended
 def poll_all():
     log.info('Starting polling')
-    for gametype in Game.GAMETYPES:
+    for gametype in Game.GAMETYPES_EA:
         for gamemode in Game.GAMEMODES:
             try:
-                games, ended = poll(gamemode, gametype)
+                games, ended = poll_fifa(gamemode, gametype)
                 log.info(
                     '{gametype}, {gamemode}: '
                     'ended {ended} of {games} games'.format(**vars()))
