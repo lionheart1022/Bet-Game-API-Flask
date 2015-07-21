@@ -33,6 +33,8 @@ Player registration.
  * `push_token` - device identifier for push notifications - only for login-related methods
  * maybe more...
 
+ * `_force`: force registration with invalid gamertag (effectively disables gamertag validation). Should not be used for production.
+
 Returns object with Player resource and auth token. Returns `201` HTTP code.
 ```json
 {
