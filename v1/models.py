@@ -92,6 +92,9 @@ class Game(db.Model):
     opponent_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
     opponent = db.relationship(Player, foreign_keys='Game.opponent_id')
 
+    gamertag_creator = db.Column(db.String)
+    gamertag_opponent = db.Column(db.String)
+
     GAMETYPES_EA = [
         'fifa14-xboxone', 'fifa15-xboxone',
     ]

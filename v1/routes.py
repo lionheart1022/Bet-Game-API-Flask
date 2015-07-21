@@ -507,6 +507,10 @@ class GameResource(restful.Resource):
         parser = RequestParser()
         parser.add_argument('opponent_id', type=lambda k: Player.find_or_fail(k),
                             required=True, dest='opponent')
+        parser.add_argument('gamertag_creator', type=gamertag_field,
+                            required=False)
+        parser.add_argument('gamertag_opponent', type=gamertag_field,
+                            required=False)
         parser.add_argument('gametype', choices=Game.GAMETYPES, required=True)
         parser.add_argument('gamemode', choices=Game.GAMEMODES, required=True)
         parser.add_argument('bet', type=float, required=True)
@@ -515,10 +519,16 @@ class GameResource(restful.Resource):
         if args.opponent == user:
             abort('You cannot compete with yourself')
 
-        if args.bet < 0.99:
-            abort('[bet]: too low amount', problem='bet')
-        if args.bet > user.available:
-            abort('[bet]: not enough coins', problem='coins')
+        if not args.gamertag_creator:
+            args.gamertag_creator = user.ea_gamertag
+            if not args.gamertag_creator:
+                abort('You didn\'t specify your gamertag, '
+                      'and don\'t have default one')
+        if not args.gamertag_opponent:
+            args.gamertag_opponent = args.opponent.ea_gamertag
+            if not args.gamertag_opponent:
+                abort('You didn\'t specify your opponent\'s gamertag, '
+                      'and they don\'t have default one')
 
         if args.gametype in Game.GAMETYPES_EA:
             if not user.ea_gamertag:
@@ -526,12 +536,19 @@ class GameResource(restful.Resource):
             if not args.opponent.ea_gamertag:
                 abort('Your opponent has no EA GamerTag specified and cannot play FIFA!')
 
+        if args.bet < 0.99:
+            abort('[bet]: too low amount', problem='bet')
+        if args.bet > user.available:
+            abort('[bet]: not enough coins', problem='coins')
+
         game = Game()
         game.creator = user
         game.opponent = args.opponent
-        game.bet = args.bet
+        game.gamertag_creator = args.gamertag_creator
+        game.gamertag_opponent = args.gamertag_opponent
         game.gamemode = args.gamemode
         game.gametype = args.gametype
+        game.bet = args.bet
         db.session.add(game)
 
         user.locked += game.bet
