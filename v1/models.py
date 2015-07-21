@@ -50,12 +50,17 @@ class Player(db.Model):
         if key.lower() == 'me':
             return getattr(g, 'user', None)
 
+        if '@' in key and '.' in key:
+            return cls.query.filter_by(email=key).first()
+
         p = None
         try:
             p = cls.query.get(int(key))
         except ValueError: pass
         if not p:
-            p = cls.query.filter_by(player_nick=key).first()
+            p = cls.query.filter_by(nickname=key).first()
+        if not p:
+            p = cls.query.filter_by(ea_gamertag=key).first()
         return p
 
     @classmethod
