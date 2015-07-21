@@ -563,7 +563,9 @@ def gamertag_field(nick):
         if ret.get('code') == 404:
             # don't cache not-registered nicks as they can appear in future
             #gamertag_cache[nick.lower()] = None
-            raise ValueError('Unknown gamertag: {}'.format(nick))
+            raise ValueError(
+                'Gamertag {} seems to be unknown '
+                'for FIFA game servers'.format(nick))
         data = ret['data']
         # normalized gamertag (with correct capitalizing)
         # no data so cannot know correct capitalizing; return as is
