@@ -203,9 +203,13 @@ Create game invitation.
 
 Arguments:
 
- * `opponent_id`: either player nick or internal numeric id of opponent.
- * `gamemode`: one of game modes - `fifaSeasons`, `futSeasons`, `fut`, `friendlies` or `coop`.
+ * `opponent_id`: either nickname, gamertag or internal numeric id of opponent.
+ * `gamertag_creator`: gamertag of the player for which invitation creator roots.
+	Optional, defaults to creator's own gamertag (if specified).
+ * `gamertag_opponent`: gamertag of the player for which invitation opponent roots.
+	Optional, defaults to opponent's own gamertag (if specified).
  * `gametype`: either `fifa14-xboxone` or `fifa15-xboxone`.
+ * `gamemode`: one of game modes - `fifaSeasons`, `futSeasons`, `fut`, `friendlies` or `coop`.
  * `bet`: numeric bet amount, should not exceed your balance.
 
 When creating an invitation, corresponding amount of coins is immediately locked on user's account.
