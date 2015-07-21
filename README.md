@@ -71,6 +71,19 @@ In url you can include either `player_nick` or email address.
  * `password`
  * `push_token` of the current device
 
+### POST /login_federated
+Federated login via Facebook.
+
+*Arguments*:
+
+ * `token`: Facebook auth token
+
+Token should be requested with `email` permission for server to be able to fetch user's email.
+
+This endpoint returns object identical to `POST /players` or `POST /players/<nick>/login`,
+depending on whether this player was already registered or not.
+HTTP code will be `201` or `200`, accordingly.
+
 ### POST /players/<nick>/reset_password
 Initiate password recovery.
 Will send password changing link to user's registered email.
