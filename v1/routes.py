@@ -40,18 +40,18 @@ class PlayerResource(restful.Resource):
             ('facebook_token', federatedRenewFacebook, False), # should be last to avoid extra queries
             ('ea_gamertag', gamertag_field, False),
         ]:
+            if hasattr(Player, name):
+                type = string_field(getattr(Player, name), ftype=type)
             parser.add_argument(
                 name,
                 required = required,
-                type=string_field(
-                    getattr(Player, name),
-                    ftype=type))
+                type=type,
+            )
             partial.add_argument(
                 name,
                 required = False,
-                type=string_field(
-                    getattr(Player, name),
-                    ftype=type))
+                type=type,
+            )
         login.add_argument('push_token', type=string_field(Device.push_token),
                            required=True)
         return parser
@@ -522,9 +522,9 @@ class GameResource(restful.Resource):
 
         if 'fifa' in args.gametype:
             if not user.ea_gamertag:
-                abort('You have no GamerTag specified and cannot play FIFA!')
+                abort('You have no EA GamerTag specified and cannot play FIFA!')
             if not args.opponent.ea_gamertag:
-                abort('Your opponent has no GamerTag specified and cannot play FIFA!')
+                abort('Your opponent has no EA GamerTag specified and cannot play FIFA!')
 
         game = Game()
         game.creator = user
