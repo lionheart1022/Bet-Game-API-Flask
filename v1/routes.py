@@ -141,7 +141,7 @@ class PlayerResource(restful.Resource):
         if not id:
             raise MethodNotAllowed
 
-        if id.lower() not in ('me', str(user.id), user.player_nick.lower()):
+        if Player.find(id) != user:
             abort('You cannot edit other player\'s info', 403)
 
         args = self.parser.partial.parse_args()
@@ -160,11 +160,9 @@ class PlayerResource(restful.Resource):
         parser.add_argument('password', required=True)
         args = parser.parse_args()
 
-        player = Player.query.filter_by(player_nick=id).first()
+        player = Player.find(id)
         if not player:
-            player = Player.query.filter_by(email=id).first()
-        if not player:
-            abort('Unknown player nick or email', 404)
+            abort('Unknown nickname, gamertag or email', 404)
 
         if not check_password(args.password, player.password):
             abort('Password incorrect', 403)
@@ -221,11 +219,9 @@ class PlayerResource(restful.Resource):
 
     @app.route('/players/<id>/reset_password', methods=['POST'])
     def reset_password(id):
-        player = Player.query.filter_by(player_nick=id).first()
+        player = Player.find(id)
         if not player:
-            player = Player.query.filter_by(email=id).first()
-        if not player:
-            abort('Unknown player nick or email', 404)
+            abort('Unknown nickname, gamertag or email', 404)
 
         # send password recovery link
         ret = mailsend(player, 'recover',
