@@ -439,18 +439,16 @@ def gametype_image(id):
 
         # crop if needed
         if args.w and args.h:
-            log.debug('aw:{}, ah:{}, dw:{}, dh:{}'.format(
-                args.w, args.h, dw, dh))
             if args.w != dw:
                 # crop horizontally
-                ch = (dh-args.h)/2
-                cu, cd = math.floor(ch), math.ceil(ch)
-                img = img.crop(box=(0, cu, img.width, img.height-cd))
-            elif args.h != dh:
-                # crop vertically
                 cw = (dw-args.w)/2
                 cl, cr = math.floor(cw), math.ceil(cw)
                 img = img.crop(box=(cl, 0, img.width-cr, img.height))
+            elif args.h != dh:
+                # crop vertically
+                ch = (dh-args.h)/2
+                cu, cd = math.floor(ch), math.ceil(ch)
+                img = img.crop(box=(0, cu, img.width, img.height-cd))
 
     img_file = BytesIO()
     img.save(img_file, 'png')
