@@ -26,10 +26,11 @@ Player registration.
 
 *Arguments:*
 
- * `player_nick` - required, should match the one used on EA Games
- * `email` - required?
+ * `nickname` - required
+ * `email` - required
  * `password`
  * `facebook_token` - optional
+ * `ea_gamertag` - optional, should match the one used on EA Games
  * `push_token` - device identifier for push notifications - only for login-related methods
  * maybe more...
 
@@ -66,7 +67,7 @@ Returns Player resource.
 ### POST /players/<nick>/login
 Receive a login token.
 
-In url you can include either `player_nick` or email address.
+In url you can include either `nickname`, `ea_gamertag` or email address.
 
 *Arguments*:
 
@@ -259,9 +260,10 @@ Resources
 ```json
 {
 	"id": 23, // internal identifier
-	"player_nick": "DERP HACKER",
+	"nickname": "John Smith",
 	"email": "user@name.org",
 	"facebook_connected": true, // boolean
+	"ea_gamertag": "DERP HACKER",
 	"devices": [ list of Device resources ],
 	"balance": { Balance resource },
 	... // some stats will be added
@@ -275,15 +277,18 @@ Resources
 	"locked": 10, // locked coins are ones placed on the table for some active games
 	"available": 125.2, // how many coins can you freely use or withdraw - this is full minus locked
 }
+```
+
 ### Limited Player resource
 Returned if you want to get info about other players.
 Doesn't include sensitive information like `balance` or `devices`.
 ```json
 {
 	"id": 23, // internal identifier
-	"player_nick": "DERP HACKER",
+	"nickname": "John Smith",
 	"email": "user@name.org",
 	"facebook_connected": true, // boolean
+	"ea_gamertag": "DERP HACKER",
 	... // some stats
 }
 ```
