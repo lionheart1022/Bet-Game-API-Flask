@@ -427,7 +427,7 @@ def gametype_image(id):
     img = Image.open('images/{}.png'.format(id))
     ow, oh = img.size
     if args.w or args.h:
-        if not args.h or (args.w/args.h) > (ow/oh):
+        if not args.h or (args.w and args.h and (args.w/args.h) > (ow/oh)):
             dw = args.w
             dh = round(oh / ow * dw)
         else:
