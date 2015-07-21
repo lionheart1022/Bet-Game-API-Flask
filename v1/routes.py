@@ -520,7 +520,7 @@ class GameResource(restful.Resource):
         if args.bet > user.available:
             abort('[bet]: not enough coins', problem='coins')
 
-        if 'fifa' in args.gametype:
+        if args.gametype in Game.GAMETYPES_EA:
             if not user.ea_gamertag:
                 abort('You have no EA GamerTag specified and cannot play FIFA!')
             if not args.opponent.ea_gamertag:
