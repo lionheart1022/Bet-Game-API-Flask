@@ -726,10 +726,10 @@ def poll(gametype, gamemode):
     for game in games:
         count_games += 1
         for player in game.creator, game.opponent:
-            if player.player_nick in players:
-                players[player.player_nick].add(game)
+            if player.ea_gamertag in players:
+                players[player.ea_gamertag].add(game)
             else:
-                players[player.player_nick] = set([game])
+                players[player.ea_gamertag] = set([game])
 
     # order player names by count of games
     order = list(map(lambda p: p[0],
@@ -748,9 +748,9 @@ def poll(gametype, gamemode):
                 if math.floor(game.accept_date.timestamp()) > match['timestamp']:
                     continue
                 other, who = ((game.opponent, 'opponent')
-                              if game.creator.player_nick == player
+                              if game.creator.ea_gamertag == player
                               else (game.creator, 'creator'))
-                if other.player_nick in match['opponent']['user_info']:
+                if other.ea_gamertag in match['opponent']['user_info']:
                     # game matched! change its status
                     if match['self']['stats']['score'] > match['self']['stats']['score']:
                         # "self" won, "other" lost
