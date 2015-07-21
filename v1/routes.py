@@ -165,6 +165,46 @@ class PlayerResource(restful.Resource):
 
         return PlayerResource.login_do(player)
 
+    @app.route('/federated_login', methods=['POST'])
+    @secure_only
+    def federated():
+        parser = RequestParser()
+        parser.add_argument('token', type=federatedRenewFacebook, required=True)
+        args = parser.parse_args()
+
+        ret = requests.get(
+            'https://graph.facebook.com/v2.3/me',
+            params = dict(
+                access_token = args.token,
+                fields = 'id,email',
+            ),
+        )
+        jret = ret.json()
+        if 'error' in jret:
+            err = jret['error']
+            abort('Error fetching email from Facebook: {} {} ({})'.format(
+                err.get('code', ret.status_code),
+                err.get('type', ret.reason),
+                err.get('message', 'no details'),
+            ))
+        if 'email' in jret:
+            identity = jret['email']
+        elif 'id' in jret:
+            identity = jret['id']
+        else:
+            abort('Facebook didn\'t return email nor user id')
+
+        player = Player.query.filter_by(email=identity).first()
+        created = False
+        if not player:
+            created = True
+            player = Player()
+            player.email = identity
+            player.password = encrypt_password(None) # random salt
+            db.session.add(player)
+        player.facebook_token = args.token
+        return PlayerResource.login_do(player, cretaed=created)
+
     @app.route('/players/<id>/reset_password', methods=['POST'])
     def reset_password(id):
         player = Player.query.filter_by(player_nick=id).first()
