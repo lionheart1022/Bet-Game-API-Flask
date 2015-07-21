@@ -435,7 +435,7 @@ def gametype_image(id):
             dw = round(ow / oh * dh)
 
         # resize
-        img = img.resize(size=(dw, dh))
+        img = img.resize((dw, dh), Image.ANTIALIAS)
 
         # crop if needed
         if args.w and args.h:
