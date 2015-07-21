@@ -54,6 +54,7 @@ class PlayerResource(restful.Resource):
             )
         login.add_argument('push_token', type=string_field(Device.push_token),
                            required=True)
+        partial.add_argument('old_password', required=False)
         return parser
     @classproperty
     def fields_self(cls):
@@ -145,6 +146,18 @@ class PlayerResource(restful.Resource):
             abort('You cannot edit other player\'s info', 403)
 
         args = self.parser.partial.parse_args()
+
+        if args.password:
+            if not request.is_secure and not current_app.debug:
+                abort('Please use secure connection', 406)
+            # if only hash available then we have no password yet
+            # and will not check old password field
+            if len(user.password) > 16:
+                if not args.old_password:
+                    abort('Please specify old password if you want to change it',
+                        problem='old_password')
+                if not check_password(args.old_password, user.password):
+                    abort('Old password doesn\'t match')
 
         for key, val in args.items():
             if val and hasattr(user, key):

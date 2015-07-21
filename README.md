@@ -64,6 +64,10 @@ for other players will only return *Limited Player resource*.
 ### PATCH /players/<id>
 Update player's data.
 Accepts any of not-login-related arguments of `POST /players`.
+If you provide `password` field, you should also provide `old_password` field
+which will be validated against user's current password.
+Although it is not required if user has no password configured
+(i.e. if he was registered with Facebook).
 
 ID may be either integer internal ID, player's nick or `me`.
 
