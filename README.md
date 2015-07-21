@@ -197,6 +197,7 @@ If both are provided, image will be cut to keep aspect ratio.
 
 Returns image itself with corresponding MIME type (most likely PNG).
 
+
 ### POST /games
 Create game invitation.
 
