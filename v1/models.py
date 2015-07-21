@@ -10,13 +10,17 @@ import config
 
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    player_nick = db.Column(db.String(64), unique=True)
+    nickname = db.Column(db.String(64), unique=True)
     email = db.Column(db.String(128), nullable=False, unique=True)
     password = db.Column(db.LargeBinary(36))
     facebook_token = db.Column(db.String(128))
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
+
+    ea_gamertag = db.Column(db.String(64), unique=True)
+
     balance = db.Column(db.Float, default=0)
     locked = db.Column(db.Float, default=0)
+
     @property
     def available(self):
         return self.balance - self.locked
@@ -60,6 +64,7 @@ class Player(db.Model):
         if not player:
             raise ValueError('Player {} is not registered on BetGame'.format(key))
         return player
+
 
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)

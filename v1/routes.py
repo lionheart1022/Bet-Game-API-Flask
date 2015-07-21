@@ -34,10 +34,11 @@ class PlayerResource(restful.Resource):
         login = parser.login = RequestParser()
         for name, type, required in [
             ('_force', gamertag_force_field, False),
-            ('player_nick', gamertag_field, True),
+            ('nickname', None, True),
             ('email', email, True),
             ('password', encrypt_password, True),
             ('facebook_token', federatedRenewFacebook, False), # should be last to avoid extra queries
+            ('ea_gamertag', gamertag_field, False),
         ]:
             parser.add_argument(
                 name,
