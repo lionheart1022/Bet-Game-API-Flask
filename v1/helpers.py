@@ -723,36 +723,38 @@ def poll_fifa(gametype, gamemode):
         gamemode=gamemode,
         state = 'accepted',
     )
-    # map player names to sets of games related to them
-    players = {}
+    # map gamertags to sets of games related to them
+    gamertags = {}
     for game in games:
         count_games += 1
-        for player in game.creator, game.opponent:
-            if player.ea_gamertag in players:
-                players[player.ea_gamertag].add(game)
+        for gamertag in game.gamertag_creator, game.gamertag_opponent:
+            if gamertag in gamertags:
+                gamertags[gamertag].add(game)
             else:
-                players[player.ea_gamertag] = set([game])
+                gamertags[gamertag] = set([game])
 
     # order player names by count of games
     order = list(map(lambda p: p[0],
-                     sorted(players.items(),
+                     sorted(gamertags.items(),
                             key=lambda p: len(p[1]),
                             reverse=True)))
     games_done = set()
-    for player in order:
-        matches = fetch(player)
+    for gamertag in order:
+        matches = fetch(gamertag)
         for match in reversed(matches): # from oldest to newest
-            for game in players[player]:
+            for game in gamertags[gamertag]:
                 # skip already completed games
                 if game.id in games_done:
                     continue
                 # skip this game if current match ended before game's start
                 if math.floor(game.accept_date.timestamp()) > match['timestamp']:
                     continue
-                other, who = ((game.opponent, 'opponent')
-                              if game.creator.ea_gamertag == player
-                              else (game.creator, 'creator'))
-                if other.ea_gamertag in match['opponent']['user_info']:
+                other, othertag, who = (
+                    (game.opponent, game.gamertag_opponent, 'opponent')
+                    if game.gamertag_creator == gamertag else
+                    (game.creator, game.gamertag_creator, 'creator'))
+                if othertag.lower() in map(lambda x:x.lower(),
+                                           match['opponent']['user_info']):
                     # game matched! change its status
                     if match['self']['stats']['score'] > match['opponent']['stats']['score']:
                         # "self" won, "other" lost
