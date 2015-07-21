@@ -1,4 +1,4 @@
-from flask import request, url_for, jsonify, current_app, g
+from flask import request, url_for, jsonify, current_app, g, send_file
 from flask.ext import restful
 from flask.ext.restful import fields, marshal, marshal_with, marshal_with_field
 
@@ -11,6 +11,8 @@ from datetime import datetime, timedelta
 import math
 from functools import reduce
 import itertools
+from PIL import Image
+from io import BytesIO
 
 import config
 from .models import *
@@ -403,7 +405,36 @@ def gametype_image(id):
     parser.add_argument('h', type=int, required=False)
     args = parser.parse_args()
 
-    # TODO
+    img = Image.open('images/{}.png'.format(id))
+    ow, oh = img.size
+    if args.w or args.h:
+        if not args.h or (args.w/args.h) > (ow/oh):
+            dw = args.w
+            dh = round(oh / ow * dw)
+        else:
+            dh = args.h
+            dw = round(ow / oh * dh)
+
+        # resize
+        img = img.resize(size=(dw, dh))
+
+        # crop if needed
+        if args.w and args.h:
+            if args.w != dw:
+                # crop horizontally
+                ch = (dh-args.h)/2
+                cu, cd = math.floor(ch), math.ceil(ch)
+                img = img.crop(box=(0, cu, img.width, img.height-cd))
+            elif args.h != dh:
+                # crop vertically
+                cw = (dw-args.w)/2
+                cl, cr = math.floor(cw), math.ceil(cw)
+                img = img.crop(box=(cl, 0, img.width-cr, img.height))
+
+    img_file = BytesIO()
+    img.save(img_file, 'png')
+    img_file.seek(0)
+    return send_file(img_file, mimetype='image/png')
 
 # Games
 @api.resource(
