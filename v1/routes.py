@@ -388,6 +388,22 @@ def balance_withdraw(user):
               success=False, dry_run=False)
 
 
+# Game types
+@app.route('/gametypes', methods=['GET'])
+def gametypes():
+    return jsonify(gametypes = Game.GAMETYPES)
+@app.route('/gametypes/<id>/image', methods=['GET'])
+def gametype_id(id):
+    if id not in Game.GAMETYPES:
+        raise NotFound
+
+    parser = RequestParser()
+    parser.add_argument('w', type=int, required=False)
+    parser.add_argument('h', type=int, required=False)
+    args = parser.parse_args()
+
+    # TODO
+
 # Games
 @api.resource(
     '/games',

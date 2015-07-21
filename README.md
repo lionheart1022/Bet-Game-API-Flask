@@ -160,6 +160,34 @@ Result:
 ```
 
 
+### GET /gametypes
+List available game types.
+For now, there are only 2 of them: `fifa14-xboxone` and `fifa15-xboxone`.
+
+***NOTICE: this endpoint's return format might change later***
+
+```json
+{
+	"gametypes": [
+		"fifa14-xboxone",
+		"fifa15-xboxone
+	]
+}
+```
+
+### GET /gametypes/<type>/image
+Retrieves a picture for given game type.
+
+Arguments:
+
+ * `w`: image width (defaults to maximum possible)
+ * `h`: image width (defaults to maximum possible)
+
+If only one of arguments is provided, other will be chosen to maintain aspect ratio.
+If both are provided, image will be cut to keep aspect ratio.
+
+Returns image itself with corresponding MIME type (most likely PNG).
+
 ### POST /games
 Create game invitation.
 
