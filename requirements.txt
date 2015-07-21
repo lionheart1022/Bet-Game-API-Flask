@@ -13,3 +13,5 @@ pytz
 aniso8601
 
 apns-clerk
+
+pillow
