@@ -91,6 +91,7 @@ class PlayerResource(restful.Resource):
         ret = jsonify(
             player = marshal(player, cls.fields_self),
             token = makeToken(player),
+            created = created,
         )
         if created:
             ret.status_code = 201
@@ -130,7 +131,7 @@ class PlayerResource(restful.Resource):
 
         return self.login_do(player, args_login, created=True)
 
-    @require_auth
+    @require_auth(allow_nonfilled=True)
     def patch(self, user, id=None):
         if not id:
             raise MethodNotAllowed
