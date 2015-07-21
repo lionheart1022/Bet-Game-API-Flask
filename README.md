@@ -325,8 +325,10 @@ Possible game states:
 	"id": 15, // internal id
 	"creator": { Limited Player resource },
 	"opponent": { Limited Player resource },
-	"gamemode": "friendlies", // or any other, see POST /games for details
+	"gamertag_creator": "Creator Gamer Tag",
+	"gamertag_opponent": "Opponent Gamer Tag",
 	"gametype": "xboxone-fifa15", // see POST /games for options
+	"gamemode": "friendlies", // or any other, see POST /games for details
 	"bet": 5.29, // bet amount
 	"create_date": "RFC datetime",
 	"state": "finished", // see above
