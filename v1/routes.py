@@ -181,7 +181,7 @@ class PlayerResource(restful.Resource):
             'https://graph.facebook.com/v2.3/me',
             params = dict(
                 access_token = args.token,
-                fields = 'id,email',
+                fields = 'id,email,name',
             ),
         )
         jret = ret.json()
@@ -199,6 +199,13 @@ class PlayerResource(restful.Resource):
         else:
             abort('Facebook didn\'t return email nor user id')
 
+        name = jret.get('name')
+        if name:
+            n=1
+            while Player.query.filter_by(nickname=name).count():
+                name = '{} {}'.format(jret['name'], n)
+                n+=1
+
         player = Player.query.filter_by(email=identity).first()
         created = False
         if not player:
@@ -206,6 +213,7 @@ class PlayerResource(restful.Resource):
             player = Player()
             player.email = identity
             player.password = encrypt_password(None) # random salt
+            player.nickname = name
             db.session.add(player)
         player.facebook_token = args.token
         return PlayerResource.login_do(player, cretaed=created)
