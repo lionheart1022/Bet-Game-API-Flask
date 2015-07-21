@@ -25,6 +25,8 @@ you can use `_` instead of nickname
 and add `id` parameter (either in GET-style or POST-style) containing that value.
 This might help with some libraries which fail with urls containing spaces and special characters.
 
+Also you can use `me` alias which means «player currently logged in».
+
 ### POST /players
 Player registration.
 
