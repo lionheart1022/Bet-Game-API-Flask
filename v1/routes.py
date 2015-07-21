@@ -59,7 +59,7 @@ class PlayerResource(restful.Resource):
     def fields_self(cls):
         return dict(
             id = fields.Integer,
-            player_nick = fields.String,
+            nickname = fields.String,
             email = fields.String,
             facebook_connected = fields.Boolean(attribute='facebook_token'),
             balance = fields.Raw, # because it is already JSON
@@ -67,6 +67,7 @@ class PlayerResource(restful.Resource):
                 id = fields.Integer,
                 last_login = fields.DateTime,
             ))),
+            ea_gamertag = fields.String,
             # TODO: some stats
         )
     @classproperty
