@@ -198,7 +198,7 @@ def mailsend(user, mtype, **kwargs):
     if mtype not in subjects:
         raise ValueError('Unknown message type {}'.format(mtype))
 
-    kwargs['name'] = user.player_nick
+    kwargs['name'] = user.nickname
     kwargs['email'] = user.email
 
     subject = subjects[mtype]
@@ -218,7 +218,7 @@ def mailsend(user, mtype, **kwargs):
         auth=('api',config.MAILGUN_KEY),
         params={
             'from': config.MAIL_SENDER,
-            'to': '{} <{}>'.format(user.player_nick, user.email),
+            'to': '{} <{}>'.format(user.nickname, user.email),
             'subject': subjects[mtype],
             'text': load(mtype, 'txt', kwargs),
             'html': load(mtype, 'html', kwargs),
@@ -803,10 +803,10 @@ def notify_users(game):
     It will also send congratulations email to game winner.
     """
     msg = {
-        'new': '{} invites you to compete'.format(game.creator.player_nick),
+        'new': '{} invites you to compete'.format(game.creator.nickname),
         'accepted': '{} accepted your invitation, start playing now!'
-            .format(game.opponent.player_nick),
-        'declined': '{} declined your invitation'.format(game.opponent.player_nick),
+            .format(game.opponent.nickname),
+        'declined': '{} declined your invitation'.format(game.opponent.nickname),
         'finished': 'Game finished, coins moved',
     }[game.state]
 
