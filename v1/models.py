@@ -47,6 +47,12 @@ class Player(db.Model):
         Retrieves user by player id or integer id.
         If id is 'me', will return currently logged in user or None.
         """
+        if key == '_':
+            parser = RequestParser()
+            parser.add_argument('id')
+            args = parser.parse_args()
+            key = args.id
+
         if key.lower() == 'me':
             return getattr(g, 'user', None)
 

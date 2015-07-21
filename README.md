@@ -20,6 +20,10 @@ or in a JSON object (with corresponding content-type).
 
 Endpoints
 ---------
+For all player-related endpoints which include nickname/id in url,
+you can use `_` instead of nickname
+and add `id` parameter (either in GET-style or POST-style) containing that value.
+This might help with some libraries which fail with urls containing spaces and special characters.
 
 ### POST /players
 Player registration.
