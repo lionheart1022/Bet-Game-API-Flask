@@ -442,6 +442,7 @@ def gametype_image(id):
     img_file.seek(0)
     return send_file(img_file, mimetype='image/png')
 
+
 # Games
 @api.resource(
     '/games',
@@ -506,8 +507,8 @@ class GameResource(restful.Resource):
         parser = RequestParser()
         parser.add_argument('opponent_id', type=lambda k: Player.find_or_fail(k),
                             required=True, dest='opponent')
-        parser.add_argument('gamemode', choices=Game.GAMEMODES, required=True)
         parser.add_argument('gametype', choices=Game.GAMETYPES, required=True)
+        parser.add_argument('gamemode', choices=Game.GAMEMODES, required=True)
         parser.add_argument('bet', type=float, required=True)
         args = parser.parse_args()
 
@@ -518,6 +519,12 @@ class GameResource(restful.Resource):
             abort('[bet]: too low amount', problem='bet')
         if args.bet > user.available:
             abort('[bet]: not enough coins', problem='coins')
+
+        if 'fifa' in args.gametype:
+            if not user.ea_gamertag:
+                abort('You have no GamerTag specified and cannot play FIFA!')
+            if not args.opponent.ea_gamertag:
+                abort('Your opponent has no GamerTag specified and cannot play FIFA!')
 
         game = Game()
         game.creator = user
