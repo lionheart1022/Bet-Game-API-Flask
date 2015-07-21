@@ -31,6 +31,7 @@ class PlayerResource(restful.Resource):
         partial = parser.partial = RequestParser()
         login = parser.login = RequestParser()
         for name, type, required in [
+            ('_force', gamertag_force_field, False),
             ('player_nick', gamertag_field, True),
             ('email', email, True),
             ('password', encrypt_password, True),
@@ -393,7 +394,7 @@ def balance_withdraw(user):
 def gametypes():
     return jsonify(gametypes = Game.GAMETYPES)
 @app.route('/gametypes/<id>/image', methods=['GET'])
-def gametype_id(id):
+def gametype_image(id):
     if id not in Game.GAMETYPES:
         raise NotFound
 

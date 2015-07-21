@@ -543,6 +543,12 @@ def boolean_field(val):
         return True
     raise ValueError(str(val)+' is not boolean')
 
+def gamertag_force_field(val):
+    val = boolean_field(val)
+    if val:
+        g.gamertag_force = True
+    return val
+
 gamertag_cache = {}
 def gamertag_field(nick):
     if nick.lower() in gamertag_cache:
@@ -565,6 +571,8 @@ def gamertag_field(nick):
         gamertag_cache[nick.lower()] = goodnick
         return goodnick
     except ValueError:
+        if getattr(g, 'gamertag_force', False):
+            return nick
         raise
     except Exception as e: # json failure or missing key
         log.error('Failed to validate gamertag '+nick, exc_info=True)
