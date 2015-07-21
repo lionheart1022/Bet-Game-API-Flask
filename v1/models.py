@@ -34,7 +34,7 @@ class Player(db.Model):
 
     @property
     def complete(self):
-        return self.player_nick != None
+        return self.nickname != None
     @property
     def games(self):
         return Game.query.filter(
