@@ -725,19 +725,13 @@ def poll_fifa(gametype, gamemode):
     )
     # map player names to sets of games related to them
     players = {}
-    def add_game(game):
-        for player in game.creator, game.opponent:
-            if not player.ea_gamertag:
-                log.warning('Game {} has player without gamertag. Failing!')
-                return
+    for game in games:
         count_games += 1
         for player in game.creator, game.opponent:
             if player.ea_gamertag in players:
                 players[player.ea_gamertag].add(game)
             else:
                 players[player.ea_gamertag] = set([game])
-    for game in games:
-        add_game(game)
 
     # order player names by count of games
     order = list(map(lambda p: p[0],
