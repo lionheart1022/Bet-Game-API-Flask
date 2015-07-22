@@ -84,7 +84,7 @@ In url you can include either `nickname`, `ea_gamertag` or email address.
  * `password`
  * `push_token` of the current device
 
-### POST /login_federated
+### POST /federated_login
 Federated login via Facebook.
 
 *Arguments*:
