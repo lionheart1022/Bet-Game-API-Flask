@@ -228,7 +228,7 @@ class PlayerResource(restful.Resource):
             player.nickname = name
             db.session.add(player)
         player.facebook_token = args.token
-        return PlayerResource.login_do(player, cretaed=created)
+        return PlayerResource.login_do(player, created=created)
 
     @app.route('/players/<id>/reset_password', methods=['POST'])
     def reset_password(id):
