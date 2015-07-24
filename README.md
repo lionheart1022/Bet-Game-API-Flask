@@ -27,6 +27,94 @@ This might help with some libraries which fail with urls containing spaces and s
 
 Also you can use `me` alias which means «player currently logged in».
 
+### Workflow guide
+Here is a list of endpoints which will be called in typical user's workflow.
+It might differ somewhat from what you have in designs,
+but should cover all existing endpoints,
+so it should be easy to adapt it to design.
+
+* User first installed an app.
+  App asks him if he want to register as a new user, login, or register/login with Facebook.
+  * If user chooses plain registration, you should ask him to enter
+    nickname, email, password
+    and optionally EA gamertag.
+    Then you call `POST /players` endpoint
+    passing the data you got from user
+    and this device's push token.
+  * If user chose to log in, you will ask to enter name
+    (which can be either email, nickname or gamertag) and password.
+    Then you call `POST /players/<name entered by user>/login`
+    passing password and device's push token.
+    **As an alternative**, if your SDK doesn't allow
+    whitespaces and special characters in URL,
+    you should use `POST /players/_/login` endpoint
+    and add `id` parameter with name entered by user.
+    This approach works for all endpoints requiring user's id in url.
+  * If user chose Facebook login, you should use Facebook api
+    to retrieve facebook auth token.
+    Please request `email` permission for that token
+    because the server will fetch user's email address from Facebook.
+    You then call `POST /federated_login` endpoint
+    passing the token retrieved from Facebook API.
+    * Federated login endpoint returns either `200 OK` or `201 CREATED` code
+      and `created` boolean field.
+      If it returns `created=true` then you need to ask the user
+      to modify email (because facebook may not return user's email),
+      modify nickname (because it is set to Facebook user name
+      and the user might want to change it),
+      and enter EA gamertag (optionally).
+      You can prefill data from object returned by `POST /federated_login` endpoint.
+* Now that the user logged in, he needs to choose the game to bet on.
+  Game types are listed with `GET /gametypes` endpoint.
+  For now it returns a plain list of IDs, but it will be probably extended later
+  to include some additional information.
+  * You will need to show images for that gametypes.
+    For that you should use `GET /gametypes/<type>/image` endpoint
+    which returns `image/png` binary image.
+    By default it has maximum size available, but you can ask the system to shrink it
+    by passing either `w`, `h` or both parameters.
+    If you pass both of them, image will be shrank down and then cropped to fit.
+* After the user chose game type, he will want to bet.
+  For that you should use `POST /games` endpoint.
+  The user chooses his opponent (either by nickname, gamertag or email),
+  the opponent should be already registered on our service.
+  Also the user chooses `gamemode` (available options are listed in endpoint docs).
+  ***Probably I will make `GET /gametypes` return list of possible gamemodes later.***
+  And the last, the user should enter bet amount, i.e. how many coins will he bet.
+  That amount should not exceed user's balance.
+  After posting, the game has `new` status.
+* If another user invited you to compete, you will receive PUSH notification about that.
+  Also you will see new game in `GET /games` endpoint result.
+  You can then accept or decline an invitation by calling `PATCH /games/<id>`
+  and passing corresponding value in `state` field.
+  Note that you cannot accept an invitation if your balance is insufficient,
+  so if that endpoint returns `400` error with `problem=coins` parameter
+  you should redirect user to balance deposit screen.
+* After your invitation is accepted, you will get corresponding PUSH notification
+  and game is immediately considered started.
+  This is important point because if you are already playing with that same user
+  when he accepted an invitation
+  then it is result of ongoing game which will be used to determine
+  win or loss here - of course only in case gamemode matches.
+* When you win or lose and system notices it, you will get corresponding PUSH notification.
+  Also, if you win, you will get an email message.
+  `balance` will increase, and `locked` part of balance will decrease.
+  So `available` balance will increase 2x the bet amount (your money + your win).
+  Also result can be a `draw`.
+* To deposit funds (i.e. buy internal coins), you should use `POST /balance/deposit` endpoint.
+  It accepts `payment_id` returned by PayPal SDK - see link in endpoint description.
+  One coin is equivalent to $1 USD.
+  If the user pays in another currency, it will be converted to coins
+  according to actual exchange rate (returned by [fixer.io](Fixer.io) service).
+  If you want to let the user know how much coins will he get,
+  call `POST /balance/deposit` endpoint with `dry_run=true` parameter.
+  It will return how many coins would user get,
+  but will not check transaction and will not change actual balance.
+* For payouts use `POST /balance/withdraw` endpoint.
+  Like the previous one, it accepts `dry_run` flag which allows to determine
+  how much money will the user get for given amount of coins.
+   
+
 ### POST /players
 Player registration.
 
