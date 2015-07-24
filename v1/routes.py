@@ -316,7 +316,7 @@ def balance_withdraw(user):
     parser = RequestParser()
     parser.add_argument('coins', type=float, required=True)
     parser.add_argument('currency', default='USD')
-    parser.add_argument('paypal_email', type=email, required=True)
+    parser.add_argument('paypal_email', type=email, required=False)
     parser.add_argument('dry_run', type=boolean_field, default=False)
     args = parser.parse_args()
 
@@ -342,6 +342,8 @@ def balance_withdraw(user):
             dry_run = True,
             balance = user.balance_obj,
         )
+    if not args.paypal_email:
+        abort('[paypal_email] should be specified unless you are running dry-run')
 
     # first withdraw coins...
     user.balance -= args.coins
