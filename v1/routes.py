@@ -526,7 +526,8 @@ class GameResource(restful.Resource):
                             required=True, dest='opponent')
         parser.add_argument('gamertag_creator', required=False)
         parser.add_argument('gamertag_opponent', required=False)
-        parser.add_argument('gametype', choices=Game.GAMETYPES, required=True)
+        parser.add_argument('gametype', choices=Game.GAMETYPES.keys(),
+                            required=True)
         parser.add_argument('gamemode', choices=Game.GAMEMODES, required=True)
         parser.add_argument('bet', type=float, required=True)
         args = parser.parse_args()
@@ -534,27 +535,20 @@ class GameResource(restful.Resource):
         if args.opponent == user:
             abort('You cannot compete with yourself')
 
-        if args.gametype in Game.GAMETYPES_EA:
-            gamertag_field = 'ea_gamertag'
-        # TODO: other game types...
-        else:
-            gamertag_field = None
+        if not Game.GAMETYPES[args.gametype]['supported']:
+            abort('Game type {} is not supported yet'.format(args.gametype))
+
+        gamertag_field = Game.GAMETYPES[args.gametype]['identity']
 
         def check_gamertag(who, msgf):
             if not args['gamertag_'+who]:
                 if gamertag_field:
-                    args[arg] = getattr(args[who], gamertag_field)
+                    args['gamertag_'+who] = getattr(args[who], gamertag_field)
                 if not args['gamertag_'+who]:
                     abort('You didn\'t specify {} gamertag, and '
                           '{}don\'t have default one configured.'.format(*msgf))
         check_gamertag('creator', ('your', ''))
         check_gamertag('opponent', ('opponent\'s', 'they '))
-
-        if args.gametype in Game.GAMETYPES_EA:
-            if not user.ea_gamertag:
-                abort('You have no EA GamerTag specified and cannot play FIFA!')
-            if not args.opponent.ea_gamertag:
-                abort('Your opponent has no EA GamerTag specified and cannot play FIFA!')
 
         if args.bet < 0.99:
             abort('[bet]: too low amount', problem='bet')
