@@ -349,8 +349,8 @@ Arguments:
 	Optional, defaults to creator's own gamertag (if specified).
  * `gamertag_opponent`: gamertag of the player for which invitation opponent roots.
 	Optional, defaults to opponent's own gamertag (if specified).
- * `gametype`: either `fifa14-xboxone` or `fifa15-xboxone`.
- * `gamemode`: one of game modes - `fifaSeasons`, `futSeasons`, `fut`, `friendlies` or `coop`.
+ * `gametype`: one of `supported` gametypes from `GET /gametypes` endpoint
+ * `gamemode`: one of game modes allowed for chosen gametype according to `GET /gametypes`.
  * `bet`: numeric bet amount, should not exceed your balance.
 
 When creating an invitation, corresponding amount of coins is immediately locked on user's account.
