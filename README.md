@@ -263,16 +263,59 @@ Result:
 
 ### GET /gametypes
 List available game types.
-For now, there are only 2 of them: `fifa14-xboxone` and `fifa15-xboxone`.
 
-***NOTICE: this endpoint's return format might change later***
+*Arguments:*
+
+* `full`: boolean, defaults to `false`
+
+There are 2 variants of this endpoint. Default is the compatibility one,
+which returns plain list of types:
 
 ```json
 {
 	"gametypes": [
 		"fifa14-xboxone",
-		"fifa15-xboxone
+		"fifa15-xboxone",
+		"destiny",
+		...
 	]
+}
+```
+
+And another one, with `full=true`, contains detials about game types:
+
+* `supported` field - if it is `false` then the only thing you can do with this gametype
+is to fetch its image with `GET /gametypes/<type>/image`;
+* `gamemodes` lists possible gamemodes for this game type;
+* `identity` tells which field in player info is used to identify player for this game type.
+  When you call `POST /games`, you can provide that IDs as `gamertag_*` values,
+  or they will be read from user's profile.
+  For example, for FIFA games identity is `ea_gamertag`.
+  This means that if you don't provide `gamertag_creator` field,
+  system will look for gamertag in your `ea_gamertag` profile field.
+  For other game types special fields will be added in future.
+
+```json
+{
+	"gametypes": {
+		"fifa14-xboxone": {
+			"supported": true,
+			"gamemodes": [
+				"fifaSeasons",
+				"fut",
+				"friendlies",
+				...
+			],
+			"identity": "ea_gamertag"
+		},
+		...,
+		"destiny": {
+			"supported": false,
+			"gamemodes": [],
+			"identity": null,
+		},
+		...
+	}
 }
 ```
 
