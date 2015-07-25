@@ -665,6 +665,8 @@ def multival_field(options):
     def check(val):
         if not isinstance(val, str):
             raise ValueError
+        if not val:
+            return []
         parts = set(val.split(','))
         for part in parts:
             if part not in options:
