@@ -611,3 +611,16 @@ class GameResource(restful.Resource):
         notify_users(game)
 
         return marshal(game, self.fields)
+
+
+# Beta testers
+@app.route('/betatesters', methods=['POST'])
+def betatester_add():
+    parser = RequestParser()
+    parser.add_argument('email', type=email, required=True)
+    parser.add_argument('name', required=True)
+    parser.add_argument('gametypes', type=multival_field(Game.GAMETYPES),
+                        default='')
+    parser.add_argument('platforms', type=multival_field(Beta.PLATFORMS),
+                        default='')
+    args = parser.parse_args()

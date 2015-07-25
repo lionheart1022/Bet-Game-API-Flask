@@ -657,6 +657,20 @@ def bitmask_field(options):
                 raise ValueError('Unknown option: '+part)
         return mask
     return check
+def multival_field(options):
+    """
+    Converts comma-separated list to set of strings,
+    checking each item for validity.
+    """
+    def check(val):
+        if not isinstance(val, str):
+            raise ValueError
+        parts = set(val.split(','))
+        for part in parts:
+            if part not in options:
+                raise ValueError('Unknown option: '+part)
+        return parts
+    return check
 
 ### Extension of RequestParser ###
 class MyArgument(Argument):
