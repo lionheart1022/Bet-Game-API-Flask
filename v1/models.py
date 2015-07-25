@@ -104,11 +104,19 @@ class Game(db.Model):
             'friendlies',
             'coop',
         ],
+        gamemode_names = {
+            'fifaSeasons': 'FIFA Seasons',
+            'futSeasons': 'FUT Seasons',
+            'fut': 'FUT',
+            'friendlies': 'Friendlies',
+            'coop': 'Cooperative',
+        },
         identity = 'ea_gamertag',
     )
     UNSUPPORTED = dict(
         supported = False,
         gamemodes = [],
+        gamemode_names = {},
         identity = None,
     )
     GAMETYPES = {
