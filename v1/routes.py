@@ -624,9 +624,11 @@ def betatester_add():
     parser = RequestParser()
     parser.add_argument('email', type=email, required=True)
     parser.add_argument('name', type=nonempty, required=True)
-    parser.add_argument('gametypes', type=multival_field(Game.GAMETYPES),
+    parser.add_argument('gametypes',
+                        type=multival_field(Game.GAMETYPES, True),
                         default='')
-    parser.add_argument('platforms', type=multival_field(Beta.PLATFORMS),
+    parser.add_argument('platforms',
+                        type=multival_field(Beta.PLATFORMS, True),
                         default='')
     args = parser.parse_args()
 
