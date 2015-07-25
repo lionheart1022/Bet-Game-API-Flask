@@ -657,7 +657,7 @@ def bitmask_field(options):
                 raise ValueError('Unknown option: '+part)
         return mask
     return check
-def multival_field(options):
+def multival_field(options, allow_empty=False):
     """
     Converts comma-separated list to set of strings,
     checking each item for validity.
@@ -666,7 +666,9 @@ def multival_field(options):
         if not isinstance(val, str):
             raise ValueError
         if not val:
-            return []
+            if allow_empty:
+                return []
+            raise ValueError('Please choose at least one option')
         parts = set(val.split(','))
         for part in parts:
             if part not in options:

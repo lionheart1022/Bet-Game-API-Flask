@@ -619,7 +619,7 @@ class GameResource(restful.Resource):
 def betatester_add():
     def nonempty(val):
         if not val:
-            raise ValueError('should not be empty')
+            raise ValueError('Should not be empty')
         return val
     parser = RequestParser()
     parser.add_argument('email', type=email, required=True)
