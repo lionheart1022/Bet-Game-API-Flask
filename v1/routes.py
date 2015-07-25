@@ -624,3 +624,12 @@ def betatester_add():
     parser.add_argument('platforms', type=multival_field(Beta.PLATFORMS),
                         default='')
     args = parser.parse_args()
+
+    beta = Beta()
+    beta.email = args.email
+    beta.name = args.name
+    beta.gametypes = ','.join(args.gametypes)
+    beta.platforms = ','.join(args.platforms)
+    db.session.add(beta)
+    db.session.commit()
+    return jsonify(success = True)
