@@ -421,7 +421,7 @@ def gametypes():
     if args.full:
         return jsonify(gametypes = Game.GAMETYPES)
     else:
-        return jsonify(gametypes = Game.GAMETYPES.keys())
+        return jsonify(gametypes = list(Game.GAMETYPES.keys()))
 @app.route('/gametypes/<id>/image', methods=['GET'])
 def gametype_image(id):
     if id not in Game.GAMETYPES:
