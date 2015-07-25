@@ -73,7 +73,7 @@ $(function() {
 			platforms: getcb('#platforms'),
 			games: getcb('#games'),
 		};
-		API.call('POST', 'beta', data, function() {
+		API.call('POST', 'betatesters', data, function() {
 			$('#beta_form').slideUp();
 			$('#success').slideDown();
 		}, function(err) {
