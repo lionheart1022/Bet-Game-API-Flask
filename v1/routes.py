@@ -617,9 +617,13 @@ class GameResource(restful.Resource):
 # Beta testers
 @app.route('/betatesters', methods=['POST'])
 def betatester_add():
+    def nonempty(val):
+        if not val:
+            raise ValueError('should not be empty')
+        return val
     parser = RequestParser()
     parser.add_argument('email', type=email, required=True)
-    parser.add_argument('name', required=True)
+    parser.add_argument('name', type=nonempty, required=True)
     parser.add_argument('gametypes', type=multival_field(Game.GAMETYPES),
                         default='')
     parser.add_argument('platforms', type=multival_field(Beta.PLATFORMS),
