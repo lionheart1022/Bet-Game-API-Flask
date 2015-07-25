@@ -41,6 +41,13 @@ $(function() {
 	function addcb(container, val) {
 		container.append('<label><input type="checkbox" data-value="'+val+'"/>'+val+'<'+'/label>');
 	}
+	function getcb(container) {
+		var vals = [];
+		$(container).find('input:checked').each(function(e) {
+			vals.push($(this).data('value'));
+		});
+		return vals.join(',');
+	}
 	$.each([
 			'Android',
 			'iOS',
@@ -58,6 +65,20 @@ $(function() {
 
 	$('#beta-form').submit(function(e) {
 		e.preventDefault();
+		$('.message').text('');
+
+		var data = {
+			email: $('[name=email]').val(),
+			name: $('[name=name]').val(),
+			platforms: getcb('#platforms'),
+			games: getcb('#games'),
+		};
+		API.call('POST', 'beta', data, function() {
+			$('#beta_form').slideUp();
+			$('#success').slideDown();
+		}, function(err) {
+			$('.message').text(err.error || 'Unknown error');
+		});
 	});
 });
 		</script>
@@ -86,5 +107,8 @@ $(function() {
 			<input type="submit" value="Register"/>
 			<div id="message" style="color: red;"></div>
 		</form>
+		<div id="success" style="display: none">
+			Thanks for subscribing. We will notify you once beta testing will start.
+		</div>
 	</body>
 </html>
