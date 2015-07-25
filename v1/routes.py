@@ -417,7 +417,7 @@ def balance_withdraw(user):
 def gametypes():
     parser = RequestParser()
     parser.add_argument('full', type=boolean_field, default=False)
-    args = parse_args()
+    args = parser.parse_args()
     if args.full:
         return jsonify(gametypes = Game.GAMETYPES)
     else:
