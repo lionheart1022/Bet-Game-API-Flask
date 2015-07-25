@@ -95,17 +95,36 @@ class Game(db.Model):
     gamertag_creator = db.Column(db.String(64))
     gamertag_opponent = db.Column(db.String(64))
 
-    GAMETYPES_EA = [
-        'fifa14-xboxone', 'fifa15-xboxone',
-    ]
-    GAMETYPES = GAMETYPES_EA
-    GAMEMODES = [
-        'fifaSeasons',
-        'futSeasons',
-        'fut',
-        'friendlies',
-        'coop',
-    ]
+    FIFA = dict(
+        supported = True,
+        gamemodes = [
+            'fifaSeasons',
+            'futSeasons',
+            'fut',
+            'friendlies',
+            'coop',
+        ],
+        identity = 'ea_gamertag',
+    )
+    UNSUPPORTED = dict(
+        supported = False,
+        gamemodes = [],
+        identity = None,
+    )
+    GAMETYPES = {
+        'fifa14-xboxone': FIFA,
+        'fifa15-xboxone': FIFA,
+        'battlefield-4': UNSUPPORTED,
+        'call-of-duty-advanced-warfare': UNSUPPORTED,
+        'destiny': UNSUPPORTED,
+        'dota2': UNSUPPORTED,
+        'grand-theft-auto-5': UNSUPPORTED,
+        'league-of-legends': UNSUPPORTED,
+        'minecraft': UNSUPPORTED,
+        'rocket-league': UNSUPPORTED,
+        'starcraft': UNSUPPORTED,
+    }
+    GAMEMODES = set(sum((t['gamemodes'] for t in GAMETYPES), []))
 
     gametype = db.Column(db.Enum(*GAMETYPES), nullable=False)
     gamemode = db.Column(db.Enum(*GAMEMODES), nullable=False)
