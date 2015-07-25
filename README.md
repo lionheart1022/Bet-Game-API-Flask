@@ -293,6 +293,7 @@ And another one, with `full=true`, contains detials about game types:
 * `supported` field - if it is `false` then the only thing you can do with this gametype
 is to fetch its image with `GET /gametypes/<type>/image`;
 * `gamemodes` lists possible gamemodes for this game type;
+* `gamemode_names` lists suggested user-visible names for each gametype;
 * `identity` tells which field in player info is used to identify player for this game type.
   When you call `POST /games`, you can provide that IDs as `gamertag_*` values,
   or they will be read from user's profile.
