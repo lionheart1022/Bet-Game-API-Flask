@@ -786,10 +786,17 @@ def poll_fifa(gametype, gamemode):
     return count_games, count_ended
 def poll_all():
     log.info('Starting polling')
-    for gametype in Game.GAMETYPES_EA:
-        for gamemode in Game.GAMEMODES:
+    for gametype, opts in Game.GAMETYPES.items():
+        if not opts['supported']:
+            continue
+        if 'fifa' in gametype:
+            poller = poll_fifa
+        else:
+            log.error('Unexpected gametype')
+            continue
+        for gamemode in opts['gamemodes']:
             try:
-                games, ended = poll_fifa(gamemode, gametype)
+                games, ended = poller(gamemode, gametype)
                 log.info(
                     '{gametype}, {gamemode}: '
                     'ended {ended} of {games} games'.format(**vars()))
