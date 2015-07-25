@@ -78,6 +78,7 @@ $(function() {
 			$('#success').slideDown();
 		}, function(err) {
 			$('.message').text(err.error || 'Unknown error');
+			$('[name='+err.problem+']').focus();
 		});
 	});
 });
