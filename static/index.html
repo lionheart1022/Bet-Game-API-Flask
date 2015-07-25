@@ -10,6 +10,9 @@ label {
 label input, label select {
 	display: block;
 }
+label input[type=checkbox] {
+	display: inline;
+}
 		</style>
 		<script src="/scripts/jquery-1.11.3.min.js"></script>
 		<script>
@@ -35,6 +38,9 @@ var API = {
 	},
 };
 $(function() {
+	function addcb(container, val) {
+		container.append('<label><input type="checkbox" data-value="'+val+'"/>'+val+'<'+'/label>');
+	}
 	$.each([
 			'Android',
 			'iOS',
@@ -42,11 +48,11 @@ $(function() {
 			'Web',
 			'other',
 	], function(i, name) {
-		$('[name=platforms]').append('<option name="'+name+'">'+name+'<'+'/option>');
+		addcb($('#platforms'), name);
 	});
 	API.call('GET', 'gametypes', {}, function(data) {
 		$.each(data.gametypes, function(gametype,opts) {
-			$('[name=games]').append('<option name="'+gametype+'">'+gametype+'<'+'/option>');
+			addcb($('#games'), gametype);
 		});
 	});
 
@@ -70,16 +76,13 @@ $(function() {
 				Your name:
 				<input name="name" type="text">
 			</label>
-			<label>
+			<p id="platforms">
 				Please choose which platforms are you interested in:
-				<select name="platforms" multiple>
-				</select>
-			</label>
-			<label>
+				<label><input type="checkbox" name="platform_android"/>Android</label>
+			</p>
+			<p id="games">
 				Please choose your desired games:
-				<select name="games" multiple>
-				</select>
-			</label>
+			</p>
 			<input type="submit" value="Register"/>
 			<div id="message" style="color: red;"></div>
 		</form>
