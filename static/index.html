@@ -3,6 +3,14 @@
 	<head>
 		<meta charset="utf-8"/>
 		<title>BetGame Password Recovery</title>
+		<style>
+label {
+	display: block;
+}
+label input, label select {
+	display: block;
+}
+		</style>
 		<script src="/scripts/jquery-1.11.3.min.js"></script>
 		<script>
 var API = {
@@ -27,75 +35,48 @@ var API = {
 	},
 };
 $(function() {
-	// load user info
-	$.ajax({
-		dataType: 'json',
-		url: '/v1/players/'+hash.userid,
-		data: {
-			token: hash.token,
-		},
-		success: function(player) {
-			$('#gamertag').text(player.player_nick || '<unknown>');
-			$('#email').text(player.email || '<unknown>');
-		},
+	$.each([
+			'Android',
+			'iOS',
+			'Windows Mobile',
+			'Web',
+			'other',
+	], function(i, name) {
+		$('[name=platforms]').append('<option name="'+name+'">'+name+'<'+'/option>');
 	});
-
-	$('#password').focus();
-
-	$('#pw_form').submit(function(e) {
-		e.preventDefault();
-
-		var pass = $('#password').val(),
-			pass2 = $('#password2').val();
-		if(pass != pass2) {
-			$('#password2').focus();
-			$('#message').text('Passwords don\'t match');
-			return;
-		}
-
-		if(!pass) {
-			$('#password').focus();
-			$('#message').text('Please enter password');
-			return;
-		}
-
-		$.ajax({
-			dataType: 'json',
-			method: 'PATCH',
-			url: '/v1/players/'+hash.userid,
-			data: {
-				password: pass,
-				token: hash.token,
-			},
-			complete: function(xhr, stat) {
-				var ret = xhr.responseJSON;
-				if(xhr.status == 200) {
-					$('#pw_form').slideUp(); // hide
-					$('#success').slideDown(); // show
-				} else {
-					$('#message').text('Couldn\'t update password: ' +
-							(ret.error || ('Unknown error '+xhr.status)));
-					$('#password').focus();
-				}
-			},
+	API.call('GET', 'gametypes', {}, function(data) {
+		$.each(data.gametypes, function(gametype,opts) {
+			$('[name=games]').append('<option name="'+gametype+'">'+gametype+'<'+'/option>');
 		});
 	});
 });
 		</script>
 	</head>
 	<body>
-		<h1>BetGame Password Recovery</h1>
-		<form id="pw_form" action="">
-			<div>
-				Player with gamertag <b id="gamertag">??</b> and email <b id="email">??</b>
-				requested password recovery.
-			</div>
-			<div>
-				Please enter your new password below:
-			</div>
-			<input type="password" id="password" placeholder="Enter new password"/>
-			<input type="password" id="password2" placeholder="Confirm your password"/>
-			<input type="submit" value="OK"/>
+		<h1>BetGame Beta Testers Registration</h1>
+		<p>Hello. If you want to try our exciting BetGame service, please register below
+		and we will invite you once we enter beta testing stage.
+		You can specify your desired platforms and games, this will allow us to manage efforts better.</p>
+		<form id="beta_form" action="">
+			<label>
+				Your email address:
+				<input name="email" type="email">
+			</label>
+			<label>
+				Your name:
+				<input name="name" type="text">
+			</label>
+			<label>
+				Please choose which platforms are you interested in:
+				<select name="platforms" multiple>
+				</select>
+			</label>
+			<label>
+				Please choose your desired games:
+				<select name="games" multiple>
+				</select>
+			</label>
+			<input type="submit" value="Register"/>
 			<div id="message" style="color: red;"></div>
 		</form>
 		<div id="success" style="display: none;">
