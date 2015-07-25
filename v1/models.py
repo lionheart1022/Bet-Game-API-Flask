@@ -145,6 +145,21 @@ class Game(db.Model):
     finish_date = db.Column(db.DateTime, nullable=True)
 
 
+class Beta(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(128))
+    name = db.Column(db.String(128))
+    gametypes = db.Column(db.String(128))
+    platforms = db.Column(db.String(128))
+    PLATFORMS = [
+        'Android',
+        'iOS',
+        'Windows Mobile',
+        'Web',
+        'other',
+    ]
+
+
 def fast_count(query):
     """
     Get count of queried items avoiding using subquery (like query.count() does)
