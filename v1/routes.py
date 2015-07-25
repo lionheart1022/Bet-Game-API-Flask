@@ -415,7 +415,13 @@ def balance_withdraw(user):
 # Game types
 @app.route('/gametypes', methods=['GET'])
 def gametypes():
-    return jsonify(gametypes = Game.GAMETYPES)
+    parser = RequestParser()
+    parser.add_argument('full', type=boolean_field, default=False)
+    args = parse_args()
+    if args.full:
+        return jsonify(gametypes = Game.GAMETYPES)
+    else:
+        return jsonify(gametypes = Game.GAMETYPES.keys())
 @app.route('/gametypes/<id>/image', methods=['GET'])
 def gametype_image(id):
     if id not in Game.GAMETYPES:
