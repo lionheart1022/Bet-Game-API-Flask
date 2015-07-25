@@ -65,7 +65,7 @@ $(function() {
 
 	$('#beta_form').submit(function(e) {
 		e.preventDefault();
-		$('.message').text('');
+		$('#message').text('');
 
 		var data = {
 			email: $('[name=email]').val(),
@@ -77,7 +77,7 @@ $(function() {
 			$('#beta_form').slideUp();
 			$('#success').slideDown();
 		}, function(err) {
-			$('.message').text(err.error || 'Unknown error');
+			$('#message').text(err.error || 'Unknown error');
 			$('[name='+err.problem+']').focus();
 		});
 	});
