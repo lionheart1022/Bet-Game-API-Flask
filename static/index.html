@@ -57,7 +57,7 @@ $(function() {
 	], function(i, name) {
 		addcb($('#platforms'), name);
 	});
-	API.call('GET', 'gametypes', {}, function(data) {
+	API.call('GET', 'gametypes', {full:true}, function(data) {
 		$.each(data.gametypes, function(gametype,opts) {
 			addcb($('#games'), gametype);
 		});
