@@ -321,6 +321,18 @@ label input[type=checkbox] {
 		</div><!-- end signup-row-->
 		<div class="row">
 			<div class="col-sm-6">
+				<div data-mercury="froala" data-content-name="signup_text"><h3>Choose your <strong>gaming console</strong>:</h3></div>
+              
+			</div>
+			<div class="col-sm-6">
+				<div class="form form-inline text-center" role="form" >
+					<div id="console" class="">
+					</div><!-- end form group -->
+				</div>
+			</div><!-- end signup-column-->
+		</div><!-- end signup-row-->
+		<div class="row">
+			<div class="col-sm-6">
 				<div data-mercury="froala" data-content-name="signup_text"><h3>Choose your <strong>platforms</strong>:</h3></div>
               
 			</div>
@@ -449,6 +461,16 @@ $(function() {
 	], function(i, name) {
 		addcb($('#platforms'), name);
 	});
+	$.each([
+			'PS4',
+			'Xbox One',
+			'Xbox 360',
+			'PS3',
+			'PC',
+			'other',
+	], function(i, name) {
+		addcb($('#console'), name);
+	});
 	API.call('GET', 'gametypes', {full:true}, function(data) {
 		$.each(data.gametypes, function(gametype,opts) {
 			addcb($('#games'), gametype);
@@ -463,6 +485,7 @@ $(function() {
 			email: $('[name=email]').val(),
 			name: $('[name=name]').val(),
 			platforms: getcb('#platforms'),
+			console: getcb('#console'),
 			games: getcb('#games'),
 		};
 		API.call('POST', 'betatesters', data, function() {
