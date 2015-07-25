@@ -65,9 +65,10 @@ so it should be easy to adapt it to design.
       and enter EA gamertag (optionally).
       You can prefill data from object returned by `POST /federated_login` endpoint.
 * Now that the user logged in, he needs to choose the game to bet on.
-  Game types are listed with `GET /gametypes` endpoint.
-  For now it returns a plain list of IDs, but it will be probably extended later
-  to include some additional information.
+  Game types are listed with `GET /gametypes` endpoint with `full=true` option.
+  It will return list of endpoints with parameters: for details consult with endpoint description.
+  You should only allow the user to choose `supported` gametypes,
+  because he will not be able to `POST /games` for unsupported ones.
   * You will need to show images for that gametypes.
     For that you should use `GET /gametypes/<type>/image` endpoint
     which returns `image/png` binary image.
@@ -78,8 +79,13 @@ so it should be easy to adapt it to design.
   For that you should use `POST /games` endpoint.
   The user chooses his opponent (either by nickname, gamertag or email),
   the opponent should be already registered on our service.
-  Also the user chooses `gamemode` (available options are listed in endpoint docs).
-  ***Probably I will make `GET /gametypes` return list of possible gamemodes later.***
+  Both user and opponent should have "identity" field filled -
+  the field whose name is denoted in `identity` value of selected gametype.
+  *NEW:* Alternatively the user may want to bet for some other players' game result.
+  In such case he will provide `gamertag_creator` and `gamertag_opponent`
+  to specify IDs of players for which he want to bet;
+  in this situation it is not needed to have identity field filled.
+  Also the user chooses `gamemode` (from options provided for selected gametype by `GET /gametypes`).
   And the last, the user should enter bet amount, i.e. how many coins will he bet.
   That amount should not exceed user's balance.
   After posting, the game has `new` status.
