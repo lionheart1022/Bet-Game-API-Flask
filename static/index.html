@@ -232,6 +232,16 @@ label input[type=checkbox] {
 	display: inline-block;
 	width: 2rem;
 }
+
+.select {
+	background: rgba(255,255,255,128);
+	border-radius: 3px;
+	height: 20rem;
+	overflow-y: auto;
+}
+.select label:hover {
+	background: white;
+}
 	</style>
 
 	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -326,7 +336,7 @@ label input[type=checkbox] {
 			</div>
 			<div class="col-sm-6">
 				<div class="form form-inline text-center" role="form" >
-					<div id="console" class="">
+					<div id="console" class="select">
 					</div><!-- end form group -->
 				</div>
 			</div><!-- end signup-column-->
@@ -338,7 +348,7 @@ label input[type=checkbox] {
 			</div>
 			<div class="col-sm-6">
 				<div class="form form-inline text-center" role="form" >
-					<div id="platforms" class="">
+					<div id="platforms" class="select">
 					</div><!-- end form group -->
 				</div>
 			</div><!-- end signup-column-->
@@ -350,7 +360,7 @@ label input[type=checkbox] {
 			</div>
 			<div class="col-sm-6">
 				<div class="form form-inline text-center" role="form" >
-					<div id="games" class="">
+					<div id="games" class="select">
 					</div><!-- end form group -->
 				</div>
 			</div><!-- end signup-column-->
