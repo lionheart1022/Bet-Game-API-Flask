@@ -494,10 +494,14 @@ $(function() {
 	], function(i, name) {
 		addcb($('#console'), name);
 	});
-	API.call('GET', 'gametypes', {full:true}, function(data) {
-		$.each(data.gametypes, function(gametype,opts) {
-			addcb($('#games'), gametype);
-		});
+	$.ajax({
+		url: 'games.txt',
+		dataType: 'text',
+		success: function(ret) {
+			$.each(ret.split('\n'), function(game, _) {
+				addcb($('#games'), game);
+			});
+		},
 	});
 	// add filter field to selects which need it
 	$('.select.filter').each(function() {
