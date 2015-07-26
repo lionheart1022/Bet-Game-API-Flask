@@ -352,7 +352,7 @@ label input[type=checkbox] {
 			</div>
 			<div class="col-sm-6">
 				<div class="form form-inline text-center" role="form" >
-					<div id="platforms" class="select">
+					<div id="platforms" class="select filter">
 					</div><!-- end form group -->
 				</div>
 			</div><!-- end signup-column-->
@@ -364,7 +364,7 @@ label input[type=checkbox] {
 			</div>
 			<div class="col-sm-6">
 				<div class="form form-inline text-center" role="form" >
-					<div id="games" class="select">
+					<div id="games" class="select filter">
 					</div><!-- end form group -->
 				</div>
 			</div><!-- end signup-column-->
@@ -489,6 +489,24 @@ $(function() {
 		$.each(data.gametypes, function(gametype,opts) {
 			addcb($('#games'), gametype);
 		});
+	});
+	// add filter field to selects which need it
+	$('.select.filter').each(function() {
+		var list = $(this);
+		var inp = $('<input type="text" class="filter"/>');
+		inp.on('keydown', function(e) {
+			var txt = inp.val().toLowerCase();
+			list.find('label').each(function() {
+				var lbl = $(this);
+				lbl.toggle(
+					lbl.find('input')
+					.data('value')
+					.toLowerCase()
+					.indexOf(txt) >= 0
+				);
+			});
+		});
+		list.before(inp);
 	});
 
 	$('#beta_form').submit(function(e) {
