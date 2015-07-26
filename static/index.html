@@ -239,12 +239,21 @@ label input[type=checkbox] {
 .select {
 	background: rgba(255,255,255,0.2);
 	border-radius: 3px;
-	min-height: 2rem;
-	max-height: 20rem;
+	height: 16rem;
 	overflow-y: auto;
 }
 .select label:hover {
 	background: rgba(255,255,255,0.2);
+}
+.select.filter {
+	border-radius: 3px 3px 0 0;
+}
+input.filter {
+	border: 0;
+	border-radius: 0 0 3px 3px;
+	background: rgba(255,255,255,0.3);
+	padding: 0.5rem;
+	width: 100%;
 }
 	</style>
 
@@ -352,7 +361,7 @@ label input[type=checkbox] {
 			</div>
 			<div class="col-sm-6">
 				<div class="form form-inline text-center" role="form" >
-					<div id="platforms" class="select filter">
+					<div id="platforms" class="select">
 					</div><!-- end form group -->
 				</div>
 			</div><!-- end signup-column-->
@@ -494,7 +503,7 @@ $(function() {
 	$('.select.filter').each(function() {
 		var list = $(this);
 		var inp = $('<input type="text" class="filter"/>');
-		inp.on('keydown', function(e) {
+		inp.on('propertychange change click keyup input paste', function(e) {
 			var txt = inp.val().toLowerCase();
 			list.find('label').each(function() {
 				var lbl = $(this);
@@ -506,7 +515,7 @@ $(function() {
 				);
 			});
 		});
-		list.before(inp);
+		list.after(inp);
 	});
 
 	$('#beta_form').submit(function(e) {
