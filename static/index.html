@@ -498,7 +498,7 @@ $(function() {
 		url: 'games.txt',
 		dataType: 'text',
 		success: function(ret) {
-			$.each(ret.split('\n'), function(game, _) {
+			$.each(ret.split('\n'), function(i, game) {
 				addcb($('#games'), game);
 			});
 		},
