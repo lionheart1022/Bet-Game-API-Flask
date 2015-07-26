@@ -158,6 +158,7 @@ class Beta(db.Model):
         'Web',
         'other',
     ]
+    console = db.Column(db.String(128))
 
 
 def fast_count(query):

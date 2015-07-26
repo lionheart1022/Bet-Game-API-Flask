@@ -630,6 +630,7 @@ def betatester_add():
     parser.add_argument('platforms',
                         type=multival_field(Beta.PLATFORMS, True),
                         default='')
+    parser.add_argument('console', default='')
     args = parser.parse_args()
 
     beta = Beta()
@@ -637,6 +638,7 @@ def betatester_add():
     beta.name = args.name
     beta.gametypes = ','.join(args.gametypes)
     beta.platforms = ','.join(args.platforms)
+    beta.console = args.console
     db.session.add(beta)
     db.session.commit()
     return jsonify(success = True)
