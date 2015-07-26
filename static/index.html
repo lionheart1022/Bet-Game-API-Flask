@@ -502,7 +502,7 @@ $(function() {
 	// add filter field to selects which need it
 	$('.select.filter').each(function() {
 		var list = $(this);
-		var inp = $('<input type="text" class="filter"/>');
+		var inp = $('<input type="text" class="filter" placeholder="Type here to find"/>');
 		inp.on('propertychange change click keyup input paste', function(e) {
 			var txt = inp.val().toLowerCase();
 			list.find('label').each(function() {
