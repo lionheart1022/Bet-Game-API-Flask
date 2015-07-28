@@ -294,7 +294,10 @@ def balance_deposit(user):
         else:
             abort('No corresponding transaction found', success=False)
 
-        for sale in transaction.get('related_resources', []):
+        for res in transaction.get('related_resources', []):
+            sale = res.get('sale')
+            if not sale:
+                continue
             if sale.get('state') == 'completed':
                 break
         else:
