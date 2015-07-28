@@ -284,9 +284,10 @@ def balance_deposit(user):
 
         transaction = None
         for tr in ret.get('transactions', []):
-            if tr.get('amount') == dict(
-                total = args.total,
-                currency = args.currency,
+            amount = tr.get('amount')
+            if (
+                (amount['total'], amount['currency']) ==
+                (args.total, args.currency)
             ):
                 transaction = tr
                 break
