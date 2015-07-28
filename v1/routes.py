@@ -286,7 +286,7 @@ def balance_deposit(user):
         for tr in ret.get('transactions', []):
             amount = tr.get('amount')
             if (
-                (amount['total'], amount['currency']) ==
+                (float(amount['total']), amount['currency']) ==
                 (args.total, args.currency)
             ):
                 transaction = tr
