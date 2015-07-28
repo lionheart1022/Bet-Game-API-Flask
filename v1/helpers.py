@@ -135,7 +135,6 @@ class PayPal:
         return cls.token
     @classmethod
     def call(cls, method, url, params=None, json=None):
-        # TODO: auth
         if not json:
             json = params
             params = None
@@ -153,7 +152,8 @@ class PayPal:
         try:
             jret = ret.json()
         except ValueError:
-            log.error('Paypal failure', exc_info=True);
+            log.error('Paypal failure - code %s' % ret.status_code,
+                      exc_info=True);
             jret = {}
         jret['_code'] = ret.status_code
         return jret
