@@ -149,6 +149,7 @@ class PayPal:
                             json=json,
                             headers = headers,
                             )
+        log.debug('Paypal result: {} {}'.format(ret.status_code, ret.text))
         try:
             jret = ret.json()
         except ValueError:
