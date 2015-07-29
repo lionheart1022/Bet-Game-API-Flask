@@ -280,7 +280,7 @@ def balance_deposit(user):
 
     if not args.dry_run:
         if not args.payment_id:
-            abort('[payment_id]: required when dry_run is false')
+            abort('[payment_id]: required unless dry_run is true')
         # verify payment...
         ret = PayPal.call('GET', 'payments/payment/'+args.payment_id)
         if ret.get('state') != 'approved':
