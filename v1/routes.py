@@ -341,6 +341,8 @@ def balance_withdraw(user):
             currency = args.currency,
         )
     except (TypeError, ValueError):
+        # for bad currencies, Fixer will return None
+        # and coins*None results in TypeError
         abort('Unknown currency provided')
 
     if user.available < args.coins:
