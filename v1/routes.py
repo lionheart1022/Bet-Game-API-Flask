@@ -272,7 +272,11 @@ def balance_deposit(user):
     log.info('Payment received: '+' '.join(
         ['{}: {}'.format(k,v) for k,v in args.items()]))
 
-    coins = args.total * Fixer.latest(args.currency, 'USD')
+    rate = Fixer.latest(args.currency, 'USD')
+    if not rate:
+        abort('[currency]: Unknown currency {}'.format(args.currency),
+              problem='currency')
+    coins = args.total * rate
 
     if not args.dry_run:
         if not args.payment_id:
