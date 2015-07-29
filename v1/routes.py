@@ -340,7 +340,7 @@ def balance_withdraw(user):
             value = args.coins * Fixer.latest('USD', args.currency),
             currency = args.currency,
         )
-    except ValueError:
+    except (TypeError, ValueError):
         abort('Unknown currency provided')
 
     if user.available < args.coins:
