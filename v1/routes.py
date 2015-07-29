@@ -551,6 +551,7 @@ class GameResource(restful.Resource):
 
         gamertag_field = Game.GAMETYPES[args.gametype]['identity']
 
+        args.creator = user # to simplify checking
         def check_gamertag(who, msgf):
             if not args['gamertag_'+who]:
                 if gamertag_field:
