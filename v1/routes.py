@@ -280,7 +280,10 @@ def balance_deposit(user):
         # verify payment...
         ret = PayPal.call('GET', 'payments/payment/'+args.payment_id)
         if ret.get('state') != 'approved':
-            abort('Payment not approved', success=False)
+            abort('Payment not approved: {} - {}'.format(
+                ret.get('name', '(no error code)'),
+                ret.get('message', '(no error message)'),
+            ), success=False)
 
         transaction = None
         for tr in ret.get('transactions', []):
