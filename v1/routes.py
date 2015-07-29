@@ -314,6 +314,7 @@ def balance_deposit(user):
         log.info('Payment approved, adding coins')
 
         user.balance += coins
+        db.session.commit()
     return jsonify(
         success=True,
         dry_run=args.dry_run,
