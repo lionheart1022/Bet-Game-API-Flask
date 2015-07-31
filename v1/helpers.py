@@ -312,7 +312,7 @@ def federatedRenewFacebook(refresh_token):
             err.get('type', ret.reason),
             err.get('message', 'no info')))
 def makeToken(user, service=None, refresh_token=None,
-              from_token=None, longterm=False, device_id=None):
+              from_token=None, longterm=False, device=None):
     """
     Generate JWT token for given user.
     That token will allow the user to login.
@@ -338,8 +338,8 @@ def makeToken(user, service=None, refresh_token=None,
     payload = {
         'sub': user.id,
     }
-    if device_id:
-        payload['device_id'] = device_id
+    if device:
+        payload['device'] = device.id
     if service: # federated token
         if not isinstance(user, Client):
             raise ValueError("Cannot generate federated token for "
