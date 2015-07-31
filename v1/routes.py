@@ -56,7 +56,7 @@ class PlayerResource(restful.Resource):
                            type=string_field(Device.push_token,
                                              # 64 hex digits = 32 bytes
                                              ftype=hex_field(64)),
-                           required=True)
+                           required=False)
         partial.add_argument('old_password', required=False)
         return parser
     @classproperty

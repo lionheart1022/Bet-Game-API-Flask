@@ -81,7 +81,7 @@ class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     player_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
     player = db.relationship(Player, backref='devices')
-    push_token = db.Column(db.String(128), nullable=False)
+    push_token = db.Column(db.String(128), nullable=True)
     last_login = db.Column(db.DateTime, default=datetime.utcnow)
 
 
