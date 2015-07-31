@@ -848,13 +848,19 @@ def notify_users(game):
     receivers = []
     for p in players:
         for d in p.devices:
-            receivers.append(d.push_token)
+            if d.push_token:
+                if len(d.push_token) == 32:
+                    receivers.append(d.push_token)
+                else:
+                    log.warning('Incorrect push token '+d.push_token)
 
     from . import routes # for fields list
-    message = apns_clerk.Message(receivers, alert=msg, badge='increment',
-                                 content_available=1,
-                                 game=restful.marshal(
-                                     game, routes.GameResource.fields))
+    message = None
+    if receivers:
+        message = apns_clerk.Message(receivers, alert=msg, badge='increment',
+                                    content_available=1,
+                                    game=restful.marshal(
+                                        game, routes.GameResource.fields))
     session = apns_clerk.Session()
     # TODO: store session and use get_conn
     conn = session.new_connection('push', cert_file=None) # TODO
@@ -893,7 +899,9 @@ def notify_users(game):
                 balance = winner.available,
             )
 
-    send_push(message)
+
+    if message: # if had any receivers
+        send_push(message)
     # and send email if applicable
     send_mail(game)
 
