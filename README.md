@@ -407,7 +407,8 @@ Accept or decline an invitaton.
 
 Arguments possible:
 
- * `state`: either `accepted` or `declined`
+ * `state`: either `accepted` or `declined` for game opponent,
+	or `cancelled` for game invitation creator.
 
 Accepting game will immediately lock corresponding amount on player's balance
 and the game will be considered started.
@@ -415,6 +416,8 @@ and the game will be considered started.
 If trying to accept and there is no coins enough to cover game's bet amount,
 this request will fail with `400` code and additional `problem` field with value `coins`.
 In such situation the user should be advised to buy more coins.
+
+Game invitation creator can only make invitation `cancelled`.
 
 Returns *Game resource* object on success.
 
@@ -471,6 +474,8 @@ Doesn't include sensitive information like `balance` or `devices`.
 Possible game states:
 
  * `new`: this game is in invitation phase
+ * `cancelled`: creator decided to cancel this invitation,
+	and it should not be displayed in interface.
  * `declined`: opponent declined an offer
  * `accepted`: opponent accepted an offer and game is considered ongoing, system polls EA servers for result
  * `finished`: system got game outcome from EA servers and already moved bets accordingly
