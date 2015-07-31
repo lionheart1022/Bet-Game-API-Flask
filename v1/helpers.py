@@ -843,6 +843,7 @@ def poll_all():
 
 
 # Notification
+apns_session = None
 def notify_users(game):
     """
     This method sends PUSH notifications about game state change
@@ -879,13 +880,15 @@ def notify_users(game):
                                     content_available=1,
                                     game=restful.marshal(
                                         game, routes.GameResource.fields))
-        try:
-            session = apns_clerk.Session()
-            # TODO: store session and use get_conn
-            conn = session.new_connection('push', cert_file=None) # TODO
-        except ImportError:
-            log.exception('APNS failure!')
-            message = None # will not send PUSH
+        global apns_session
+        if not apns_session:
+            try:
+                apns_session = apns_clerk.Session()
+            except ImportError:
+                log.exception('APNS failure!')
+                message = None # will not send PUSH
+        if message:
+            conn = apns_session.get_connection('push', cert_file=None) # TODO
 
     def send_push(msg):
         srv = apns_clerk.APNs(conn)
