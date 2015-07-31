@@ -99,7 +99,7 @@ class PlayerResource(restful.Resource):
 
         ret = jsonify(
             player = marshal(player, cls.fields_self),
-            token = makeToken(player),
+            token = makeToken(player, device=dev),
             created = created,
         )
         if created:
