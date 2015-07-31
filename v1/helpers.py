@@ -362,7 +362,7 @@ class BadUserId(Exception): pass
 class TokenExpired(Exception): pass
 def parseToken(token, userid=None, allow_longterm=False):
     """
-    Returns a Client/Vendor object if the token is valid,
+    Returns a Player object if the token is valid,
     raises an exception otherwise.
     """
     try:
@@ -392,6 +392,7 @@ def parseToken(token, userid=None, allow_longterm=False):
     if 'svc' in payload and cls == Client and 'longterm' in payload:
         if 'longterm' in payload:
             validateFederatedToken(payload.get('svc'), payload.get('refresh'))
+    g.device_id = payload.get('device', None)
     return user
 
 def check_auth(userid=None,

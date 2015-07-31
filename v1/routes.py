@@ -254,6 +254,28 @@ class PlayerResource(restful.Resource):
             message='Password recovery link sent to your email address',
         )
 
+    @app.route('/players/<id>/pushtoken', methods=['POST'])
+    @require_auth
+    def pushtoken(user, id):
+        if Player.find(id) != user:
+            raise Forbidden
+
+        if not g.device_id:
+            abort('No device id in auth token, please auth again', problem='token')
+
+        parser = RequestParser()
+        parser.add_argument('push_token',
+                            type=hex_field(64), # = 32 bytes
+                            required=True)
+        args = parser.parse_args()
+
+        dev = Device.query.get(g.device_id)
+        if dev.push_token:
+            abort('This device already have push token specified')
+
+        dev.push_token = args.push_token
+        db.session.commit()
+        return jsonify(success=True)
 
 # Balance
 @app.route('/balance', methods=['GET'])
