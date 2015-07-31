@@ -131,8 +131,8 @@ Player registration.
  * `password`
  * `facebook_token` - optional
  * `ea_gamertag` - optional, should match the one used on EA Games
- * `push_token` - device identifier for push notifications - only for login-related methods
- * maybe more...
+ * `push_token` - device identifier for push notifications - only for login-related methods.
+Can be omitted and provided later with `POST /players/<nick>/pushtoken` endpoint.
 
  * `_force`: force registration with invalid gamertag (effectively disables gamertag validation). Should not be used for production.
 
@@ -176,7 +176,20 @@ In url you can include either `nickname`, `ea_gamertag` or email address.
 *Arguments*:
 
  * `password`
- * `push_token` of the current device
+ * `push_token` of the current device.
+Can be omitted and provided later with `POST /players/<nick>/pushtoken` endpoint.
+
+### POST /players/<nick>/pushtoken
+Set push token if it was not provided during login or registration.
+
+*Arguments*:
+
+ * `push_token` - required.
+
+Returns `{"success": true}` on success.
+Will return error if you already specified push token on login/registration.
+Also will return error if there is no device id in auth token,
+which may happen if token was issued before this endpoint was implemented.
 
 ### POST /federated_login
 Federated login via Facebook.

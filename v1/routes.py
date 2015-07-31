@@ -269,6 +269,8 @@ class PlayerResource(restful.Resource):
                             required=True)
         args = parser.parse_args()
 
+        # TODO: check for push token uniqueness? do we need it?
+
         dev = Device.query.get(g.device_id)
         if dev.push_token:
             abort('This device already have push token specified')
