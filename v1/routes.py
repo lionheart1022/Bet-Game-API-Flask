@@ -605,7 +605,7 @@ class GameResource(restful.Resource):
         ])
         args = parser.parse_args()
 
-        game = Game.get(id)
+        game = Game.query.get(id)
         if not game:
             raise NotFound
 
