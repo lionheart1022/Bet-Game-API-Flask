@@ -861,9 +861,13 @@ def notify_users(game):
                                     content_available=1,
                                     game=restful.marshal(
                                         game, routes.GameResource.fields))
-    session = apns_clerk.Session()
-    # TODO: store session and use get_conn
-    conn = session.new_connection('push', cert_file=None) # TODO
+        try:
+            session = apns_clerk.Session()
+        except ImportError:
+            log.exception('APNS failure!')
+            message = None # will not send PUSH
+        # TODO: store session and use get_conn
+        conn = session.new_connection('push', cert_file=None) # TODO
 
     def send_push(msg):
         srv = apns_clerk.APNs(conn)
