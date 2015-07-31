@@ -392,7 +392,11 @@ def parseToken(token, userid=None, allow_longterm=False):
     if 'svc' in payload and cls == Client and 'longterm' in payload:
         if 'longterm' in payload:
             validateFederatedToken(payload.get('svc'), payload.get('refresh'))
+
     g.device_id = payload.get('device', None)
+    # note that this dev id might be obsolete
+    # if login was performed without token and then token was specified
+
     return user
 
 def check_auth(userid=None,

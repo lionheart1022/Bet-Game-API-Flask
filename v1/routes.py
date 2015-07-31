@@ -269,13 +269,21 @@ class PlayerResource(restful.Resource):
                             required=True)
         args = parser.parse_args()
 
-        # TODO: check for push token uniqueness? do we need it?
-
-        dev = Device.query.get(g.device_id)
-        if dev.push_token:
-            abort('This device already have push token specified')
+        # first try find device which already uses this token
+        dev = Device.query.filter_by(player = user,
+                                     push_token = args.push_token
+                                     ).first()
+        # if we found it, then we will actually just update its last login date
+        if not dev:
+            # if not found - get current one (which most likely has no token)
+            dev = Device.query.get(g.device_id)
+            if dev.push_token:
+                abort('This device already have push token specified')
 
         dev.push_token = args.push_token
+        # update last login as it may be another device object
+        # than one that was used for actual login
+        dev.last_login = datetime.utcnow()
         db.session.commit()
         return jsonify(success=True)
 
