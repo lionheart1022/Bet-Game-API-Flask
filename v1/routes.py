@@ -636,7 +636,7 @@ class GameResource(restful.Resource):
 
         parser = RequestParser()
         parser.add_argument('state', choices=[
-            'accepted', 'declined'
+            'accepted', 'declined', 'cancelled'
         ])
         args = parser.parse_args()
 
@@ -644,7 +644,15 @@ class GameResource(restful.Resource):
         if not game:
             raise NotFound
 
-        user = check_auth(Game.opponent_id)
+        user = check_auth()
+        if user == game.creator:
+            if args.state not in ['cancelled']:
+                abort('Game invitation creator can only cancel it')
+        elif user == game.opponent:
+            if args.state not in ['accepted', 'declined']:
+                abort('Game invitation opponent cannot cancel it')
+        else:
+            abort('You cannot change this invitation', 403)
 
         if game.state != 'new':
             abort('This game is already {}'.format(game.state))
