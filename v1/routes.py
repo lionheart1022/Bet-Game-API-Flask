@@ -609,7 +609,7 @@ class GameResource(restful.Resource):
         if not game:
             raise NotFound
 
-        user = check_auth(Game.creator_id)
+        user = check_auth(Game.opponent_id)
 
         if game.state != 'new':
             abort('This game is already {}'.format(game.state))
