@@ -855,7 +855,8 @@ def notify_users(game):
     for p in players:
         for d in p.devices:
             if d.push_token:
-                if len(d.push_token) == 32:
+                if len(d.push_token) in (16, 32, 64, 128):
+                    # according to err it should be 32, but actually is 64
                     receivers.append(d.push_token)
                 else:
                     log.warning('Incorrect push token '+d.push_token)
