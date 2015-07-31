@@ -683,6 +683,17 @@ def multival_field(options, allow_empty=False):
         return parts
     return check
 
+def hex_field(length):
+    def check(val):
+        if len(val) != length:
+            raise ValueError('Should be %d characters' % length)
+        for c in val:
+            if c not in 'abcdefABCDEF' and not c.isdigit():
+                raise ValueError('Bad character %s' % c)
+        return val
+    return check
+
+
 ### Extension of RequestParser ###
 class MyArgument(Argument):
     def handle_validation_error(self, error, bundle_errors=None):
