@@ -600,7 +600,7 @@ class GameResource(restful.Resource):
             raise MethodNotAllowed
 
         parser = RequestParser()
-        parser.add_argument('state', options=[
+        parser.add_argument('state', choices=[
             'accepted', 'declined'
         ])
         args = parser.parse_args()
