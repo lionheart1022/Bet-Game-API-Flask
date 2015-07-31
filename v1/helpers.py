@@ -881,11 +881,11 @@ def notify_users(game):
                                         game, routes.GameResource.fields))
         try:
             session = apns_clerk.Session()
+            # TODO: store session and use get_conn
+            conn = session.new_connection('push', cert_file=None) # TODO
         except ImportError:
             log.exception('APNS failure!')
             message = None # will not send PUSH
-        # TODO: store session and use get_conn
-        conn = session.new_connection('push', cert_file=None) # TODO
 
     def send_push(msg):
         srv = apns_clerk.APNs(conn)
