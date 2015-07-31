@@ -99,7 +99,7 @@ class PlayerResource(restful.Resource):
 
         ret = jsonify(
             player = marshal(player, cls.fields_self),
-            token = makeToken(player, device=dev),
+            token = makeToken(player, device_id=dev.id),
             created = created,
         )
         if created:
@@ -244,7 +244,7 @@ class PlayerResource(restful.Resource):
                  link='https://betgame.co.uk/password.html'
                  '#userid={}&token={}'.format(
                      player.id,
-                     makeToken(player)
+                     makeToken(player, device_id=g.device_id)
                  ))
         if not ret:
             return jsonify(success=False, message='Couldn\'t send mail')
