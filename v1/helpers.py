@@ -117,10 +117,12 @@ class IPInfo:
 
 class PayPal:
     token = None
-    # FIXME: token lifetime
+    token_ttl = None
     base_url = 'https://api.sandbox.paypal.com/v1/'
     @classmethod
     def get_token(cls):
+        if cls.token_ttl and cls.token_ttl <= datetime.utcnow():
+            cls.token = None # expired
         if not cls.token:
             ret = requests.post(
                 cls.base_url+'oauth2/token',
@@ -132,6 +134,10 @@ class PayPal:
                 return
             ret = ret.json()
             cls.token = ret['access_token']
+            cls.token_lifetime = (datetime.utcnow() +
+                                  timedelta(seconds =
+                                            # -10sec to be sure
+                                            ret['expires_in'] - 10))
         return cls.token
     @classmethod
     def call(cls, method, url, params=None, json=None):
