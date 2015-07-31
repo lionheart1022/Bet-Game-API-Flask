@@ -139,7 +139,7 @@ class Game(db.Model):
 
     bet = db.Column(db.Float, nullable=False)
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
-    state = db.Column(db.Enum('new', 'accepted', 'declined', 'finished'), default='new')
+    state = db.Column(db.Enum('new', 'cancelled', 'accepted', 'declined', 'finished'), default='new')
     accept_date = db.Column(db.DateTime, nullable=True)
     winner = db.Column(db.Enum('creator', 'opponent', 'draw'), nullable=True)
     finish_date = db.Column(db.DateTime, nullable=True)
