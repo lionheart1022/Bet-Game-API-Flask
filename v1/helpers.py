@@ -891,11 +891,10 @@ def notify_users(game):
         if not apns_session:
             try:
                 apns_session = apns_clerk.Session()
-            except ImportError:
+                conn = apns_session.get_connection('push', cert_file=None) # TODO
+            except Exception: # import error, OpenSSL error
                 log.exception('APNS failure!')
                 message = None # will not send PUSH
-        if message:
-            conn = apns_session.get_connection('push', cert_file=None) # TODO
 
     def send_push(msg):
         srv = apns_clerk.APNs(conn)
