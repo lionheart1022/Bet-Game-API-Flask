@@ -149,7 +149,7 @@ class Beta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(128))
     name = db.Column(db.String(128))
-    gametypes = db.Column(db.String(128))
+    gametypes = db.Column(db.Text)
     platforms = db.Column(db.String(128))
     PLATFORMS = [
         'Android',
