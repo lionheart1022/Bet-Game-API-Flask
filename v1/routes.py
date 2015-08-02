@@ -682,7 +682,7 @@ def betatester_add():
     parser = RequestParser()
     parser.add_argument('email', type=email, required=True)
     parser.add_argument('name', type=nonempty, required=True)
-    parser.add_argument('gametypes',
+    parser.add_argument('games',
                         type=multival_field(Game.GAMETYPES, True),
                         default='')
     parser.add_argument('platforms',
@@ -694,7 +694,7 @@ def betatester_add():
     beta = Beta()
     beta.email = args.email
     beta.name = args.name
-    beta.gametypes = ','.join(args.gametypes)
+    beta.gametypes = ','.join(args.games)
     beta.platforms = ','.join(args.platforms)
     beta.console = args.console
     db.session.add(beta)
