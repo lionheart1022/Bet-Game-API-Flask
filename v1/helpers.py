@@ -10,6 +10,7 @@ import urllib.parse
 from datetime import datetime, timedelta
 import math
 from collections import OrderedDict, namedtuple
+import os
 import eventlet
 import jwt
 import hashlib, uuid
@@ -210,7 +211,10 @@ def mailsend(user, mtype, **kwargs):
 
     subject = subjects[mtype]
     def load(name, ext, values, base=False):
-        f = open('templates/{}.{}'.format(name, ext), 'r')
+        f = open('{}/templates/{}.{}'.format(
+            os.path.dirname(__file__)+'/..', # load from path relative to self
+            name, ext
+        ), 'r')
         txt = f.read()
         for key,val in values.items():
             txt = txt.replace('{%s}' % key, val)
