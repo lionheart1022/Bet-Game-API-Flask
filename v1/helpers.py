@@ -937,6 +937,8 @@ def notify_users(game):
                 winner = game.creator
             elif game.winner == 'opponent':
                 winner = game.opponent
+            elif game.winner == 'draw':
+                return # will not notify anybody
             else:
                 log.error('Internal error: incorrect game winner '+game.winner
                           +' for state '+game.state)
