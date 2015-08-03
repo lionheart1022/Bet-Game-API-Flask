@@ -834,7 +834,10 @@ def poll_fifa(gametype, gamemode):
                     elif game.winner == 'opponent':
                         game.opponent.balance += game.bet
                     # and unlock bets
+                    # withdrawing them finally from accounts
+                    game.creator.balance -= game.bet
                     game.creator.locked -= game.bet
+                    game.opponent.balance -= game.bet
                     game.opponent.locked -= game.bet
 
                     notify_users(game)
