@@ -814,7 +814,7 @@ def poll_fifa(gametype, gamemode):
                     if match['self']['stats']['score'] > match['opponent']['stats']['score']:
                         # "self" won, "other" lost
                         game.winner = 'creator' if who == 'opponent' else 'opponent'
-                    elif match['self']['stats']['score'] > match['opponent']['stats']['score']:
+                    elif match['self']['stats']['score'] < match['opponent']['stats']['score']:
                         # "other" won, "self" lost
                         game.winner = who
                     else:
