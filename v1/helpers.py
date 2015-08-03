@@ -787,9 +787,11 @@ def poll_fifa(gametype, gamemode):
         log.debug('fetching games for '+gamertag)
         matches = fetch(gamertag)
         for match in reversed(matches): # from oldest to newest
-            log.debug('match: {} {}'.format(
-                match['opponent'],
-                match.get('self'),
+            log.debug('match: {} cr {}, op {}'.format(
+                match['timestamp'], *[
+                    [match[u]['user_info'], match[u]['score']]
+                    for u in ('self', 'opponent')
+                ]
             ))
             for game in gamertags[gamertag]:
                 # skip already completed games
