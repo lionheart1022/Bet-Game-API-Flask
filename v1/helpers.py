@@ -789,7 +789,7 @@ def poll_fifa(gametype, gamemode):
         for match in reversed(matches): # from oldest to newest
             log.debug('match: {} cr {}, op {}'.format(
                 match['timestamp'], *[
-                    [match[u]['user_info'], match[u]['score']]
+                    [match[u]['user_info'], match[u]['stats']['score']]
                     for u in ('self', 'opponent')
                 ]
             ))
