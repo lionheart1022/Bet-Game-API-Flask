@@ -217,7 +217,7 @@ def mailsend(user, mtype, **kwargs):
         ), 'r')
         txt = f.read()
         for key,val in values.items():
-            txt = txt.replace('{%s}' % key, val)
+            txt = txt.replace('{%s}' % key, str(val))
         if not base:
             txt = load('base', ext, dict(
                 content = txt,
