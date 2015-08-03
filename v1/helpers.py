@@ -794,12 +794,12 @@ def poll_fifa(gametype, gamemode):
                 ]
             ))
             for game in gamertags[gamertag]:
-                log.debug('game {}, ts {}'.format(game, game.accept_date.timestamp()))
                 # skip already completed games
                 if game.id in games_done:
                     continue
                 # skip this game if current match ended before game's start
-                if math.floor(game.accept_date.timestamp()) > match['timestamp']:
+                if math.floor(game.accept_date.timestamp()) \
+                        > match['timestamp'] + 4*3600: # delta of 4 hours
                     log.debug('Skipping game {} because of time'.format(game))
                     continue
                 other, who = (
