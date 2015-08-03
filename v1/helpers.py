@@ -794,6 +794,7 @@ def poll_fifa(gametype, gamemode):
                 ]
             ))
             for game in gamertags[gamertag]:
+                log.debug('game {}, ts {}'.format(game, game.accept_date.timestamp()))
                 # skip already completed games
                 if game.id in games_done:
                     continue
