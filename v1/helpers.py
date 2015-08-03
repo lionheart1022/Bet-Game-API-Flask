@@ -799,13 +799,16 @@ def poll_fifa(gametype, gamemode):
                     continue
                 # skip this game if current match ended before game's start
                 if math.floor(game.accept_date.timestamp()) > match['timestamp']:
+                    log.debug('Skipping game {} because of time'.format(game))
                     continue
                 other, who = (
                     (game.gamertag_opponent, 'opponent')
                     if game.gamertag_creator == gamertag else
                     (game.gamertag_creator, 'creator'))
+                log.debug('other: '+other)
                 if other.lower() in map(lambda t: t.lower(),
                                         match['opponent']['user_info']):
+                    log.debug('matched!')
                     # game matched! change its status
                     if match['self']['stats']['score'] > match['opponent']['stats']['score']:
                         # "self" won, "other" lost
