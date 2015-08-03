@@ -836,6 +836,8 @@ def poll_fifa(gametype, gamemode):
                     notify_users(game)
 
                     games_done.add(game.id)
+        if count_ended == count_games:
+            break # no unended games left, no need to fetch more tags
     db.session.commit()
 
     return count_games, count_ended
