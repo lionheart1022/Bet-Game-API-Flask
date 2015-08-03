@@ -766,6 +766,7 @@ def poll_fifa(gametype, gamemode):
         gamemode=gamemode,
         state = 'accepted',
     )
+    log.debug('Found %d games or %r %r' % (games.count(), gametype, gamemode))
     # map gamertags to sets of games related to them
     gamertags = {}
     for game in games:
