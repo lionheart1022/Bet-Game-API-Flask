@@ -840,7 +840,7 @@ def poll_all():
             continue
         for gamemode in opts['gamemodes']:
             try:
-                games, ended = poller(gamemode, gametype)
+                games, ended = poller(gametype, gamemode)
                 log.info(
                     '{gametype}, {gamemode}: '
                     'ended {ended} of {games} games'.format(**vars()))
