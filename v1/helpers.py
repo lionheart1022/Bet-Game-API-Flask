@@ -784,8 +784,13 @@ def poll_fifa(gametype, gamemode):
                             reverse=True)))
     games_done = set()
     for gamertag in order:
+        log.debug('fetching games for '+gamertag)
         matches = fetch(gamertag)
         for match in reversed(matches): # from oldest to newest
+            log.debug('match: {} {}'.format(
+                match['opponent'],
+                match.get('self'),
+            ))
             for game in gamertags[gamertag]:
                 # skip already completed games
                 if game.id in games_done:
