@@ -752,6 +752,8 @@ class CommaListField(restful.fields.Raw):
     def format(self, val):
         if not isinstance(val, str):
             raise ValueError
+        if not val: # empty string?
+            return []
         return val.split(',')
 
 ### Polling and notification ###
