@@ -159,6 +159,7 @@ class Beta(db.Model):
         'other',
     ]
     console = db.Column(db.String(128))
+    create_date = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 def fast_count(query):
