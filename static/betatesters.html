@@ -21,7 +21,7 @@ $(function() {
 						});
 						$('<td/>').append(child).appendTo(row);
 					} else {
-						if(!v || v == [''])
+						if(!v || !v.length)
 							v = '(none)';
 						$('<td/>', {text: String(v)}).appendTo(row);
 					}
