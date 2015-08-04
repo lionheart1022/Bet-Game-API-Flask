@@ -1,9 +1,13 @@
 var API = {
+	token: null,
 	call: function(method, endpoint, data, success, failure) {
 		return $.ajax({
 			dataType: 'json',
 			method: method,
 			url: '/v1/'+endpoint,
+			headers: {
+				'Authorization': 'Bearer '+self.token,
+			},
 			data: data,
 			complete: function(xhr, stat) {
 				var data = xhr.responseJSON;
