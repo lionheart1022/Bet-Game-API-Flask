@@ -48,6 +48,7 @@ class Player(db.Model):
         If id is 'me', will return currently logged in user or None.
         """
         if key == '_':
+            from .helpers import MyRequestParser as RequestParser
             parser = RequestParser()
             parser.add_argument('id')
             args = parser.parse_args()
