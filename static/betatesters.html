@@ -14,14 +14,14 @@ $(function() {
 				var row = $('<tr/>');
 				$.each(['email', 'name', 'gametypes', 'platforms', 'console', 'create_date'], function(i, k) {
 					var v = tester[k];
-					if(typeof v === 'object') { // array?
+					if(Array.isArray(v)) {
 						var child = $('<ul/>');
 						$.each(v, function(i, point) {
 							$('<li/>', {text: point}).appendTo(child);
 						});
 						$('<td/>').append(child).appendTo(row);
 					} else {
-						$('<td/>', {text: v}).appendTo(row);
+						$('<td/>', {text: String(v)}).appendTo(row);
 					}
 				});
 				$('#users').append(row);
