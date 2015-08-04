@@ -6,7 +6,7 @@ var API = {
 			method: method,
 			url: '/v1/'+endpoint,
 			headers: {
-				'Authorization': 'Bearer '+self.token,
+				'Authorization': 'Bearer '+this.token,
 			},
 			data: data,
 			complete: function(xhr, stat) {
