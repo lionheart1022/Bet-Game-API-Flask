@@ -677,6 +677,29 @@ class GameResource(restful.Resource):
     '/betatesters'
 )
 class BetaResource(restful.Resource):
+    @classproperty
+    def fields(cls):
+        return dict(
+            id = fields.String,
+            email = fields.String,
+            name = fields.String,
+            gametypes = CommaListField,
+            platforms = CommaListField,
+            console = CommaListField,
+            create_date = fields.DateTime,
+        )
+    def get(self):
+        user = check_auth()
+        if user.id not in config.ADMIN_IDS:
+            raise Forbidden
+
+        return marshal(
+            Beta.query,
+            {
+                'betatesters': fields.List(fields.Nested(self.fields)),
+            },
+        )
+
     def post(self):
         def nonempty(val):
             if not val:
