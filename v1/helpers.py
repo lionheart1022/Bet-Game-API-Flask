@@ -748,6 +748,11 @@ class AlternatingNested(restful.fields.Raw):
                        if self.condition(obj, value) else
                        self.alternate)
 
+class CommaListField(restful.fields.Raw):
+    def format(self, val):
+        if not isinstance(val, str):
+            raise ValueError
+        return val.split(',')
 
 ### Polling and notification ###
 def poll_fifa(gametype, gamemode):
