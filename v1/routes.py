@@ -693,11 +693,10 @@ class BetaResource(restful.Resource):
         if user.id not in config.ADMIN_IDS:
             raise Forbidden
 
-        return marshal(
-            Beta.query,
-            {
-                'betatesters': fields.List(fields.Nested(self.fields)),
-            },
+        return jsonify(
+            betatesters = fields.List(fields.Nested(self.fields)).format(
+                Beta.query,
+            ),
         )
 
     def post(self):
