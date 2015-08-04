@@ -724,4 +724,10 @@ class BetaResource(restful.Resource):
         beta.console = args.console
         db.session.add(beta)
         db.session.commit()
-        return jsonify(success = True)
+        return jsonify(
+            success = True,
+            betatester = marshal(
+                beta,
+                self.fields,
+            ),
+        )
