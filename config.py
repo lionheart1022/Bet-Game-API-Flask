@@ -16,6 +16,7 @@ try:
     from secret import TEST
 except ImportError:
     TEST = False
+from secret import ADMIN_IDS
 
 # DB_URL format: "mysql+mysqlconnector://USER:PASSWORD@HOST/DATABASE"
 

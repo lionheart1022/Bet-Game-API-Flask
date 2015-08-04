@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>BetGame beta testers</title>
+		<script src="/scripts/jquery-1.11.3.min.js"></script>
+		<script src="/scripts/common.js"></script>
+		<script>
+$(function() {
+	function showUsers() {
+		API.call('GET', 'betatesters', {}, function(ret) {
+			$('#login_form').slideUp();
+			$.each(ret.betatesters, function(i, tester) {
+				var row = $('<tr/>');
+				$.each(['email', 'name', 'gametypes', 'platforms', 'console', 'create_date'], function(i, k) {
+					var v = tester[k];
+					if(Array.isArray(v) && v.length && v[0]) {
+						var child = $('<ul/>');
+						$.each(v, function(i, point) {
+							$('<li/>', {text: point}).appendTo(child);
+						});
+						$('<td/>').append(child).appendTo(row);
+					} else {
+						if(!v || !v.length)
+							v = '(none)';
+						$('<td/>', {text: String(v)}).appendTo(row);
+					}
+				});
+				$('#users').append(row);
+			});
+			$('#users').slideDown();
+		}, function(err) {
+			$('#message').text(JSON.stringify(err));
+		});
+	}
+	$('#login_form').submit(function(e) {
+		e.preventDefault();
+
+		var form = $('#login_form'),
+			data = {
+				id: form.find('#name').val(),
+				password: form.find('#password').val(),
+			};
+		API.call('POST', 'players/_/login', data, function(ret) {
+			API.token = ret.token;
+			showUsers();
+		}, function(err) {
+			form.find('#message').text(JSON.stringify(err));
+		});
+	});
+});
+		</script>
+	</head>
+	<body>
+		<h1>BetGame beta testers</h1>
+		<form id="login_form" action="">
+			<div>
+				You should login as admin in order to continue!
+			</div>
+			<input type="text" id="name" placeholder="Your email or userid"/>
+			<input type="password" id="password" placeholder="Password?"/>
+			<input type="submit" value="OK"/>
+			<div id="message" style="color: red;"></div>
+		</form>
+		<table id="users" style="display: none;" border="1">
+			<tr>
+				<th>E-mail</th>
+				<th>Name</th>
+				<th>Game types</th>
+				<th>Platforms</th>
+				<th>Consoles</th>
+				<th>Create date</th>
+			</tr>
+		</table>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-65612741-1', 'auto');
+    ga('send', 'pageview');
+
+</script>
+	</body>
+</html>
