@@ -8,8 +8,8 @@
 		<script>
 $(function() {
 	function showUsers() {
-		$('#login_form').slideUp();
 		API.call('GET', 'betatesters', {}, function(ret) {
+			$('#login_form').slideUp();
 			$.each(ret.betatesters, function(i, tester) {
 				var row = $('<tr/>');
 				$.each(['email', 'name', 'gametypes', 'platforms', 'console', 'create_date'], function(i, k) {
@@ -27,6 +27,8 @@ $(function() {
 				$('#users').append(row);
 			});
 			$('#users').slideDown();
+		}, function(err) {
+			$('#message').text(JSON.stringify(err));
 		});
 	}
 	$('#login_form').submit(function(e) {
