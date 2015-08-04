@@ -673,29 +673,32 @@ class GameResource(restful.Resource):
 
 
 # Beta testers
-@app.route('/betatesters', methods=['POST'])
-def betatester_add():
-    def nonempty(val):
-        if not val:
-            raise ValueError('Should not be empty')
-        return val
-    parser = RequestParser()
-    parser.add_argument('email', type=email, required=True)
-    parser.add_argument('name', type=nonempty, required=True)
-    parser.add_argument('games',
-                        default='')
-    parser.add_argument('platforms',
-                        type=multival_field(Beta.PLATFORMS, True),
-                        default='')
-    parser.add_argument('console', default='')
-    args = parser.parse_args()
+@api.resource(
+    '/betatesters'
+)
+class BetaResource(restful.Resource):
+    def post(self):
+        def nonempty(val):
+            if not val:
+                raise ValueError('Should not be empty')
+            return val
+        parser = RequestParser()
+        parser.add_argument('email', type=email, required=True)
+        parser.add_argument('name', type=nonempty, required=True)
+        parser.add_argument('games',
+                            default='')
+        parser.add_argument('platforms',
+                            type=multival_field(Beta.PLATFORMS, True),
+                            default='')
+        parser.add_argument('console', default='')
+        args = parser.parse_args()
 
-    beta = Beta()
-    beta.email = args.email
-    beta.name = args.name
-    beta.gametypes = args.games
-    beta.platforms = ','.join(args.platforms)
-    beta.console = args.console
-    db.session.add(beta)
-    db.session.commit()
-    return jsonify(success = True)
+        beta = Beta()
+        beta.email = args.email
+        beta.name = args.name
+        beta.gametypes = args.games
+        beta.platforms = ','.join(args.platforms)
+        beta.console = args.console
+        db.session.add(beta)
+        db.session.commit()
+        return jsonify(success = True)
