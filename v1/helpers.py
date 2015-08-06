@@ -823,15 +823,26 @@ class CommaListField(restful.fields.Raw):
 ### Polling and notification ###
 class Poller:
     gametypes = []
-    @property
-    def games(self):
-        return Game.query.filter_by(
+    def games(self, gametype, gamemode=None):
+        ret = Game.query.filter_by(
             gametype=gametype,
-            gamemode=gamemode,
             state = 'accepted',
         )
-    def poll(self):
-        log.debug('{}: polling games'.format(self.__class__.__name__))
+        if gamemode:
+            ret = ret.filter_by(
+                gamemode=gamemode,
+            )
+        return ret
+    def poll(self, gametype=None):
+        if not gametype:
+            for gametype in self.gametypes:
+                self.poll(gametype)
+            return
+
+        log.debug('{}: polling games of type {}'.format(
+            self.__class__.__name__,
+            gametype
+        ))
         count_games = self.games.count()
         count_ended = 0
         for game in self.games:
