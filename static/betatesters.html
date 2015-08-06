@@ -10,7 +10,13 @@ $(function() {
 	function showUsers() {
 		API.call('GET', 'betatesters', {}, function(ret) {
 			$('#login_form').slideUp();
+			var games = {};
 			$.each(ret.betatesters, function(i, tester) {
+				// prepare statistics
+				$.each(tester.gametypes, function(i, game) {
+					games[game] = (games[game] || 0) + 1;
+				});
+
 				var row = $('<tr/>');
 				$.each(['id', 'email', 'name', 'gametypes', 'platforms', 'console', 'create_date'], function(i, k) {
 					var v = tester[k];
@@ -29,6 +35,22 @@ $(function() {
 				$('#users').append(row);
 			});
 			$('#users').slideDown();
+
+			// now handle statistics
+			var sortable = [];
+			for(game in games) {
+				sortable.push([game, games[game]]);
+			}
+			sortable.sort(function(a,b) {
+				return b[1] - a[1]; // reversed sort
+			});
+			$.each(sortable, function(i, elem) {
+				var row = $('<tr/>);
+				$('<td/>').text(elem[0]).appendTo(row);
+				$('<td/>').text(elem[1]).appendTo(row);
+				$('#gamestats').append(row);
+			});
+			$('#gamestats').slideDown();
 		}, function(err) {
 			$('#message').text(JSON.stringify(err));
 		});
@@ -71,6 +93,12 @@ $(function() {
 				<th>Platforms</th>
 				<th>Consoles</th>
 				<th>Create date</th>
+			</tr>
+		</table>
+		<table id="gamestats" style="display: none;" border="1">
+			<tr>
+				<th>Game</th>
+				<th>Count</th>
 			</tr>
 		</table>
 <script>
