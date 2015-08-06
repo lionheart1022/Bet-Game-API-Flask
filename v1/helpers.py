@@ -263,10 +263,12 @@ class Riot:
             data = data,
         )
         try:
-            return ret.json()
+            resp = ret.json()
         except Exception:
             log.exception('RIOT api error')
-            return {}
+            resp = {}
+        resp['_code'] = ret.status_code
+        return ret
 
 
 ### Tokens ###
