@@ -45,7 +45,7 @@ $(function() {
 				return b[1] - a[1]; // reversed sort
 			});
 			$.each(sortable, function(i, elem) {
-				var row = $('<tr/>);
+				var row = $('<tr/>');
 				$('<td/>').text(elem[0]).appendTo(row);
 				$('<td/>').text(elem[1]).appendTo(row);
 				$('#gamestats').append(row);
