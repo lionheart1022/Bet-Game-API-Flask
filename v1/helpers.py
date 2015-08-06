@@ -655,7 +655,8 @@ def summoner_field(val, region = None):
     if val.lower() in ret:
         return '/'.join([
             region,
-            ret[val.lower()].get('name', val),
+            ret[val.lower()]['name'],
+            ret[val.lower()]['id'],
         ])
     raise ValueError('Unknown summoner name')
 
