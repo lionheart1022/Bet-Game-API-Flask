@@ -10,6 +10,7 @@ import urllib.parse
 from datetime import datetime, timedelta
 import math
 from collections import OrderedDict, namedtuple
+from types import SimpleNamespace
 import os
 import eventlet
 import jwt
@@ -860,8 +861,14 @@ class RiotPoller(Poller):
             region, val = val.split('/', 1)
             name, id = val.rsplit('/', 1)
             return region, name, int(id)
-        region, crea_name, crea_sid = parseSummoner(game.gamertag_creator)
-        region, oppo_name, oppo_sid = parseSummoner(game.gamertag_opponent)
+        crea = SimpleNamespace()
+        oppo = SimpleNamespace()
+        region, crea.name, crea.sid = parseSummoner(game.gamertag_creator)
+        region2, oppo.name, oppo.sid = parseSummoner(game.gamertag_opponent)
+        if region2 != region:
+            log.error('Invalid game, different regions! id {}'.format(game.id))
+            # TODO: mark game as invalid?..
+            return False
 
         def checkMatch(match_ref):
             # fetch match details
@@ -870,33 +877,33 @@ class RiotPoller(Poller):
                 'v2.2',
                 'match/'+match_ref['matchId'],
             )
-            crea_pid = oppo_pid = None # participant id
+            crea.pid = oppo.pid = None # participant id
             for participant in ret['participantIdentities']:
-                if participant['player']['summonerId'] == crea_sid:
-                    crea_pid = participant['participantId']
-                elif participant['player']['summonerId'] == oppo_sid:
-                    oppo_pid = participant['participantId']
-            if not oppo_pid:
+                if participant['player']['summonerId'] == crea.sid:
+                    crea.pid = participant['participantId']
+                elif participant['player']['summonerId'] == oppo.sid:
+                    oppo.pid = participant['participantId']
+            if not oppo.pid:
                 # Desired opponent didn't participate this match; skip it
                 return False
 
-            crea_won = oppo_won = None
+            crea.won = oppo.won = None
             for participant in ret['participants']:
-                if participant['participantId'] == crea_pid:
-                    crea_won = participant['stats']['winner']
-                elif participant['participantId'] == oppo_pid:
-                    oppo_won = participant['stats']['winner']
+                if participant['participantId'] == crea.pid:
+                    crea.won = participant['stats']['winner']
+                elif participant['participantId'] == oppo.pid:
+                    oppo.won = participant['stats']['winner']
 
             # FIXME: is it possible that both creator and oppo lose the game?
-            if crea_won == oppo_won:
+            if crea.won == oppo.won:
                 log.warning('Creator and opponent are in the same team!')
                 # skip this match
                 return False
 
             self.gameDone(
                 game,
-                'creator' if crea_won else
-                'opponent' if oppo_won else
+                'creator' if crea.won else
+                'opponent' if oppo.won else
                 'draw',
                 # creation is in ms, duration is in seconds; convert to seconds
                 round(match['matchCreation']/1000) + match['matchDuration']
@@ -908,7 +915,7 @@ class RiotPoller(Poller):
             ret = Riot.call(
                 region,
                 'v2.2',
-                'matchlist/by-summoner/'+str(crea_sid),
+                'matchlist/by-summoner/'+str(crea.sid),
                 data=dict(
                     beginTime = game.accept_date.timestamp()*1000, # in ms
                     beginIndex = shift,
