@@ -12,7 +12,7 @@ $(function() {
 			$('#login_form').slideUp();
 			$.each(ret.betatesters, function(i, tester) {
 				var row = $('<tr/>');
-				$.each(['email', 'name', 'gametypes', 'platforms', 'console', 'create_date'], function(i, k) {
+				$.each(['id', 'email', 'name', 'gametypes', 'platforms', 'console', 'create_date'], function(i, k) {
 					var v = tester[k];
 					if(Array.isArray(v) && v.length && v[0]) {
 						var child = $('<ul/>');
@@ -64,6 +64,7 @@ $(function() {
 		</form>
 		<table id="users" style="display: none;" border="1">
 			<tr>
+				<th>ID</th>
 				<th>E-mail</th>
 				<th>Name</th>
 				<th>Game types</th>
