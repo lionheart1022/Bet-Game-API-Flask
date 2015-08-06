@@ -248,14 +248,18 @@ def mailsend(user, mtype, **kwargs):
 
 class Riot:
     URL = 'https://{region}.api.pvp.net/api/lol/{region}/{version}/{method}'
-    REGION = 'ru'
+    REGIONS = [
+        'br', 'eune', 'euw', 'kr',
+        'lan', 'las', 'na', 'oce',
+        'ru', 'tr',
+    ]
 
     @classmethod
-    def call(cls, version, method, params, data):
+    def call(cls, region, version, method, params, data):
         params['api_key'] = config.RIOT_KEY
         ret = requests.get(
             cls.URL.format(
-                region=cls.REGION,
+                region=region,
                 version=version,
                 method=method,
             ),
@@ -625,9 +629,35 @@ def gamertag_field(nick):
         #raise ValueError('Couldn\'t validate this gamertag: {}'.format(nick))
         return nick
 
-def summoner_field(val):
-    # TODO
-    return val
+def summoner_field(val, region = None):
+    """
+    Summoner field can be either full (with region) or short.
+    If it is full, it should be in format 'region/name'.
+    If it is short, this method will try to find matching name
+    in the first region where it exists.
+    """
+    if not region and '/' in val:
+        region, nval = val.split('/',1)
+        if region in Riot.REGIONS:
+            val = nval
+        else:
+            region = None
+    if not region:
+        for region in Riot.REGIONS:
+            try:
+                return summoner_field(val, region)
+            except ValueError:
+                pass
+        else:
+            raise ValueError('Summoner {} not exists in any region')
+
+    ret = Riot.call(region, 'v1.4', 'summoner/by-name/'+val)
+    if val.lower() in ret:
+        return '/'.join([
+            region,
+            ret[val.lower()].get('name', val),
+        ])
+    raise ValueError('Unknown summoner name')
 
 def encrypt_password(val):
     """

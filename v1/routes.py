@@ -609,6 +609,15 @@ class GameResource(restful.Resource):
         check_gamertag('creator', ('your', ''))
         check_gamertag('opponent', ('opponent\'s', 'they '))
 
+        if args.gametype == 'league-of-legends':
+            # additional check for regions
+            region1 = args['gamertag_creator'].split('/',1)[0]
+            region2 = args['gamertag_opponent'].split('/',1)[0]
+            if region1 != region2:
+                abort('You and your opponent should be in the same region; '
+                      'but actually you are in {} and your opponent is in {}'.format(
+                          region1, region2))
+
         if args.bet < 0.99:
             abort('[bet]: too low amount', problem='bet')
         if args.bet > user.available:
@@ -619,8 +628,8 @@ class GameResource(restful.Resource):
         game.opponent = args.opponent
         game.gamertag_creator = args.gamertag_creator
         game.gamertag_opponent = args.gamertag_opponent
-        game.gamemode = args.gamemode
         game.gametype = args.gametype
+        game.gamemode = args.gamemode
         game.bet = args.bet
         db.session.add(game)
 
