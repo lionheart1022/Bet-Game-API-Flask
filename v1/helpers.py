@@ -843,9 +843,10 @@ class Poller:
             self.__class__.__name__,
             gametype
         ))
-        count_games = self.games.count()
+        query = self.games(gametype)
+        count_games = query.count()
         count_ended = 0
-        for game in self.games:
+        for game in query:
             if self.pollGame(game):
                 count_ended += 1
         log.debug('Polling done, finished {} of {} games'.format(
