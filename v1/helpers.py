@@ -246,6 +246,28 @@ def mailsend(user, mtype, **kwargs):
     except Exception:
         return False
 
+class Riot:
+    URL = 'https://{region}.api.pvp.net/api/lol/{region}/{version}/{method}'
+    REGION = 'ru'
+
+    @classmethod
+    def call(cls, version, method, params, data):
+        params['api_key'] = config.RIOT_KEY
+        ret = requests.get(
+            cls.URL.format(
+                region=cls.REGION,
+                version=version,
+                method=method,
+            ),
+            params = params,
+            data = data,
+        )
+        try:
+            return ret.json()
+        except Exception:
+            log.exception('RIOT api error')
+            return {}
+
 
 ### Tokens ###
 def validateFederatedToken(service, refresh_token):
