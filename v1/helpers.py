@@ -842,6 +842,12 @@ class Poller:
         """
         raise NotImplemented
 
+    def gameDone(self, game, winner, timestamp):
+        """
+        timestamp is in seconds
+        """
+        pass
+
 class FifaPoller(Poller):
     gametypes = ['fifa14-xboxone', 'fifa15-xboxone']
     def pollGame(self, game):
@@ -887,11 +893,14 @@ class RiotPoller(Poller):
                 # skip this match
                 return False
 
-            self.gameDone(game,
-                          'creator' if crea_won else
-                          'opponent' if oppo_won else
-                          'draw'
-                          )
+            self.gameDone(
+                game,
+                'creator' if crea_won else
+                'opponent' if oppo_won else
+                'draw',
+                # creation is in ms, duration is in seconds; convert to seconds
+                round(match['matchCreation']/1000) + match['matchDuration']
+            )
             return True
 
         shift = 0
