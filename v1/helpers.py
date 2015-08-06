@@ -898,7 +898,7 @@ class FifaPoller(Poller):
         self.gamertags = {}
 
     @staticmethod
-    def fetch(nick):
+    def fetch(gametype, gamemode, nick):
         url = 'https://www.easports.com/fifa/api/'\
             '{}/match-history/{}/{}'.format(
                 gametype, gamemode, nick)
@@ -919,7 +919,8 @@ class FifaPoller(Poller):
                     return self.handleGame(game, who, self.gamertags[tag])
 
             who = 'creator'
-            matches = self.fetch(game.gamertag_creator)
+            matches = self.fetch(game.gametype, game.gamemode,
+                                 game.gamertag_creator)
             # and cache it
             self.gamertags[game.gamertag_creator] = matches
 
@@ -1150,9 +1151,6 @@ def poll_fifa(gametype, gamemode):
     db.session.commit()
 
     return count_games, count_ended
-
-def poll_riot(gametype, gamemode):
-    pass
 
 def poll_all():
     log.info('Starting polling')
