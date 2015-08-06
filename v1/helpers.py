@@ -879,23 +879,22 @@ class RiotPoller(Poller):
             )
             crea.pid = oppo.pid = None # participant id
             for participant in ret['participantIdentities']:
-                if participant['player']['summonerId'] == crea.sid:
-                    crea.pid = participant['participantId']
-                elif participant['player']['summonerId'] == oppo.sid:
-                    oppo.pid = participant['participantId']
+                for user in [crea, oppo]:
+                    if participant['player']['summonerId'] == user.sid:
+                        user.pid = participant['participantId']
             if not oppo.pid:
                 # Desired opponent didn't participate this match; skip it
                 return False
 
+            crea.tid = oppo.tid = None
             crea.won = oppo.won = None
             for participant in ret['participants']:
-                if participant['participantId'] == crea.pid:
-                    crea.won = participant['stats']['winner']
-                elif participant['participantId'] == oppo.pid:
-                    oppo.won = participant['stats']['winner']
+                for user in [crea, oppo]:
+                    if participant['participantId'] == user.pid:
+                        user.tid = participant['teamId']
+                        user.won = participant['stats']['winner']
 
-            # FIXME: is it possible that both creator and oppo lose the game?
-            if crea.won == oppo.won:
+            if crea.tid == oppo.tid:
                 log.warning('Creator and opponent are in the same team!')
                 # skip this match
                 return False
