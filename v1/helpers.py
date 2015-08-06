@@ -246,6 +246,7 @@ def mailsend(user, mtype, **kwargs):
     except Exception:
         return False
 
+
 ### Tokens ###
 def validateFederatedToken(service, refresh_token):
     if service == 'google':
@@ -599,6 +600,10 @@ def gamertag_field(nick):
         log.error('Allowing it...')
         #raise ValueError('Couldn\'t validate this gamertag: {}'.format(nick))
         return nick
+
+def summoner_field(val):
+    # TODO
+    return val
 
 def encrypt_password(val):
     """

@@ -69,6 +69,8 @@ class Player(db.Model):
             p = cls.query.filter_by(nickname=key).first()
         if not p:
             p = cls.query.filter_by(ea_gamertag=key).first()
+        if not p:
+            p = cls.query.filter_by(riot_summonerName=key).first()
         return p
 
     @classmethod
