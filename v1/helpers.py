@@ -635,6 +635,8 @@ def summoner_field(val, region = None):
     If it is full, it should be in format 'region/name'.
     If it is short, this method will try to find matching name
     in the first region where it exists.
+
+    Returns summoner data in formt 'region/name/id'.
     """
     if not region and '/' in val:
         region, nval = val.split('/',1)
@@ -816,7 +818,103 @@ class CommaListField(restful.fields.Raw):
             return []
         return val.split(',')
 
+
 ### Polling and notification ###
+class Poller:
+    gametypes = []
+    @property
+    def games(self):
+        return Game.query.filter_by(
+            gametype=gametype,
+            gamemode=gamemode,
+            state = 'accepted',
+        )
+    def poll(self):
+        count_games = self.games.count()
+        count_ended = 0
+        for game in self.games:
+            self.pollGame(game)
+
+    def pollGame(self, game):
+        """
+        Shall be overriden by subclasses.
+        Returns True if given game was successfully processed.
+        """
+        raise NotImplemented
+
+class FifaPoller(Poller):
+    gametypes = ['fifa14-xboxone', 'fifa15-xboxone']
+    def pollGame(self, game):
+        pass
+
+class RiotPoller(Poller):
+    gametypes = ['league-of-legends']
+    def pollGame(self, game):
+        def parseSummoner(val):
+            region, val = val.split('/', 1)
+            name, id = val.rsplit('/', 1)
+            return region, name, int(id)
+        region, crea_name, crea_sid = parseSummoner(game.gamertag_creator)
+        region, oppo_name, oppo_sid = parseSummoner(game.gamertag_opponent)
+
+        def checkMatch(match_ref):
+            # fetch match details
+            ret = Riot.call(
+                region,
+                'v2.2',
+                'match/'+match_ref['matchId'],
+            )
+            crea_pid = oppo_pid = None # participant id
+            for participant in ret['participantIdentities']:
+                if participant['player']['summonerId'] == crea_sid:
+                    crea_pid = participant['participantId']
+                elif participant['player']['summonerId'] == oppo_sid:
+                    oppo_pid = participant['participantId']
+            if not oppo_pid:
+                # Desired opponent didn't participate this match; skip it
+                return False
+
+            crea_won = oppo_won = None
+            for participant in ret['participants']:
+                if participant['participantId'] == crea_pid:
+                    crea_won = participant['stats']['winner']
+                elif participant['participantId'] == oppo_pid:
+                    oppo_won = participant['stats']['winner']
+
+            # FIXME: is it possible that both creator and oppo lose the game?
+            if crea_won == oppo_won:
+                log.warning('Creator and opponent are in the same team!')
+                # skip this match
+                return False
+
+            self.gameDone(game,
+                          'creator' if crea_won else
+                          'opponent' if oppo_won else
+                          'draw'
+                          )
+            return True
+
+        shift = 0
+        while True:
+            ret = Riot.call(
+                region,
+                'v2.2',
+                'matchlist/by-summoner/'+str(crea_sid),
+                data=dict(
+                    beginTime = game.accept_date.timestamp()*1000, # in ms
+                    beginIndex = shift,
+                    rankedQueues = game.gamemode,
+                ),
+            )
+
+            for match in ret['matches']:
+                if checkMatch(match):
+                    return True
+
+            shift += 20
+            if shift > ret['totalGames']:
+                break
+
 def poll_fifa(gametype, gamemode):
     count_games = 0
     count_ended = 0
