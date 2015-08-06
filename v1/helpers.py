@@ -845,9 +845,28 @@ class Poller:
 
     def gameDone(self, game, winner, timestamp):
         """
-        timestamp is in seconds
+        Mark the game as done, setting all needed fields.
+        Winner is a string.
+        Timestamp is in seconds
         """
-        pass
+        log.debug('Marking game {} as done'.format(game))
+        game.winner = winner
+        game.state = 'finished'
+        game.finish_date = datetime.utcfromtimestamp(timestamp)
+
+        # move funds...
+        if winner == 'creator':
+            game.creator.balance += game.bet
+            game.opponent.balance -= game.bet
+        elif winner == 'opponent':
+            game.opponent.balance += game.bet
+            game.creator.balance -= game.bet
+        # and unlock bets
+        # withdrawing them finally from accounts
+        game.creator.locked -= game.bet
+        game.opponent.locked -= game.bet
+
+        notify_users(game)
 
 class FifaPoller(Poller):
     gametypes = ['fifa14-xboxone', 'fifa15-xboxone']
