@@ -831,10 +831,15 @@ class Poller:
             state = 'accepted',
         )
     def poll(self):
+        log.debug('{}: polling games'.format(self.__class__.__name__))
         count_games = self.games.count()
         count_ended = 0
         for game in self.games:
-            self.pollGame(game)
+            if self.pollGame(game):
+                count_ended += 1
+        log.debug('Polling done, finished {} of {} games'.format(
+            count_ended, count_games,
+        ))
 
     def pollGame(self, game):
         """
@@ -867,6 +872,8 @@ class Poller:
         game.opponent.locked -= game.bet
 
         notify_users(game)
+
+        return True # for convenience
 
 class FifaPoller(Poller):
     gametypes = ['fifa14-xboxone', 'fifa15-xboxone']
