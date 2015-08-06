@@ -847,8 +847,11 @@ class Poller:
         count_games = query.count()
         count_ended = 0
         for game in query:
-            if self.pollGame(game):
-                count_ended += 1
+            try:
+                if self.pollGame(game):
+                    count_ended += 1
+            except Exception:
+                log.exception('Failed to poll game {}'.format(game))
         log.debug('Polling done, finished {} of {} games'.format(
             count_ended, count_games,
         ))
