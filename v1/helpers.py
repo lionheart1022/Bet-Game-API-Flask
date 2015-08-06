@@ -889,8 +889,79 @@ class Poller:
 
 class FifaPoller(Poller):
     gametypes = ['fifa14-xboxone', 'fifa15-xboxone']
-    def pollGame(self, game):
-        pass
+
+    def __init__(self):
+        super().__init__()
+        self.gamertags = {}
+
+    @staticmethod
+    def fetch(nick):
+        url = 'https://www.easports.com/fifa/api/'\
+            '{}/match-history/{}/{}'.format(
+                gametype, gamemode, nick)
+        try:
+            return requests.get(url).json()['data']
+        except Exception as e:
+            log.error('Failed to fetch match info '
+                      'for player {}, gt {} gm {}'.format(
+                          nick, gametype, gamemode),
+                      exc_info=True)
+            return []
+
+    def pollGame(self, game, who=None, matches=None):
+        if not who:
+            for who in ['creator', 'opponent']:
+                tag = getattr(game, 'gamertag_'+who)
+                if tag in self.gamertags:
+                    return self.handleGame(game, who, self.gamertags[tag])
+
+            who = 'creator'
+            matches = self.fetch(game.gamertag_creator)
+            # and cache it
+            self.gamertags[game.gamertag_creator] = matches
+
+        crea = SimpleNamespace(who='creator')
+        oppo = SimpleNamespace(who='opponent')
+        for user in [crea, oppo]:
+            user.tag = getattr(game, 'gamertag_'+user.who)
+        # `me` is the `who` player object
+        me, other = (crea, oppo) if who == 'creator' else (oppo, crea)
+        me.role = 'self'
+        other.role = 'opponent'
+
+        # now that we have who and matches, try to find corresponding match
+        for match in reversed(matches): # from oldest to newest
+            log.debug('match: {} cr {}, op {}'.format(
+                match['timestamp'], *[
+                    [match[u]['user_info'], match[u]['stats']['score']]
+                    for u in ('self', 'opponent')
+                ]
+            ))
+            # skip this match if it ended before game's start
+            if math.floor(game.accept_date.timestamp()) \
+                    > match['timestamp'] + 4*3600: # delta of 4 hours
+                log.debug('Skipping match because of time')
+                continue
+
+            if other.gamertag.lower() not in map(
+                lambda t: t.lower(),
+                match['opponent']['user_info']
+            ):
+                log.debug('Skipping match because of participants')
+                continue
+
+            # Now we found the match we want! Handle it and return True
+            log.debug('Found match! '+str(match))
+            for user in (crea, oppo):
+                user.score = match[user.role]['stats']['score']
+            if crea.score > oppo.score:
+                winner = 'creator'
+            elif crea.score < oppo.score:
+                winner = 'opponent'
+            else:
+                winner = 'draw'
+            self.gameDone(game, winner, match['timestamp'])
+            return True
 
 class RiotPoller(Poller):
     gametypes = ['league-of-legends']
