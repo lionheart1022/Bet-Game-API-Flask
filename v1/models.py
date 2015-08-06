@@ -101,6 +101,7 @@ class Game(db.Model):
 
     FIFA = dict(
         supported = True,
+        multipoll = True, # call poller individually for each gamemode
         gamemodes = [
             'fifaSeasons',
             'futSeasons',
@@ -119,6 +120,7 @@ class Game(db.Model):
     )
     UNSUPPORTED = dict(
         supported = False,
+        multipoll = False,
         gamemodes = [],
         gamemode_names = {},
         identity = None,
@@ -133,6 +135,7 @@ class Game(db.Model):
         'grand-theft-auto-5': UNSUPPORTED,
         'league-of-legends': dict(
             supported = True,
+            multipoll = False,
             gamemodes = [
                 'RANKED_SOLO_5x5',
                 'RANKED_TEAM_3x3',

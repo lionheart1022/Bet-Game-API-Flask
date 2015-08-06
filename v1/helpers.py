@@ -914,6 +914,10 @@ def poll_fifa(gametype, gamemode):
     db.session.commit()
 
     return count_games, count_ended
+
+def poll_riot(gametype, gamemode):
+    pass
+
 def poll_all():
     log.info('Starting polling')
     for gametype, opts in Game.GAMETYPES.items():
@@ -921,10 +925,12 @@ def poll_all():
             continue
         if 'fifa' in gametype:
             poller = poll_fifa
+        elif gametype == 'league-of-legends':
+            poller = poll_riot
         else:
             log.error('Unexpected gametype')
             continue
-        for gamemode in opts['gamemodes']:
+        for gamemode in opts['gamemodes'] if opts['multipoll'] else [None]:
             try:
                 games, ended = poller(gametype, gamemode)
                 log.info(
