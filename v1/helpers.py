@@ -894,6 +894,11 @@ class FifaPoller(Poller):
 
 class RiotPoller(Poller):
     gametypes = ['league-of-legends']
+
+    def __init__(self):
+        super().__init__()
+        self.matches = {}
+
     def pollGame(self, game):
         def parseSummoner(val):
             region, val = val.split('/', 1)
@@ -910,11 +915,16 @@ class RiotPoller(Poller):
 
         def checkMatch(match_ref):
             # fetch match details
-            ret = Riot.call(
-                region,
-                'v2.2',
-                'match/'+match_ref['matchId'],
-            )
+            mid = match_ref['matchId']
+            if mid in self.matches:
+                ret = self.matches[mid]
+            else:
+                ret = Riot.call(
+                    region,
+                    'v2.2',
+                    'match/'+mid,
+                )
+                self.matches[mid] = ret
             crea.pid = oppo.pid = None # participant id
             for participant in ret['participantIdentities']:
                 for user in [crea, oppo]:
