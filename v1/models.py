@@ -17,6 +17,7 @@ class Player(db.Model):
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
 
     ea_gamertag = db.Column(db.String(64), unique=True)
+    riot_summonerName = db.Column(db.String(64), unique=True)
 
     balance = db.Column(db.Float, default=0)
     locked = db.Column(db.Float, default=0)
@@ -128,7 +129,20 @@ class Game(db.Model):
         'destiny': UNSUPPORTED,
         'dota2': UNSUPPORTED,
         'grand-theft-auto-5': UNSUPPORTED,
-        'league-of-legends': UNSUPPORTED,
+        'league-of-legends': dict(
+            supported = True,
+            gamemodes = [
+                'RANKED_SOLO_5x5',
+                'RANKED_TEAM_3x3',
+                'RANKED_TEAM_5x5',
+            ],
+            gamemode_names = {
+                'RANKED_SOLO_5x5': 'Solo 5x5',
+                'RANKED_TEAM_3x3': 'Team 3x3',
+                'RANKED_TEAM_5x5': 'Team 5x5',
+            },
+            identity = 'riot_summonerName',
+        ),
         'minecraft': UNSUPPORTED,
         'rocket-league': UNSUPPORTED,
         'starcraft': UNSUPPORTED,
