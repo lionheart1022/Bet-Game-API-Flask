@@ -1077,6 +1077,7 @@ class Dota2Poller(Poller):
 
     def prepare(self):
         pass
+
     def pollGame(self, game):
         pass
 

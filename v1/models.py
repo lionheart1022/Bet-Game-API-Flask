@@ -133,7 +133,12 @@ class Game(db.Model):
         'battlefield-4': UNSUPPORTED,
         'call-of-duty-advanced-warfare': UNSUPPORTED,
         'destiny': UNSUPPORTED,
-        'dota2': UNSUPPORTED,
+        'dota2': dict(
+            supported = True,
+            gamemodes = [],
+            gamemode_names = {},
+            identity = 'dota2_playername',
+        ),
         'grand-theft-auto-5': UNSUPPORTED,
         'league-of-legends': dict(
             supported = True,
