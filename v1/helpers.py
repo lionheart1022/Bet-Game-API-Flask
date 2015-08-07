@@ -967,7 +967,7 @@ class FifaPoller(Poller):
                 log.debug('Skipping match because of time')
                 continue
 
-            if other.gamertag.lower() not in map(
+            if other.tag.lower() not in map(
                 lambda t: t.lower(),
                 match['opponent']['user_info']
             ):
