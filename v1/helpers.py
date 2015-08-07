@@ -1072,6 +1072,14 @@ class RiotPoller(Poller):
             if shift > ret['totalGames']:
                 break
 
+class Dota2Poller(Poller):
+    gametypes = ['dota2']
+
+    def prepare(self):
+        pass
+    def pollGame(self, game):
+        pass
+
 def poll_all(poller=Poller):
     if poller is Poller:
         log.info('Polling started')
