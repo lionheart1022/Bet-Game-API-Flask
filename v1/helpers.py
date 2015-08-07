@@ -848,14 +848,16 @@ class Poller:
                 self.poll(gametype, gamemode)
             return
 
-        log.debug('{}: polling games of type {}'.format(
-            self.__class__.__name__,
-            gametype
-        ))
         query = self.games(gametype, gamemode)
         count_games = query.count()
-        log.debug('have {} games'.format(count_games))
         count_ended = 0
+
+        log.debug('{}: polling {} games of type {} {}'.format(
+            self.__class__.__name__,
+            count_games,
+            gametype, gamemode
+        ))
+
         for game in query:
             try:
                 if self.pollGame(game):
