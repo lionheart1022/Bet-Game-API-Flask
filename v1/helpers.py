@@ -823,6 +823,7 @@ class CommaListField(restful.fields.Raw):
 ### Polling and notification ###
 class Poller:
     gametypes = []
+
     def games(self, gametype, gamemode=None):
         ret = Game.query.filter_by(
             gametype=gametype,
@@ -836,6 +837,7 @@ class Poller:
     def poll(self, gametype=None):
         if not gametype:
             for gametype in self.gametypes:
+                self.prepare()
                 self.poll(gametype)
             return
 
@@ -855,13 +857,6 @@ class Poller:
         log.debug('Polling done, finished {} of {} games'.format(
             count_ended, count_games,
         ))
-
-    def pollGame(self, game):
-        """
-        Shall be overriden by subclasses.
-        Returns True if given game was successfully processed.
-        """
-        raise NotImplemented
 
     def gameDone(self, game, winner, timestamp):
         """
@@ -890,11 +885,22 @@ class Poller:
 
         return True # for convenience
 
+    def prepare(self):
+        """
+        Prepare self for new polling, clear all caches.
+        """
+        pass
+
+    def pollGame(self, game):
+        """
+        Shall be overriden by subclasses.
+        Returns True if given game was successfully processed.
+        """
+        raise NotImplemented
 class FifaPoller(Poller):
     gametypes = ['fifa14-xboxone', 'fifa15-xboxone']
 
-    def __init__(self):
-        super().__init__()
+    def prepare(self):
         self.gamertags = {}
 
     @staticmethod
@@ -970,8 +976,7 @@ class FifaPoller(Poller):
 class RiotPoller(Poller):
     gametypes = ['league-of-legends']
 
-    def __init__(self):
-        super().__init__()
+    def prepare(self):
         self.matches = {}
 
     def pollGame(self, game):
