@@ -250,6 +250,7 @@ def mailsend(user, mtype, **kwargs):
 
 class LimitedApi:
     DELAY = timedelta(seconds=2)
+
     @classmethod
     def request(cls, *args, **kwargs):
         now = datetime.utcnow()
@@ -301,11 +302,12 @@ class Riot(LimitedApi):
             data = data,
         )
 
-class Steam:
+class Steam(LimitedApi):
     @classmethod
     def call(cls, path, method, params, data):
         params['key'] = config.STEAM_KEY
-        ret = requests.get(
+        return cls.request(
+            'GET',
             'https://api.steampowered.com/{}/{}'.format(
                 path,
                 method,
@@ -313,13 +315,6 @@ class Steam:
             params = params,
             data = data,
         )
-        try:
-            resp = ret.json()
-        except Exception:
-            log.exception('Steam api error')
-            resp = {}
-        resp['_code'] = ret.status_code
-        return ret
     def dota2(cls, **params):
         return cls.call('IDOTA2Match_570', 'GetMatchHistory/V001/', params)
 
