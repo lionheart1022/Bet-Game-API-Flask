@@ -1097,10 +1097,19 @@ class Dota2Poller(Poller):
     gametypes = ['dota2']
 
     def prepare(self):
-        pass
+        self.matches = {}
 
     def pollGame(self, game):
-        pass
+        match = self.matches.get(game.gamertag_creator) \
+            or self.matches.get(game.gamertag_opponent)
+        if not match:
+            # TODO: handle pagination
+            match = Steam.dota2(
+                player_name = game.gamertag_creator,
+                date_min = round(game.accept_date.timestamp()),
+            )
+            self.matches[game.gamertag_creator] = match
+        # TODO: process returned match list object
 
 def poll_all(poller=Poller):
     if poller is Poller:
