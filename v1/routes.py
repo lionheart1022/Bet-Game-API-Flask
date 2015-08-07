@@ -600,7 +600,17 @@ class GameResource(restful.Resource):
 
         args.creator = user # to simplify checking
         def check_gamertag(who, msgf):
-            if not args['gamertag_'+who]:
+            if args['gamertag_'+who]:
+                # Checking method might convert data somehow,
+                # so it is mandatory to call it.
+                checker = Game.GAMETYPES[args.gametype]['identity_check']
+                if isinstance(checker, str): # resolve it here
+                    checker = globals()[checker]
+                try:
+                    args['gamertag_'+who] = checker(args['gamertag_'+who])
+                except ValueError as e:
+                    abort('[gamertag_{}]: {}'.format(who, e))
+            else:
                 if gamertag_field:
                     args['gamertag_'+who] = getattr(args[who], gamertag_field)
                 if not args['gamertag_'+who]:

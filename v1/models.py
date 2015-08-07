@@ -117,6 +117,7 @@ class Game(db.Model):
             'coop': 'Cooperative',
         },
         identity = 'ea_gamertag',
+        identity_check = 'gamertag_field',
     )
     UNSUPPORTED = dict(
         supported = False,
@@ -124,6 +125,7 @@ class Game(db.Model):
         gamemodes = [],
         gamemode_names = {},
         identity = None,
+        identity_check = str,
     )
     GAMETYPES = {
         'fifa14-xboxone': FIFA,
@@ -147,6 +149,7 @@ class Game(db.Model):
                 'RANKED_TEAM_5x5': 'Team 5x5',
             },
             identity = 'riot_summonerName',
+            identity_check = 'summoner_field',
         ),
         'minecraft': UNSUPPORTED,
         'rocket-league': UNSUPPORTED,
