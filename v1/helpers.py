@@ -906,6 +906,7 @@ class Poller:
         raise NotImplemented
 class FifaPoller(Poller):
     gametypes = ['fifa14-xboxone', 'fifa15-xboxone']
+    usemodes = True
 
     def prepare(self):
         self.gamertags = {}
