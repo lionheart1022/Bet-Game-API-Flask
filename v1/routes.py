@@ -659,7 +659,7 @@ class GameResource(restful.Resource):
         parser = RequestParser()
         parser.add_argument('state', choices=[
             'accepted', 'declined', 'cancelled'
-        ])
+        ], required=True)
         args = parser.parse_args()
 
         game = Game.query.get(id)
