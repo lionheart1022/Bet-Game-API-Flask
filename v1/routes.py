@@ -685,7 +685,12 @@ class GameResource(restful.Resource):
         game.state = args.state
         game.accept_date = datetime.utcnow()
 
-        user.locked += game.bet
+        if args.state == 'accepted':
+            # bet is locked on creator's account; lock it on opponent's as well
+            game.opponent.locked += game.bet
+        else:
+            # bet was locked on creator's account; unlock it
+            game.creator.locked -= game.bet
 
         db.session.commit()
 
