@@ -125,7 +125,7 @@ class Game(db.Model):
         gamemodes = [],
         gamemode_names = {},
         identity = None,
-        identity_check = '',
+        identity_check = None,
     )
     GAMETYPES = {
         'fifa14-xboxone': FIFA,
@@ -156,7 +156,8 @@ class Game(db.Model):
         'starcraft': UNSUPPORTED,
     }
     GAMEMODES = set(sum((t['gamemodes'] for t in GAMETYPES.values()), []))
-    IDENTITIES = set([t['identity'] for t in GAMETYPES.values()])
+    IDENTITIES = set([t['identity'] for t in GAMETYPES.values()
+                      if t['identity']])
     IDENTITY_NAMES = {
         'ea_gamertag': 'EA GamerTag',
         'riot_summonerName': 'Riot Summoner Name',
