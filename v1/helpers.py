@@ -861,6 +861,9 @@ class Poller:
                     count_ended += 1
             except Exception:
                 log.exception('Failed to poll game {}'.format(game))
+
+        db.session.commit()
+
         log.debug('Polling done, finished {} of {} games'.format(
             count_ended, count_games,
         ))
