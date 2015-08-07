@@ -275,6 +275,27 @@ class Riot:
         resp['_code'] = ret.status_code
         return ret
 
+class Steam:
+    def call(self, path, method, params, data):
+        params['key'] = config.STEAM_KEY
+        ret = requests.get(
+            'https://api.steampowered.com/{}/{}'.format(
+                path,
+                method,
+            ),
+            params = params,
+            data = data,
+        )
+        try:
+            resp = ret.json()
+        except Exception:
+            log.exception('Steam api error')
+            resp = {}
+        resp['_code'] = ret.status_code
+        return ret
+    def dota2(self, **params):
+        return self.call('IDOTA2Match_570', 'GetMatchHistory/V001/', params)
+
 
 ### Tokens ###
 def validateFederatedToken(service, refresh_token):
