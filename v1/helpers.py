@@ -290,7 +290,8 @@ class Riot(LimitedApi):
             raise ValueError('Unknown region %s' % region)
 
         params['api_key'] = config.RIOT_KEY
-        ret = requests.get(
+        return cls.request(
+            'GET',
             cls.URL.format(
                 region=region,
                 version=version,
@@ -299,13 +300,6 @@ class Riot(LimitedApi):
             params = params,
             data = data,
         )
-        try:
-            resp = ret.json()
-        except Exception:
-            log.exception('RIOT api error')
-            resp = {}
-        resp['_code'] = ret.status_code
-        return ret
 
 class Steam:
     @classmethod
