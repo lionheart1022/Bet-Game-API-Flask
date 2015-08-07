@@ -286,6 +286,9 @@ class Riot(LimitedApi):
 
     @classmethod
     def call(cls, region, version, method, params, data):
+        if region not in cls.REGIONS:
+            raise ValueError('Unknown region %s' % region)
+
         params['api_key'] = config.RIOT_KEY
         ret = requests.get(
             cls.URL.format(
