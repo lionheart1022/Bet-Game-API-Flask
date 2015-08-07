@@ -822,7 +822,8 @@ class CommaListField(restful.fields.Raw):
 
 ### Polling and notification ###
 class Poller:
-    gametypes = []
+    gametypes = [] # list of supported types for this class
+    usemodes = False # do we need to init again for each mode?
 
     def games(self, gametype, gamemode=None):
         ret = Game.query.filter_by(
@@ -834,11 +835,17 @@ class Poller:
                 gamemode=gamemode,
             )
         return ret
-    def poll(self, gametype=None):
+    def poll(self, gametype=None, gamemode=None):
         if not gametype:
             for gametype in self.gametypes:
-                self.prepare()
+                if not self.usemodes:
+                    self.prepare()
                 self.poll(gametype)
+            return
+        if self.usemodes and not gamemode:
+            for gamemode in Game.GAMETYPES[gametype]['gamemodes']:
+                self.prepare()
+                self.poll(gametype, gamemode)
             return
 
         log.debug('{}: polling games of type {}'.format(
