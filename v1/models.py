@@ -156,6 +156,7 @@ class Game(db.Model):
         'starcraft': UNSUPPORTED,
     }
     GAMEMODES = set(sum((t['gamemodes'] for t in GAMETYPES.values()), []))
+    IDENTITIES = set(sum((t['identity'] for t in GAMETYPES.values()), []))
 
     gametype = db.Column(db.Enum(*GAMETYPES), nullable=False)
     gamemode = db.Column(db.Enum(*GAMEMODES), nullable=False)
