@@ -852,8 +852,9 @@ class Poller:
             self.__class__.__name__,
             gametype
         ))
-        query = self.games(gametype)
+        query = self.games(gametype, gamemode)
         count_games = query.count()
+        log.debug('have {} games'.format(count_games))
         count_ended = 0
         for game in query:
             try:
