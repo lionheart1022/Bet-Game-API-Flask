@@ -17,6 +17,7 @@ class Player(db.Model):
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
 
     ea_gamertag = db.Column(db.String(64), unique=True)
+    riot_summonerName = db.Column(db.String(64), unique=True)
 
     balance = db.Column(db.Float, default=0)
     locked = db.Column(db.Float, default=0)
@@ -68,6 +69,8 @@ class Player(db.Model):
             p = cls.query.filter_by(nickname=key).first()
         if not p:
             p = cls.query.filter_by(ea_gamertag=key).first()
+        if not p:
+            p = cls.query.filter_by(riot_summonerName=key).first()
         return p
 
     @classmethod
@@ -98,6 +101,7 @@ class Game(db.Model):
 
     FIFA = dict(
         supported = True,
+        multipoll = True, # call poller individually for each gamemode
         gamemodes = [
             'fifaSeasons',
             'futSeasons',
@@ -113,12 +117,15 @@ class Game(db.Model):
             'coop': 'Cooperative',
         },
         identity = 'ea_gamertag',
+        identity_check = 'gamertag_field',
     )
     UNSUPPORTED = dict(
         supported = False,
+        multipoll = False,
         gamemodes = [],
         gamemode_names = {},
         identity = None,
+        identity_check = None,
     )
     GAMETYPES = {
         'fifa14-xboxone': FIFA,
@@ -128,12 +135,36 @@ class Game(db.Model):
         'destiny': UNSUPPORTED,
         'dota2': UNSUPPORTED,
         'grand-theft-auto-5': UNSUPPORTED,
-        'league-of-legends': UNSUPPORTED,
+        'league-of-legends': dict(
+            supported = True,
+            multipoll = False,
+            gamemodes = [
+                'RANKED_SOLO_5x5',
+                'RANKED_TEAM_3x3',
+                'RANKED_TEAM_5x5',
+            ],
+            gamemode_names = {
+                'RANKED_SOLO_5x5': 'Solo 5x5',
+                'RANKED_TEAM_3x3': 'Team 3x3',
+                'RANKED_TEAM_5x5': 'Team 5x5',
+            },
+            identity = 'riot_summonerName',
+            identity_check = 'summoner_field',
+        ),
         'minecraft': UNSUPPORTED,
         'rocket-league': UNSUPPORTED,
         'starcraft': UNSUPPORTED,
     }
     GAMEMODES = set(sum((t['gamemodes'] for t in GAMETYPES.values()), []))
+    IDENTITIES = set([t['identity'] for t in GAMETYPES.values()])
+    IDENTITY_NAMES = {
+        'ea_gamertag': 'EA GamerTag',
+        'riot_summonerName': 'Riot Summoner Name',
+    }
+    for i in IDENTITIES:
+        if i not in IDENTITY_NAMES:
+            # fallback
+            IDENTITY_NAMES[i] = i
 
     gametype = db.Column(db.Enum(*GAMETYPES), nullable=False)
     gamemode = db.Column(db.Enum(*GAMEMODES), nullable=False)

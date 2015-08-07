@@ -315,6 +315,11 @@ is to fetch its image with `GET /gametypes/<type>/image`;
   system will look for gamertag in your `ea_gamertag` profile field.
   For other game types special fields will be added in future.
 
+Also, for convenience, it returns separate `identities` list
+which contains all possible identity fields stored in `Player` resource.
+That list may change when we add support for new games,
+so it is advised to fetch it from the server rather than hardcode.
+
 ```json
 {
 	"gametypes": {
@@ -334,6 +339,11 @@ is to fetch its image with `GET /gametypes/<type>/image`;
 			"gamemodes": [],
 			"identity": null,
 		},
+		...
+	},
+	"identities": {
+		"ea_gamertag": "EA Gamertag",
+		"riot_summonerName": "RIOT Summoner Name",
 		...
 	}
 }

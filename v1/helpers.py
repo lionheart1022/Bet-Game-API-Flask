@@ -10,6 +10,7 @@ import urllib.parse
 from datetime import datetime, timedelta
 import math
 from collections import OrderedDict, namedtuple
+from types import SimpleNamespace
 import os
 import eventlet
 import jwt
@@ -245,6 +246,35 @@ def mailsend(user, mtype, **kwargs):
             return False
     except Exception:
         return False
+
+class Riot:
+    URL = 'https://{region}.api.pvp.net/api/lol/{region}/{version}/{method}'
+    REGIONS = [
+        'br', 'eune', 'euw', 'kr',
+        'lan', 'las', 'na', 'oce',
+        'ru', 'tr',
+    ]
+
+    @classmethod
+    def call(cls, region, version, method, params, data):
+        params['api_key'] = config.RIOT_KEY
+        ret = requests.get(
+            cls.URL.format(
+                region=region,
+                version=version,
+                method=method,
+            ),
+            params = params,
+            data = data,
+        )
+        try:
+            resp = ret.json()
+        except Exception:
+            log.exception('RIOT api error')
+            resp = {}
+        resp['_code'] = ret.status_code
+        return ret
+
 
 ### Tokens ###
 def validateFederatedToken(service, refresh_token):
@@ -600,6 +630,39 @@ def gamertag_field(nick):
         #raise ValueError('Couldn\'t validate this gamertag: {}'.format(nick))
         return nick
 
+def summoner_field(val, region = None):
+    """
+    Summoner field can be either full (with region) or short.
+    If it is full, it should be in format 'region/name'.
+    If it is short, this method will try to find matching name
+    in the first region where it exists.
+
+    Returns summoner data in formt 'region/name/id'.
+    """
+    if not region and '/' in val:
+        region, nval = val.split('/',1)
+        if region in Riot.REGIONS:
+            val = nval
+        else:
+            region = None
+    if not region:
+        for region in Riot.REGIONS:
+            try:
+                return summoner_field(val, region)
+            except ValueError:
+                pass
+        else:
+            raise ValueError('Summoner {} not exists in any region')
+
+    ret = Riot.call(region, 'v1.4', 'summoner/by-name/'+val)
+    if val.lower() in ret:
+        return '/'.join([
+            region,
+            ret[val.lower()]['name'],
+            ret[val.lower()]['id'],
+        ])
+    raise ValueError('Unknown summoner name')
+
 def encrypt_password(val):
     """
     Check password for weakness, and convert it to its hash.
@@ -756,11 +819,106 @@ class CommaListField(restful.fields.Raw):
             return []
         return val.split(',')
 
+
 ### Polling and notification ###
-def poll_fifa(gametype, gamemode):
-    count_games = 0
-    count_ended = 0
-    def fetch(nick):
+class Poller:
+    gametypes = [] # list of supported types for this class
+    usemodes = False # do we need to init again for each mode?
+
+    def games(self, gametype, gamemode=None):
+        ret = Game.query.filter_by(
+            gametype=gametype,
+            state = 'accepted',
+        )
+        if gamemode:
+            ret = ret.filter_by(
+                gamemode=gamemode,
+            )
+        return ret
+    def poll(self, gametype=None, gamemode=None):
+        if not gametype:
+            for gametype in self.gametypes:
+                if not self.usemodes:
+                    self.prepare()
+                self.poll(gametype)
+            return
+        if self.usemodes and not gamemode:
+            for gamemode in Game.GAMETYPES[gametype]['gamemodes']:
+                self.prepare()
+                self.poll(gametype, gamemode)
+            return
+
+        query = self.games(gametype, gamemode)
+        count_games = query.count()
+        count_ended = 0
+
+        log.debug('{}: polling {} games of type {} {}'.format(
+            self.__class__.__name__,
+            count_games,
+            gametype, gamemode
+        ))
+
+        for game in query:
+            try:
+                if self.pollGame(game):
+                    count_ended += 1
+            except Exception:
+                log.exception('Failed to poll game {}'.format(game))
+
+        db.session.commit()
+
+        log.debug('Polling done, finished {} of {} games'.format(
+            count_ended, count_games,
+        ))
+
+    def gameDone(self, game, winner, timestamp):
+        """
+        Mark the game as done, setting all needed fields.
+        Winner is a string.
+        Timestamp is in seconds
+        """
+        log.debug('Marking game {} as done'.format(game))
+        game.winner = winner
+        game.state = 'finished'
+        game.finish_date = datetime.utcfromtimestamp(timestamp)
+
+        # move funds...
+        if winner == 'creator':
+            game.creator.balance += game.bet
+            game.opponent.balance -= game.bet
+        elif winner == 'opponent':
+            game.opponent.balance += game.bet
+            game.creator.balance -= game.bet
+        # and unlock bets
+        # withdrawing them finally from accounts
+        game.creator.locked -= game.bet
+        game.opponent.locked -= game.bet
+
+        notify_users(game)
+
+        return True # for convenience
+
+    def prepare(self):
+        """
+        Prepare self for new polling, clear all caches.
+        """
+        pass
+
+    def pollGame(self, game):
+        """
+        Shall be overriden by subclasses.
+        Returns True if given game was successfully processed.
+        """
+        raise NotImplemented
+class FifaPoller(Poller):
+    gametypes = ['fifa14-xboxone', 'fifa15-xboxone']
+    usemodes = True
+
+    def prepare(self):
+        self.gamertags = {}
+
+    @staticmethod
+    def fetch(gametype, gamemode, nick):
         url = 'https://www.easports.com/fifa/api/'\
             '{}/match-history/{}/{}'.format(
                 gametype, gamemode, nick)
@@ -772,31 +930,30 @@ def poll_fifa(gametype, gamemode):
                           nick, gametype, gamemode),
                       exc_info=True)
             return []
-    games = Game.query.filter_by(
-        gametype=gametype,
-        gamemode=gamemode,
-        state = 'accepted',
-    )
-    log.debug('Found %d games or %r %r' % (games.count(), gametype, gamemode))
-    # map gamertags to sets of games related to them
-    gamertags = {}
-    for game in games:
-        count_games += 1
-        for gamertag in game.gamertag_creator, game.gamertag_opponent:
-            if gamertag in gamertags:
-                gamertags[gamertag].add(game)
-            else:
-                gamertags[gamertag] = set([game])
 
-    # order player names by count of games
-    order = list(map(lambda p: p[0],
-                     sorted(gamertags.items(),
-                            key=lambda p: len(p[1]),
-                            reverse=True)))
-    games_done = set()
-    for gamertag in order:
-        log.debug('fetching games for '+gamertag)
-        matches = fetch(gamertag)
+    def pollGame(self, game, who=None, matches=None):
+        if not who:
+            for who in ['creator', 'opponent']:
+                tag = getattr(game, 'gamertag_'+who)
+                if tag in self.gamertags:
+                    return self.handleGame(game, who, self.gamertags[tag])
+
+            who = 'creator'
+            matches = self.fetch(game.gametype, game.gamemode,
+                                 game.gamertag_creator)
+            # and cache it
+            self.gamertags[game.gamertag_creator] = matches
+
+        crea = SimpleNamespace(who='creator')
+        oppo = SimpleNamespace(who='opponent')
+        for user in [crea, oppo]:
+            user.tag = getattr(game, 'gamertag_'+user.who)
+        # `me` is the `who` player object
+        me, other = (crea, oppo) if who == 'creator' else (oppo, crea)
+        me.role = 'self'
+        other.role = 'opponent'
+
+        # now that we have who and matches, try to find corresponding match
         for match in reversed(matches): # from oldest to newest
             log.debug('match: {} cr {}, op {}'.format(
                 match['timestamp'], *[
@@ -804,77 +961,129 @@ def poll_fifa(gametype, gamemode):
                     for u in ('self', 'opponent')
                 ]
             ))
-            for game in gamertags[gamertag]:
-                # skip already completed games
-                if game.id in games_done:
-                    continue
-                # skip this game if current match ended before game's start
-                if math.floor(game.accept_date.timestamp()) \
-                        > match['timestamp'] + 4*3600: # delta of 4 hours
-                    log.debug('Skipping game {} because of time'.format(game))
-                    continue
-                other, who = (
-                    (game.gamertag_opponent, 'opponent')
-                    if game.gamertag_creator == gamertag else
-                    (game.gamertag_creator, 'creator'))
-                log.debug('other: '+other)
-                if other.lower() in map(lambda t: t.lower(),
-                                        match['opponent']['user_info']):
-                    log.debug('matched!')
-                    # game matched! change its status
-                    if match['self']['stats']['score'] > match['opponent']['stats']['score']:
-                        # "self" won, "other" lost
-                        game.winner = 'creator' if who == 'opponent' else 'opponent'
-                    elif match['self']['stats']['score'] < match['opponent']['stats']['score']:
-                        # "other" won, "self" lost
-                        game.winner = who
-                    else:
-                        game.winner = 'draw'
-                    game.state = 'finished'
-                    game.finish_date = datetime.utcfromtimestamp(match['timestamp'])
+            # skip this match if it ended before game's start
+            if math.floor(game.accept_date.timestamp()) \
+                    > match['timestamp'] + 4*3600: # delta of 4 hours
+                log.debug('Skipping match because of time')
+                continue
 
-                    count_ended += 1
+            if other.tag.lower() not in map(
+                lambda t: t.lower(),
+                match['opponent']['user_info']
+            ):
+                log.debug('Skipping match because of participants')
+                continue
 
-                    # move funds...
-                    if game.winner == 'creator':
-                        game.creator.balance += game.bet
-                        game.opponent.balance -= game.bet
-                    elif game.winner == 'opponent':
-                        game.opponent.balance += game.bet
-                        game.creator.balance -= game.bet
-                    # and unlock bets
-                    # withdrawing them finally from accounts
-                    game.creator.locked -= game.bet
-                    game.opponent.locked -= game.bet
+            # Now we found the match we want! Handle it and return True
+            log.debug('Found match! '+str(match))
+            for user in (crea, oppo):
+                user.score = match[user.role]['stats']['score']
+            if crea.score > oppo.score:
+                winner = 'creator'
+            elif crea.score < oppo.score:
+                winner = 'opponent'
+            else:
+                winner = 'draw'
+            self.gameDone(game, winner, match['timestamp'])
+            return True
 
-                    notify_users(game)
+class RiotPoller(Poller):
+    gametypes = ['league-of-legends']
 
-                    games_done.add(game.id)
-        if count_ended == count_games:
-            break # no unended games left, no need to fetch more tags
-    db.session.commit()
+    def prepare(self):
+        self.matches = {}
 
-    return count_games, count_ended
-def poll_all():
-    log.info('Starting polling')
-    for gametype, opts in Game.GAMETYPES.items():
-        if not opts['supported']:
-            continue
-        if 'fifa' in gametype:
-            poller = poll_fifa
-        else:
-            log.error('Unexpected gametype')
-            continue
-        for gamemode in opts['gamemodes']:
-            try:
-                games, ended = poller(gametype, gamemode)
-                log.info(
-                    '{gametype}, {gamemode}: '
-                    'ended {ended} of {games} games'.format(**vars()))
-            except Exception as e:
-                log.error('Couldn\'t poll for gametype {} gamemode {}'.format(
-                    gametype, gamemode), exc_info = True)
-    log.info('Polling done')
+    def pollGame(self, game):
+        def parseSummoner(val):
+            region, val = val.split('/', 1)
+            name, id = val.rsplit('/', 1)
+            return region, name, int(id)
+        crea = SimpleNamespace()
+        oppo = SimpleNamespace()
+        region, crea.name, crea.sid = parseSummoner(game.gamertag_creator)
+        region2, oppo.name, oppo.sid = parseSummoner(game.gamertag_opponent)
+        if region2 != region:
+            log.error('Invalid game, different regions! id {}'.format(game.id))
+            # TODO: mark game as invalid?..
+            return False
+
+        def checkMatch(match_ref):
+            # fetch match details
+            mid = match_ref['matchId']
+            if mid in self.matches:
+                ret = self.matches[mid]
+            else:
+                ret = Riot.call(
+                    region,
+                    'v2.2',
+                    'match/'+mid,
+                )
+                self.matches[mid] = ret
+            crea.pid = oppo.pid = None # participant id
+            for participant in ret['participantIdentities']:
+                for user in [crea, oppo]:
+                    if participant['player']['summonerId'] == user.sid:
+                        user.pid = participant['participantId']
+            if not oppo.pid:
+                # Desired opponent didn't participate this match; skip it
+                return False
+
+            crea.tid = oppo.tid = None
+            crea.won = oppo.won = None
+            for participant in ret['participants']:
+                for user in [crea, oppo]:
+                    if participant['participantId'] == user.pid:
+                        user.tid = participant['teamId']
+                        user.won = participant['stats']['winner']
+
+            if crea.tid == oppo.tid:
+                log.warning('Creator and opponent are in the same team!')
+                # skip this match
+                return False
+
+            self.gameDone(
+                game,
+                'creator' if crea.won else
+                'opponent' if oppo.won else
+                'draw',
+                # creation is in ms, duration is in seconds; convert to seconds
+                round(match['matchCreation']/1000) + match['matchDuration']
+            )
+            return True
+
+        shift = 0
+        while True:
+            ret = Riot.call(
+                region,
+                'v2.2',
+                'matchlist/by-summoner/'+str(crea.sid),
+                data=dict(
+                    beginTime = game.accept_date.timestamp()*1000, # in ms
+                    beginIndex = shift,
+                    rankedQueues = game.gamemode,
+                ),
+            )
+
+            for match in ret['matches']:
+                if checkMatch(match):
+                    return True
+
+            shift += 20
+            if shift > ret['totalGames']:
+                break
+
+def poll_all(poller=Poller):
+    if poller is Poller:
+        log.info('Polling started')
+
+    if poller.gametypes:
+        pin = poller()
+        pin.poll()
+    for sub in poller.__subclasses__():
+        poll_all(sub)
+
+    if poller is Poller:
+        log.info('Polling done')
 
 
 # Notification

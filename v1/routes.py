@@ -39,6 +39,7 @@ class PlayerResource(restful.Resource):
             ('password', encrypt_password, True),
             ('facebook_token', federatedRenewFacebook, False), # should be last to avoid extra queries
             ('ea_gamertag', gamertag_field, False),
+            ('riot_summonerName', summoner_field, False),
         ]:
             if hasattr(Player, name):
                 type = string_field(getattr(Player, name), ftype=type)
@@ -72,6 +73,7 @@ class PlayerResource(restful.Resource):
                 last_login = fields.DateTime,
             ))),
             ea_gamertag = fields.String,
+            riot_summonerName = fields.String,
             # TODO: some stats
         )
     @classproperty
@@ -468,7 +470,8 @@ def gametypes():
     parser.add_argument('full', type=boolean_field, default=False)
     args = parser.parse_args()
     if args.full:
-        return jsonify(gametypes = Game.GAMETYPES)
+        return jsonify(gametypes = Game.GAMETYPES,
+                       identities = Game.IDENTITY_NAMES)
     else:
         return jsonify(gametypes = list(Game.GAMETYPES))
 
@@ -527,7 +530,7 @@ class GameResource(restful.Resource):
             'id': fields.Integer,
             'creator': fields.Nested(PlayerResource.fields_public),
             'opponent': fields.Nested(PlayerResource.fields_public),
-            'gamertag_created': fields.String,
+            'gamertag_creator': fields.String,
             'gamertag_opponent': fields.String,
             'gamemode': fields.String,
             'gametype': fields.String,
@@ -598,7 +601,17 @@ class GameResource(restful.Resource):
 
         args.creator = user # to simplify checking
         def check_gamertag(who, msgf):
-            if not args['gamertag_'+who]:
+            if args['gamertag_'+who]:
+                # Checking method might convert data somehow,
+                # so it is mandatory to call it.
+                checker = Game.GAMETYPES[args.gametype]['identity_check']
+                if isinstance(checker, str): # resolve it here
+                    checker = globals()[checker]
+                try:
+                    args['gamertag_'+who] = checker(args['gamertag_'+who])
+                except ValueError as e:
+                    abort('[gamertag_{}]: {}'.format(who, e))
+            else:
                 if gamertag_field:
                     args['gamertag_'+who] = getattr(args[who], gamertag_field)
                 if not args['gamertag_'+who]:
@@ -606,6 +619,15 @@ class GameResource(restful.Resource):
                           '{}don\'t have default one configured.'.format(*msgf))
         check_gamertag('creator', ('your', ''))
         check_gamertag('opponent', ('opponent\'s', 'they '))
+
+        if args.gametype == 'league-of-legends':
+            # additional check for regions
+            region1 = args['gamertag_creator'].split('/',1)[0]
+            region2 = args['gamertag_opponent'].split('/',1)[0]
+            if region1 != region2:
+                abort('You and your opponent should be in the same region; '
+                      'but actually you are in {} and your opponent is in {}'.format(
+                          region1, region2))
 
         if args.bet < 0.99:
             abort('[bet]: too low amount', problem='bet')
@@ -617,8 +639,8 @@ class GameResource(restful.Resource):
         game.opponent = args.opponent
         game.gamertag_creator = args.gamertag_creator
         game.gamertag_opponent = args.gamertag_opponent
-        game.gamemode = args.gamemode
         game.gametype = args.gametype
+        game.gamemode = args.gamemode
         game.bet = args.bet
         db.session.add(game)
 
@@ -637,7 +659,7 @@ class GameResource(restful.Resource):
         parser = RequestParser()
         parser.add_argument('state', choices=[
             'accepted', 'declined', 'cancelled'
-        ])
+        ], required=True)
         args = parser.parse_args()
 
         game = Game.query.get(id)
