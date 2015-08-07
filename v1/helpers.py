@@ -1061,127 +1061,18 @@ class RiotPoller(Poller):
             if shift > ret['totalGames']:
                 break
 
-def poll_fifa(gametype, gamemode):
-    count_games = 0
-    count_ended = 0
-    def fetch(nick):
-        url = 'https://www.easports.com/fifa/api/'\
-            '{}/match-history/{}/{}'.format(
-                gametype, gamemode, nick)
-        try:
-            return requests.get(url).json()['data']
-        except Exception as e:
-            log.error('Failed to fetch match info '
-                      'for player {}, gt {} gm {}'.format(
-                          nick, gametype, gamemode),
-                      exc_info=True)
-            return []
-    games = Game.query.filter_by(
-        gametype=gametype,
-        gamemode=gamemode,
-        state = 'accepted',
-    )
-    log.debug('Found %d games or %r %r' % (games.count(), gametype, gamemode))
-    # map gamertags to sets of games related to them
-    gamertags = {}
-    for game in games:
-        count_games += 1
-        for gamertag in game.gamertag_creator, game.gamertag_opponent:
-            if gamertag in gamertags:
-                gamertags[gamertag].add(game)
-            else:
-                gamertags[gamertag] = set([game])
+def poll_all(poller=Poller):
+    if poller is Poller:
+        log.info('Polling started')
 
-    # order player names by count of games
-    order = list(map(lambda p: p[0],
-                     sorted(gamertags.items(),
-                            key=lambda p: len(p[1]),
-                            reverse=True)))
-    games_done = set()
-    for gamertag in order:
-        log.debug('fetching games for '+gamertag)
-        matches = fetch(gamertag)
-        for match in reversed(matches): # from oldest to newest
-            log.debug('match: {} cr {}, op {}'.format(
-                match['timestamp'], *[
-                    [match[u]['user_info'], match[u]['stats']['score']]
-                    for u in ('self', 'opponent')
-                ]
-            ))
-            for game in gamertags[gamertag]:
-                # skip already completed games
-                if game.id in games_done:
-                    continue
-                # skip this game if current match ended before game's start
-                if math.floor(game.accept_date.timestamp()) \
-                        > match['timestamp'] + 4*3600: # delta of 4 hours
-                    log.debug('Skipping game {} because of time'.format(game))
-                    continue
-                other, who = (
-                    (game.gamertag_opponent, 'opponent')
-                    if game.gamertag_creator == gamertag else
-                    (game.gamertag_creator, 'creator'))
-                log.debug('other: '+other)
-                if other.lower() in map(lambda t: t.lower(),
-                                        match['opponent']['user_info']):
-                    log.debug('matched!')
-                    # game matched! change its status
-                    if match['self']['stats']['score'] > match['opponent']['stats']['score']:
-                        # "self" won, "other" lost
-                        game.winner = 'creator' if who == 'opponent' else 'opponent'
-                    elif match['self']['stats']['score'] < match['opponent']['stats']['score']:
-                        # "other" won, "self" lost
-                        game.winner = who
-                    else:
-                        game.winner = 'draw'
-                    game.state = 'finished'
-                    game.finish_date = datetime.utcfromtimestamp(match['timestamp'])
+    if poller.gametypes:
+        pin = poller()
+        pin.poll()
+    for sub in poller.__subclasses__():
+        poll_all(sub)
 
-                    count_ended += 1
-
-                    # move funds...
-                    if game.winner == 'creator':
-                        game.creator.balance += game.bet
-                        game.opponent.balance -= game.bet
-                    elif game.winner == 'opponent':
-                        game.opponent.balance += game.bet
-                        game.creator.balance -= game.bet
-                    # and unlock bets
-                    # withdrawing them finally from accounts
-                    game.creator.locked -= game.bet
-                    game.opponent.locked -= game.bet
-
-                    notify_users(game)
-
-                    games_done.add(game.id)
-        if count_ended == count_games:
-            break # no unended games left, no need to fetch more tags
-    db.session.commit()
-
-    return count_games, count_ended
-
-def poll_all():
-    log.info('Starting polling')
-    for gametype, opts in Game.GAMETYPES.items():
-        if not opts['supported']:
-            continue
-        if 'fifa' in gametype:
-            poller = poll_fifa
-        elif gametype == 'league-of-legends':
-            poller = poll_riot
-        else:
-            log.error('Unexpected gametype')
-            continue
-        for gamemode in opts['gamemodes'] if opts['multipoll'] else [None]:
-            try:
-                games, ended = poller(gametype, gamemode)
-                log.info(
-                    '{gametype}, {gamemode}: '
-                    'ended {ended} of {games} games'.format(**vars()))
-            except Exception as e:
-                log.error('Couldn\'t poll for gametype {} gamemode {}'.format(
-                    gametype, gamemode), exc_info = True)
-    log.info('Polling done')
+    if poller is Poller:
+        log.info('Polling done')
 
 
 # Notification
