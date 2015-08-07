@@ -902,6 +902,8 @@ class FifaPoller(Poller):
 
     def prepare(self):
         self.gamertags = {}
+        for mode in Game.FIFA['gamemodes']:
+            self.gamertags[mode] = {}
 
     @staticmethod
     def fetch(gametype, gamemode, nick):
@@ -921,8 +923,9 @@ class FifaPoller(Poller):
         if not who:
             for who in ['creator', 'opponent']:
                 tag = getattr(game, 'gamertag_'+who)
-                if tag in self.gamertags:
-                    return self.handleGame(game, who, self.gamertags[tag])
+                if tag in self.gamertags[game.gamemode]:
+                    return self.handleGame(game, who,
+                                           self.gamertags[game.gamemode][tag])
 
             who = 'creator'
             matches = self.fetch(game.gametype, game.gamemode,
