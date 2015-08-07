@@ -471,7 +471,7 @@ def gametypes():
     args = parser.parse_args()
     if args.full:
         return jsonify(gametypes = Game.GAMETYPES,
-                       identities = Game.IDENTITIES)
+                       identities = Game.IDENTITY_NAMES)
     else:
         return jsonify(gametypes = list(Game.GAMETYPES))
 

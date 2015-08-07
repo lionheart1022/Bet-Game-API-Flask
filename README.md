@@ -317,6 +317,8 @@ is to fetch its image with `GET /gametypes/<type>/image`;
 
 Also, for convenience, it returns separate `identities` list
 which contains all possible identity fields stored in `Player` resource.
+That list may change when we add support for new games,
+so it is advised to fetch it from the server rather than hardcode.
 
 ```json
 {
@@ -339,11 +341,11 @@ which contains all possible identity fields stored in `Player` resource.
 		},
 		...
 	},
-	"identities": [
-		"ea_gamertag",
-		"riot_summonerName",
+	"identities": {
+		"ea_gamertag": "EA Gamertag",
+		"riot_summonerName": "RIOT Summoner Name",
 		...
-	]
+	}
 }
 ```
 

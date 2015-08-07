@@ -157,6 +157,14 @@ class Game(db.Model):
     }
     GAMEMODES = set(sum((t['gamemodes'] for t in GAMETYPES.values()), []))
     IDENTITIES = set(sum((t['identity'] for t in GAMETYPES.values()), []))
+    IDENTITY_NAMES = {
+        'ea_gamertag': 'EA GamerTag',
+        'riot_summonerName': 'Riot Summoner Name',
+    }
+    for i in IDENTITIES:
+        if i not in IDENTITY_NAMES:
+            # fallback
+            IDENTITY_NAMES[i] = i
 
     gametype = db.Column(db.Enum(*GAMETYPES), nullable=False)
     gamemode = db.Column(db.Enum(*GAMEMODES), nullable=False)
