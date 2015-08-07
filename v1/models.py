@@ -160,7 +160,7 @@ class Game(db.Model):
                       if t['identity']])
     IDENTITY_NAMES = {
         'ea_gamertag': 'EA GamerTag',
-        'riot_summonerName': 'Riot Summoner Name',
+        'riot_summonerName': 'Riot Summoner Name (LoL)',
     }
     for i in IDENTITIES:
         if i not in IDENTITY_NAMES:
