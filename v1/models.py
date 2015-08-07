@@ -125,7 +125,7 @@ class Game(db.Model):
         gamemodes = [],
         gamemode_names = {},
         identity = None,
-        identity_check = None,
+        identity_check = '',
     )
     GAMETYPES = {
         'fifa14-xboxone': FIFA,
