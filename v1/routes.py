@@ -470,6 +470,7 @@ def gametypes():
     parser.add_argument('full', type=boolean_field, default=False)
     args = parser.parse_args()
     if args.full:
+        log.debug(Game.IDENTITY_NAMES)
         return jsonify(gametypes = Game.GAMETYPES,
                        identities = Game.IDENTITY_NAMES)
     else:
