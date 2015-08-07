@@ -8,6 +8,7 @@ from werkzeug.exceptions import HTTPException
 
 import urllib.parse
 from datetime import datetime, timedelta
+import time
 import math
 from collections import OrderedDict, namedtuple
 from types import SimpleNamespace
@@ -247,7 +248,35 @@ def mailsend(user, mtype, **kwargs):
     except Exception:
         return False
 
-class Riot:
+class LimitedApi:
+    DELAY = timedelta(seconds=2)
+    @classmethod
+    def request(cls, *args, **kwargs):
+        now = datetime.utcnow()
+        last = getattr(cls, _last, None)
+        if last:
+            diff = now - last
+            delay = cls.DELAY - diff
+            seconds = delay.total_seconds()
+            if seconds > 0:
+                time.sleep(seconds)
+
+        # now that we slept if needed, call Requests
+        # and handle any json-related problems
+        ret = requests.request(*args, **kwargs)
+        try:
+            resp = ret.json()
+        except Exception:
+            # error decoding json
+            log.exception('{} API: not a json in reply, code {}, text {}'.format(
+                cls.__name__,
+                ret.status_code,
+                ret.text,
+            ))
+            resp = {}
+        resp['_code'] = ret.status_code
+        return resp
+class Riot(LimitedApi):
     URL = 'https://{region}.api.pvp.net/api/lol/{region}/{version}/{method}'
     REGIONS = [
         'br', 'eune', 'euw', 'kr',
@@ -276,7 +305,8 @@ class Riot:
         return ret
 
 class Steam:
-    def call(self, path, method, params, data):
+    @classmethod
+    def call(cls, path, method, params, data):
         params['key'] = config.STEAM_KEY
         ret = requests.get(
             'https://api.steampowered.com/{}/{}'.format(
@@ -293,8 +323,8 @@ class Steam:
             resp = {}
         resp['_code'] = ret.status_code
         return ret
-    def dota2(self, **params):
-        return self.call('IDOTA2Match_570', 'GetMatchHistory/V001/', params)
+    def dota2(cls, **params):
+        return cls.call('IDOTA2Match_570', 'GetMatchHistory/V001/', params)
 
 
 ### Tokens ###
