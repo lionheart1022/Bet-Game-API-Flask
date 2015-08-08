@@ -314,7 +314,7 @@ class Steam(LimitedApi):
     DELAY = timedelta(seconds=1)
 
     @classmethod
-    def call(cls, path, method, params, data):
+    def call(cls, path, method, params, data=None):
         params['key'] = config.STEAM_KEY
         return cls.request(
             'GET',
