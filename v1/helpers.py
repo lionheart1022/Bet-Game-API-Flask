@@ -310,6 +310,9 @@ class Riot(LimitedApi):
         )
 
 class Steam(LimitedApi):
+    # as recommended in http://dev.dota2.com/showthread.php?t=47115
+    DELAY = timedelta(seconds=1)
+
     @classmethod
     def call(cls, path, method, params, data):
         params['key'] = config.STEAM_KEY
