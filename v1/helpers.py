@@ -249,18 +249,23 @@ def mailsend(user, mtype, **kwargs):
         return False
 
 class LimitedApi:
+    # this is default delay between subsequent requests to the same api,
+    # can be overriden in subclasses
     DELAY = timedelta(seconds=2)
 
     @classmethod
     def request(cls, *args, **kwargs):
         now = datetime.utcnow()
-        last = getattr(cls, _last, None)
+        last = getattr(cls, '_last', None)
         if last:
             diff = now - last
             delay = cls.DELAY - diff
             seconds = delay.total_seconds()
             if seconds > 0:
                 time.sleep(seconds)
+        # and before we actually call the method, save current time
+        # (so that api's internal delay will count as a part of our delay)
+        cls._last = datetime.utcnow()
 
         # now that we slept if needed, call Requests
         # and handle any json-related problems
@@ -276,7 +281,9 @@ class LimitedApi:
             ))
             resp = {}
         resp['_code'] = ret.status_code
+
         return resp
+
 class Riot(LimitedApi):
     URL = 'https://{region}.api.pvp.net/api/lol/{region}/{version}/{method}'
     REGIONS = [
