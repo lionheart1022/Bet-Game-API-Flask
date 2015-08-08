@@ -316,7 +316,7 @@ class Steam(LimitedApi):
     @classmethod
     def call(cls, path, method, params, data=None):
         params['key'] = config.STEAM_KEY
-        return cls.request(
+        ret = cls.request(
             'GET',
             'https://api.steampowered.com/{}/{}'.format(
                 path,
@@ -325,6 +325,9 @@ class Steam(LimitedApi):
             params = params,
             data = data,
         )
+        if 'result' in ret:
+            ret['result']['_code'] = ret.get('_code')
+            return ret['result']
     @classmethod
     def dota2(cls, method, **params):
         return cls.call('IDOTA2Match_570', method+'/V001/', params)
