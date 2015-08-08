@@ -325,8 +325,9 @@ class Steam(LimitedApi):
             params = params,
             data = data,
         )
-    def dota2(cls, **params):
-        return cls.call('IDOTA2Match_570', 'GetMatchHistory/V001/', params)
+    @classmethod
+    def dota2(cls, method, **params):
+        return cls.call('IDOTA2Match_570', method+'/V001/', params)
 
 
 ### Tokens ###
@@ -1137,6 +1138,7 @@ class Dota2Poller(Poller):
         if not match:
             # TODO: handle pagination
             match = Steam.dota2(
+                method = 'GetMatchHistory',
                 player_name = game.gamertag_creator,
                 date_min = round(game.accept_date.timestamp()),
             )
