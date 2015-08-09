@@ -1178,20 +1178,58 @@ class Dota2Poller(Poller):
     gametypes = ['dota2']
 
     def prepare(self):
-        self.matches = {}
+        self.matchlists = {}
 
     def pollGame(self, game):
-        match = self.matches.get(game.gamertag_creator) \
-            or self.matches.get(game.gamertag_opponent)
+        from_oppo = False
+        matchlist = self.matchlists.get(game.gamertag_creator)
+        if not matchlist:
+            matchlist = self.matchlists.get(game.gamertag_opponent)
+            from_oppo = True
         if not match:
             # TODO: handle pagination
-            match = Steam.dota2(
+            # Match list is sorted by start time descending,
+            # and 100 matches are returned by default,
+            # so maybe no need (as we check every 30 minutes)
+            matchlist = Steam.dota2(
                 method = 'GetMatchHistory',
-                player_name = game.gamertag_creator,
+                account_id = game.gamertag_creator, # it is in str, but doesn't matter here
                 date_min = round(game.accept_date.timestamp()),
-            )
-            self.matches[game.gamertag_creator] = match
-        # TODO: process returned match list object
+            ).get('matches')
+            # TODO: merge all matches in cache, index by match id,
+            # and search players in all matches available -
+            # this may reduce requests count
+            if not matchlist:
+                raise ValueError('Couldn\'t fetch match list for account id {}'
+                                 .format(game.gamertag_creator))
+            self.matchlists[game.gamertag_creator] = match['matches']
+        for match in matchlist:
+            if match['start_time'] < game.accept_date.timestamp:
+                # this match is too old, subsequent are older -> not found
+                break
+            player_ids = (Steam.id_to_64(p['account_id'])
+                          for p in match['players']
+                          if 'account_id' in p)
+            if int(game.gamertag_creator
+                   if from_oppo else
+                   game.gamertag_opponent) in player_ids:
+                # found the right match
+                # now load its details to determine winner and duration
+
+                match = Steam.dota2(
+                    method = 'GetMatchDetails',
+                    match_id = match['match_id'],
+                )
+                # TODO: update it in cache?
+
+                # TODO: determine winner
+
+                self.gameDone(
+                    game,
+                    winner,
+                    match['start_time'] + match['duration']
+                )
+
 
 def poll_all(poller=Poller):
     if poller is Poller:
@@ -1200,6 +1238,7 @@ def poll_all(poller=Poller):
     if poller.gametypes:
         pin = poller()
         pin.poll()
+    # TODO: run them all simultaneously, to use 2sec api delays
     for sub in poller.__subclasses__():
         poll_all(sub)
 
