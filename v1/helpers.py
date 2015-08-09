@@ -958,6 +958,12 @@ class Poller:
             ret = sub.findPoller(gametype)
             if ret:
                 return ret
+    @classmethod
+    def allPollers(cls):
+        yield cls
+        for sub in cls.__subclasses__():
+            yield from sub.allPollers()
+
     @classproperty
     def all_gamemodes(cls):
         modes = set(cls.gamemodes)
