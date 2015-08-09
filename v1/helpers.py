@@ -1222,7 +1222,35 @@ class Dota2Poller(Poller):
                 )
                 # TODO: update it in cache?
 
-                # TODO: determine winner
+                # determine winner
+                crea = SimpleNamespace()
+                oppo = SimpleNamespace()
+                crea.id, oppo.id = map(lambda i: Steam.id_to_32(int(i)),
+                                       [game.gamertag_creator,
+                                        game.gamertag_opponent])
+                for player in match['players']:
+                    for user in (crea, oppo):
+                        if player.get('account_id') == user.id:
+                            user.info = player
+                for user in (crea, oppo):
+                    if not hasattr(user, 'info'):
+                        raise Exception(
+                            'Unexpected condition: crea or oppo not found.'
+                            '{} {}'.format(
+                                match,
+                                game,
+                            )
+                        )
+                    # according to
+                    # https://wiki.teamfortress.com/wiki/WebAPI/GetMatchDetails#Player_Slot
+                    user.dire = bool(user.info['player_slot'] & 0x80)
+                    user.won = user.dire == (not match['radiant_won'])
+
+                if crea.dire == oppo.dire:
+                    # TODO: consider it failure?
+                    winner = 'draw'
+                else:
+                    winner = 'creator' if crea.won else 'opponent'
 
                 self.gameDone(
                     game,
