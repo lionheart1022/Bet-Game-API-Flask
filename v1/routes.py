@@ -499,15 +499,15 @@ def gametypes():
 
 @app.route('/gametypes/<id>/image', methods=['GET'])
 def gametype_image(id):
-    if id not in Game.GAMETYPES:
-        raise NotFound
-
     parser = RequestParser()
     parser.add_argument('w', type=int, required=False)
     parser.add_argument('h', type=int, required=False)
     args = parser.parse_args()
 
-    img = Image.open('images/{}.png'.format(id))
+    filename = 'images/{}.png'.format(id)
+    if not os.path.exists(filename):
+        raise NotFound
+    img = Image.open(filename)
     ow, oh = img.size
     if args.w or args.h:
         if not args.h or (args.w and args.h and (args.w/args.h) > (ow/oh)):
