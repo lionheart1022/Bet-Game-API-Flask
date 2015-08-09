@@ -314,7 +314,7 @@ class Steam(LimitedApi):
     DELAY = timedelta(seconds=1)
 
     @classmethod
-    def call(cls, path, method, version, params, data=None):
+    def call(cls, path, method, version, **params):
         # TODO: on 503 error, retry in 30 seconds
         params['key'] = config.STEAM_KEY
         ret = cls.request(
@@ -325,7 +325,6 @@ class Steam(LimitedApi):
                 version,
             ),
             params = params,
-            data = data,
         )
         if 'result' in ret:
             ret['result']['_code'] = ret.get('_code')
@@ -335,7 +334,7 @@ class Steam(LimitedApi):
     def dota2(cls, method, match=True, **params):
         # docs available at https://wiki.teamfortress.com/wiki/WebAPI#Dota_2
         return cls.call('IDOTA2{}_570'.format('Match' if match else ''),
-                        method, 'V001', params)
+                        method, 'V001', **params)
 
 
 ### Tokens ###
