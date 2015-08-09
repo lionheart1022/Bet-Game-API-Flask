@@ -1014,6 +1014,7 @@ class Poller:
         raise NotImplemented
 class FifaPoller(Poller):
     gametypes = ['fifa14-xboxone', 'fifa15-xboxone']
+    identity = 'ea_gamertag'
     usemodes = True
 
     def prepare(self):
@@ -1091,6 +1092,7 @@ class FifaPoller(Poller):
 
 class RiotPoller(Poller):
     gametypes = ['league-of-legends']
+    identity = 'riot_summonerName'
 
     def prepare(self):
         self.matches = {}
@@ -1176,6 +1178,7 @@ class RiotPoller(Poller):
 
 class Dota2Poller(Poller):
     gametypes = ['dota2']
+    identity = 'steam_id'
 
     def prepare(self):
         self.matchlists = {}
