@@ -954,7 +954,7 @@ class Poller:
         """
         if gametype in cls.gametypes:
             return cls
-        for sub in cls.__subclasses__:
+        for sub in cls.__subclasses__():
             ret = sub.findPoller(gametype)
             if ret:
                 return ret
