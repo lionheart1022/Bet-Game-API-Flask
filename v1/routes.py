@@ -470,8 +470,23 @@ def gametypes():
     parser.add_argument('full', type=boolean_field, default=False)
     args = parser.parse_args()
     if args.full:
-        return jsonify(gametypes = Game.GAMETYPES,
-                       identities = Game.IDENTITY_NAMES)
+        gamedata = {}
+        identities = set()
+        for gametype in Game.GAMETYPES:
+            poller = Poller.findPoller(gametype)
+            if poller:
+                gamedata[gametype] = dict(
+                    supported = True,
+                    gamemodes = poller.gamemodes,
+                    identity = poller.identity,
+                )
+                identities.add(poller.identity)
+            else:
+                gamedata[gametype] = dict(
+                    supported = False,
+                )
+        return jsonify(gametypes = gamedata,
+                       identities = identities)
     else:
         return jsonify(gametypes = list(Game.GAMETYPES))
 

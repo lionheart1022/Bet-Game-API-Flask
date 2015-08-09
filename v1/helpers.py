@@ -928,6 +928,19 @@ class Poller:
     gamemodes = [] # default
     usemodes = False # do we need to init again for each mode?
 
+    @classmethod
+    def findPoller(cls, gametype):
+        """
+        Tries to find poller class for given gametype.
+        Returns None on failure.
+        """
+        if gametype in cls.gametypes:
+            return cls
+        for sub in cls.__subclasses__:
+            ret = sub.findPoller(gametype)
+            if ret:
+                return ret
+
     def games(self, gametype, gamemode=None):
         ret = Game.query.filter_by(
             gametype=gametype,
