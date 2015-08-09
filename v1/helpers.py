@@ -326,9 +326,10 @@ class Steam(LimitedApi):
             ),
             params = params,
         )
-        if 'result' in ret:
-            ret['result']['_code'] = ret.get('_code')
-            return ret['result']
+        for wrapper in ['result', 'response']:
+            if ret.keys() == set([wrapper, '_code']): # nothing more
+                ret[wrapper]['_code'] = ret.get('_code')
+                return ret[wrapper]
         return ret
     @classmethod
     def dota2(cls, method, match=True, **params):
