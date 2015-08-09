@@ -331,20 +331,19 @@ class Steam(LimitedApi):
                     )
                     if 'steamid' not in ret:
                         raise ValueError('Bad vanity URL '+val)
-                    stid64 = int(ret['steamid']) # it is returned as string
+                    return int(ret['steamid']) # it was returned as string
                 elif '/profiles/' in val:
                     val = val.split('/profiles/',1)[1]
                     val = val.split('/')[0]
-                    stid64 = int(val)
+                    return int(val)
                 else:
                     raise ValueError(val)
-                return stid64 - cls.STEAM_ID_64_BASE
             else:
                 # TODO: resolve nickname somehow?
                 raise ValueError(val)
         else: # int
-            if val > cls.STEAM_ID_64_BASE:
-                val -= cls.STEAM_ID_64_BASE
+            if val < cls.STEAM_ID_64_BASE:
+                val += cls.STEAM_ID_64_BASE
             return val
 
     @classmethod
