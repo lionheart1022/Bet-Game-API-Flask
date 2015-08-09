@@ -312,6 +312,40 @@ class Riot(LimitedApi):
 class Steam(LimitedApi):
     # as recommended in http://dev.dota2.com/showthread.php?t=47115
     DELAY = timedelta(seconds=1)
+    STEAM_ID_64_BASE = 76561197960265728
+
+    @staticmethod
+    def parse_id(cls, val):
+        # convert it to int if applicable
+        try:
+            val = int(val)
+        except ValueError: pass
+
+        if isinstance(val, str):
+            if 'steamcommunity.com/' in val: # url
+                if '/id/' in val:
+                    vanity_name = val.split('/id/',1)[1]
+                    ret = cls.call(
+                        'ISteamUser', 'ResolveVanityURL', 'v0001',
+                        dict(vanityurl=vanity_name),
+                    )
+                    if 'steamid' not in ret:
+                        raise ValueError('Bad vanity URL '+val)
+                    stid64 = int(ret['steamid']) # it is returned as string
+                elif '/profiles/' in val:
+                    val = val.split('/profiles/',1)[1]
+                    val = val.split('/')[0]
+                    stid64 = int(val)
+                else:
+                    raise ValueError(val)
+                return stid64 - cls.STEAM_ID_64_BASE
+            else:
+                # TODO: resolve nickname somehow?
+                raise ValueError(val)
+        else: # int
+            if val > cls.STEAM_ID_64_BASE:
+                val -= cls.STEAM_ID_64_BASE
+            return val
 
     @classmethod
     def call(cls, path, method, version, **params):
