@@ -272,7 +272,7 @@ class LimitedApi:
         ret = requests.request(*args, **kwargs)
         try:
             resp = ret.json()
-        except Exception:
+        except ValueError: # json decode error
             # error decoding json
             log.exception('{} API: not a json in reply, code {}, text {}'.format(
                 cls.__name__,
@@ -314,13 +314,15 @@ class Steam(LimitedApi):
     DELAY = timedelta(seconds=1)
 
     @classmethod
-    def call(cls, path, method, params, data=None):
+    def call(cls, path, method, version, params, data=None):
+        # TODO: on 503 error, retry in 30 seconds
         params['key'] = config.STEAM_KEY
         ret = cls.request(
             'GET',
-            'https://api.steampowered.com/{}/{}'.format(
+            'https://api.steampowered.com/{}/{}/{}/'.format(
                 path,
                 method,
+                version,
             ),
             params = params,
             data = data,
@@ -328,10 +330,12 @@ class Steam(LimitedApi):
         if 'result' in ret:
             ret['result']['_code'] = ret.get('_code')
             return ret['result']
+        return ret
     @classmethod
     def dota2(cls, method, match=True, **params):
+        # docs available at https://wiki.teamfortress.com/wiki/WebAPI#Dota_2
         return cls.call('IDOTA2{}_570'.format('Match' if match else ''),
-                        method+'/V001/', params)
+                        method, 'V001', params)
 
 
 ### Tokens ###
