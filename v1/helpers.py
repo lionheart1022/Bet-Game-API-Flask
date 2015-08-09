@@ -57,6 +57,18 @@ restful.utils.error_data = lambda code: {
     'error': http_status_message(code)
 }
 
+class classproperty:
+    """
+    Cached class property; evaluated only once
+    """
+    def __init__(self, fget):
+        self.fget = fget
+        self.obj = {}
+    def __get__(self, owner, cls):
+        if cls not in self.obj:
+            self.obj[cls] = self.fget(cls)
+        return self.obj[cls]
+
 
 ### External APIs ###
 def nexmo(endpoint, **kwargs):
@@ -940,6 +952,12 @@ class Poller:
             ret = sub.findPoller(gametype)
             if ret:
                 return ret
+    @classproperty
+    def all_gamemodes(cls):
+        modes = set(cls.gamemodes)
+        for sub in cls.__subclasses__:
+            modes.update(sub.all_gamemodes)
+        return modes
 
     def games(self, gametype, gamemode=None):
         ret = Game.query.filter_by(
@@ -959,7 +977,7 @@ class Poller:
                 self.poll(gametype)
             return
         if self.usemodes and not gamemode:
-            for gamemode in Game.GAMETYPES[gametype]['gamemodes']:
+            for gamemode in self.gamemodes:
                 self.prepare()
                 self.poll(gametype, gamemode)
             return
@@ -1395,14 +1413,3 @@ def notify_users(game):
     # and send email if applicable
     send_mail(game)
 
-class classproperty:
-    """
-    Cached class property; evaluated only once
-    """
-    def __init__(self, fget):
-        self.fget = fget
-        self.obj = {}
-    def __get__(self, owner, cls):
-        if cls not in self.obj:
-            self.obj[cls] = self.fget(cls)
-        return self.obj[cls]

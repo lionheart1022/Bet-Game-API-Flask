@@ -488,7 +488,7 @@ def gametypes():
         return jsonify(gametypes = gamedata,
                        identities = identities)
     else:
-        return jsonify(gametypes = list(Game.GAMETYPES))
+        return jsonify(gametypes = Game.GAMETYPES)
 
 @app.route('/gametypes/<id>/image', methods=['GET'])
 def gametype_image(id):
@@ -600,26 +600,28 @@ class GameResource(restful.Resource):
                             required=True, dest='opponent')
         parser.add_argument('gamertag_creator', required=False)
         parser.add_argument('gamertag_opponent', required=False)
-        parser.add_argument('gametype', choices=Game.GAMETYPES.keys(),
+        parser.add_argument('gametype', choices=Game.GAMETYPES,
                             required=True)
-        parser.add_argument('gamemode', choices=Game.GAMEMODES, required=True)
+        parser.add_argument('gamemode', choices=Poller.all_gamemodes,
+                            required=True)
         parser.add_argument('bet', type=float, required=True)
         args = parser.parse_args()
 
         if args.opponent == user:
             abort('You cannot compete with yourself')
 
-        if not Game.GAMETYPES[args.gametype]['supported']:
+        poller = Poller.findPoller(args.gametype)
+        if not poller:
             abort('Game type {} is not supported yet'.format(args.gametype))
 
-        gamertag_field = Game.GAMETYPES[args.gametype]['identity']
+        gamertag_field = poller.identity
 
         args.creator = user # to simplify checking
         def check_gamertag(who, msgf):
             if args['gamertag_'+who]:
                 # Checking method might convert data somehow,
                 # so it is mandatory to call it.
-                checker = Game.GAMETYPES[args.gametype]['identity_check']
+                checker = poller.identity_check
                 if isinstance(checker, str): # resolve it here
                     checker = globals()[checker]
                 try:
