@@ -488,7 +488,7 @@ def gametypes():
                     supported = False,
                 )
         return jsonify(gametypes = gamedata,
-                       identities = identities)
+                       identities = list(identities))
     else:
         return jsonify(gametypes = Game.GAMETYPES)
 
