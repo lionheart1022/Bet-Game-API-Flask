@@ -499,14 +499,15 @@ def gametypes():
 
 @app.route('/gametypes/<id>/image', methods=['GET'])
 def gametype_image(id):
+    if id not in Poller.all_gametypes:
+        raise NotFound
+
     parser = RequestParser()
     parser.add_argument('w', type=int, required=False)
     parser.add_argument('h', type=int, required=False)
     args = parser.parse_args()
 
     filename = 'images/{}.png'.format(id)
-    if not os.path.exists(filename):
-        raise NotFound
     img = Image.open(filename)
     ow, oh = img.size
     if args.w or args.h:

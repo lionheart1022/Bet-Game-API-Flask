@@ -965,9 +965,15 @@ class Poller:
             yield from sub.allPollers()
 
     @classproperty
+    def all_gametypes(cls):
+        types = set(cls.gametypes)
+        for sub in cls.__subclasses__():
+            types.update(sub.all_gametypes)
+        return types
+    @classproperty
     def all_gamemodes(cls):
         modes = set(cls.gamemodes)
-        for sub in cls.__subclasses__:
+        for sub in cls.__subclasses__():
             modes.update(sub.all_gamemodes)
         return modes
 
