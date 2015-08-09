@@ -473,7 +473,7 @@ def gametypes():
     args = parser.parse_args()
     if args.full:
         gamedata = {}
-        identities = set()
+        identities = {}
         for gametype in Game.GAMETYPES:
             poller = Poller.findPoller(gametype)
             if poller:
@@ -481,14 +481,15 @@ def gametypes():
                     supported = True,
                     gamemodes = poller.gamemodes,
                     identity = poller.identity,
+                    identity_name = poller.identity_name,
                 )
-                identities.add(poller.identity)
+                identities[poller.identity] = poller.identity_name
             else:
                 gamedata[gametype] = dict(
                     supported = False,
                 )
         return jsonify(gametypes = gamedata,
-                       identities = list(identities))
+                       identities = identities)
     else:
         return jsonify(gametypes = Game.GAMETYPES)
 

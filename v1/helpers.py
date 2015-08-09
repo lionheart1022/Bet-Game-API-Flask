@@ -1051,7 +1051,10 @@ class Poller:
         """
         raise NotImplemented
 class FifaPoller(Poller):
-    gametypes = ['fifa14-xboxone', 'fifa15-xboxone']
+    gametypes = {
+        'fifa14-xboxone': 'FIFA14',
+        'fifa15-xboxone': 'FIFA15',
+    }
     gamemodes = {
         'fifaSeasons': 'FIFA Seasons',
         'futSeasons': 'FUT Seasons',
@@ -1060,6 +1063,7 @@ class FifaPoller(Poller):
         'coop': 'Cooperative',
     },
     identity = 'ea_gamertag'
+    identity_name = 'EA Games GamerTag'
     identity_check = gamertag_field
     usemodes = True
 
@@ -1137,13 +1141,16 @@ class FifaPoller(Poller):
             return True
 
 class RiotPoller(Poller):
-    gametypes = ['league-of-legends']
+    gametypes = {
+        'league-of-legends': 'League of Legends',
+    }
     gamemodes = {
         'RANKED_SOLO_5x5': 'Solo 5x5',
         'RANKED_TEAM_3x3': 'Team 3x3',
         'RANKED_TEAM_5x5': 'Team 5x5',
     },
     identity = 'riot_summonerName'
+    identity_name = 'Riot Summoner Name'
     identity_check = summoner_field
 
     def prepare(self):
@@ -1229,8 +1236,11 @@ class RiotPoller(Poller):
                 break
 
 class Dota2Poller(Poller):
-    gametypes = ['dota2']
+    gametypes = {
+        'dota2': 'DOTA 2',
+    }
     identity = 'steam_id'
+    identity_name = 'STEAM ID (numeric or URL)'
     identity_check = Steam.parse_id
 
     def prepare(self):
