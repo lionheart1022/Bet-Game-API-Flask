@@ -1329,13 +1329,13 @@ class DummyPoller(Poller):
     This poller covers all game types not supported yet.
     """
     gametypes = {
-        'battlefield-4',
-        'call-of-duty-advanced-warfare',
-        'destiny',
-        'grand-theft-auto-5',
-        'minecraft',
-        'rocket-league',
-        'starcraft',
+        'battlefield-4': 'Battlefield 4',
+        'call-of-duty-advanced-warfare': 'Call Of Duty - Advanced Warfare',
+        'destiny': 'Destiny',
+        'grand-theft-auto-5': 'Grand Theft Auto V',
+        'minecraft': 'Minecraft',
+        'rocket-league': 'Rocket League',
+        'starcraft': 'Starcraft',
     }
     identity = ''
     identity_name = ''
