@@ -1225,12 +1225,12 @@ class Dota2Poller(Poller):
                 # determine winner
                 crea = SimpleNamespace()
                 oppo = SimpleNamespace()
-                crea.id, oppo.id = map(lambda i: Steam.id_to_32(int(i)),
+                crea.id, oppo.id = map(lambda i: int(i),
                                        [game.gamertag_creator,
                                         game.gamertag_opponent])
                 for player in match['players']:
                     for user in (crea, oppo):
-                        if player.get('account_id') == user.id:
+                        if Steam.id_to_64(player.get('account_id')) == user.id:
                             user.info = player
                 for user in (crea, oppo):
                     if not hasattr(user, 'info'):
