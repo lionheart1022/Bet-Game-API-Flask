@@ -329,8 +329,9 @@ class Steam(LimitedApi):
             ret['result']['_code'] = ret.get('_code')
             return ret['result']
     @classmethod
-    def dota2(cls, method, **params):
-        return cls.call('IDOTA2Match_570', method+'/V001/', params)
+    def dota2(cls, method, match=True, **params):
+        return cls.call('IDOTA2{}_570'.format('Match' if match else ''),
+                        method+'/V001/', params)
 
 
 ### Tokens ###
