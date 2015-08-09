@@ -315,36 +315,43 @@ class Steam(LimitedApi):
     STEAM_ID_64_BASE = 76561197960265728
 
     @staticmethod
+    def id_to_32(cls, val):
+        if val > cls.STEAM_ID_64_BASE:
+            val -= cls.STEAM_ID_64_BASE
+        return val
+    @staticmethod
+    def id_to_64(cls, val):
+        if val < cls.STEAM_ID_64_BASE:
+            val += cls.STEAM_ID_64_BASE
+        return val
+
+    @staticmethod
     def parse_id(cls, val):
         # convert it to int if applicable
         try:
             val = int(val)
+            return cls.id_to_64(val)
         except ValueError: pass
 
-        if isinstance(val, str):
-            if 'steamcommunity.com/' in val: # url
-                if '/id/' in val:
-                    vanity_name = val.split('/id/',1)[1]
-                    ret = cls.call(
-                        'ISteamUser', 'ResolveVanityURL', 'v0001',
-                        dict(vanityurl=vanity_name),
-                    )
-                    if 'steamid' not in ret:
-                        raise ValueError('Bad vanity URL '+val)
-                    return int(ret['steamid']) # it was returned as string
-                elif '/profiles/' in val:
-                    val = val.split('/profiles/',1)[1]
-                    val = val.split('/')[0]
-                    return int(val)
-                else:
-                    raise ValueError(val)
+        if 'steamcommunity.com/' in val: # url
+            if '/id/' in val:
+                vanity_name = val.split('/id/',1)[1]
+                ret = cls.call(
+                    'ISteamUser', 'ResolveVanityURL', 'v0001',
+                    dict(vanityurl=vanity_name),
+                )
+                if 'steamid' not in ret:
+                    raise ValueError('Bad vanity URL '+val)
+                return int(ret['steamid']) # it was returned as string
+            elif '/profiles/' in val:
+                val = val.split('/profiles/',1)[1]
+                val = val.split('/')[0]
+                return int(val)
             else:
-                # TODO: resolve nickname somehow?
                 raise ValueError(val)
-        else: # int
-            if val < cls.STEAM_ID_64_BASE:
-                val += cls.STEAM_ID_64_BASE
-            return val
+        else:
+            # TODO: resolve nickname somehow?
+            raise ValueError(val)
 
     @classmethod
     def call(cls, path, method, version, **params):
