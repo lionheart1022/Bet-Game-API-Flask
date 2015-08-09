@@ -942,8 +942,8 @@ class CommaListField(restful.fields.Raw):
 
 ### Polling and notification ###
 class Poller:
-    gametypes = [] # list of supported types for this class
-    gamemodes = [] # default
+    gametypes = {} # list of supported types for this class
+    gamemodes = {} # default
     usemodes = False # do we need to init again for each mode?
 
     @classmethod
