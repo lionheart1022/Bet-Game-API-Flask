@@ -471,29 +471,29 @@ def gametypes():
     parser = RequestParser()
     parser.add_argument('full', type=boolean_field, default=False)
     args = parser.parse_args()
+    gamedata = {}
+    identities = {}
+    for poller in Poller.allPollers():
+        for gametype, gametype_name in poller.gametypes.items():
+            if poller.identity:
+                gamedata[gametype] = dict(
+                    name = gametype_name,
+                    supported = True,
+                    gamemodes = poller.gamemodes,
+                    identity = poller.identity,
+                    identity_name = poller.identity_name,
+                )
+                identities[poller.identity] = poller.identity_name
+            else: # DummyPoller
+                gamedata[gametype] = dict(
+                    name = gametype_name,
+                    supported = False,
+                )
     if args.full:
-        gamedata = {}
-        identities = {}
-        for poller in Poller.allPollers():
-            for gametype, gametype_name in poller.gametypes.items():
-                if poller.identity:
-                    gamedata[gametype] = dict(
-                        name = gametype_name,
-                        supported = True,
-                        gamemodes = poller.gamemodes,
-                        identity = poller.identity,
-                        identity_name = poller.identity_name,
-                    )
-                    identities[poller.identity] = poller.identity_name
-                else: # DummyPoller
-                    gamedata[gametype] = dict(
-                        name = gametype_name,
-                        supported = False,
-                    )
         return jsonify(gametypes = gamedata,
                        identities = identities)
     else:
-        return jsonify(gametypes = Game.GAMETYPES)
+        return jsonify(gametypes = gamedata.keys())
 
 @app.route('/gametypes/<id>/image', methods=['GET'])
 def gametype_image(id):
