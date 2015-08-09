@@ -158,11 +158,12 @@ class PlayerResource(restful.Resource):
             # if only hash available then we have no password yet
             # and will not check old password field
             if len(user.password) > 16:
-                if not args.old_password:
-                    abort('Please specify old password if you want to change it',
-                        problem='old_password')
-                if not check_password(args.old_password, user.password):
-                    abort('Old password doesn\'t match')
+                # if old password not specified, don't check it -
+                # it is not secure, but allows password recovery.
+                # TODO: use special token for password recovery?..
+                if args.old_password:
+                    if not check_password(args.old_password, user.password):
+                        abort('Old password doesn\'t match')
 
         for key, val in args.items():
             if val and hasattr(user, key):
