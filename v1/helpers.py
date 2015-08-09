@@ -1324,6 +1324,25 @@ class Dota2Poller(Poller):
                     match['start_time'] + match['duration']
                 )
 
+class DummyPoller(Poller):
+    """
+    This poller covers all game types not supported yet.
+    """
+    gametypes = {
+        'battlefield-4',
+        'call-of-duty-advanced-warfare',
+        'destiny',
+        'grand-theft-auto-5',
+        'minecraft',
+        'rocket-league',
+        'starcraft',
+    }
+    identity = ''
+    identity_name = ''
+    identity_check = lambda val: val
+
+    def pollGame(self, game):
+        pass
 
 def poll_all(poller=Poller):
     if poller is Poller:
