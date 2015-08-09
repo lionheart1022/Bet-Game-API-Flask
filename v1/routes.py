@@ -40,6 +40,7 @@ class PlayerResource(restful.Resource):
             ('facebook_token', federatedRenewFacebook, False), # should be last to avoid extra queries
             ('ea_gamertag', gamertag_field, False),
             ('riot_summonerName', summoner_field, False),
+            ('steam_id', Steam.parse_id, False),
         ]:
             if hasattr(Player, name):
                 type = string_field(getattr(Player, name), ftype=type)
@@ -74,6 +75,7 @@ class PlayerResource(restful.Resource):
             ))),
             ea_gamertag = fields.String,
             riot_summonerName = fields.String,
+            steam_id = fields.String,
             # TODO: some stats
         )
     @classproperty
