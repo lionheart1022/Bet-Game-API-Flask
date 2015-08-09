@@ -346,7 +346,13 @@ class Steam(LimitedApi):
         except ValueError: pass
 
         if 'steamcommunity.com/' in val: # url
-            if '/id/' in val:
+            if val.startswith('STEAM_'):
+                val = val.split('STEAM_',1)[1]
+                ver, a, b = map(int, val.split(':'))
+                if ver == 0:
+                    return cls.id_to_64(b << 1 + (a & 1))
+                raise ValueError('unknown ver: '+val)
+            elif '/id/' in val:
                 vanity_name = val.split('/id/',1)[1]
                 ret = cls.call(
                     'ISteamUser', 'ResolveVanityURL', 'v0001',
