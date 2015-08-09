@@ -101,21 +101,6 @@ class Game(db.Model):
     gamertag_creator = db.Column(db.String(128))
     gamertag_opponent = db.Column(db.String(128))
 
-    # This listing includes not-yet-supported types
-    GAMETYPES = [
-        'fifa14-xboxone',
-        'fifa15-xboxone',
-        'battlefield-4',
-        'call-of-duty-advanced-warfare',
-        'destiny',
-        'dota2',
-        'grand-theft-auto-5',
-        'league-of-legends',
-        'minecraft',
-        'rocket-league',
-        'starcraft',
-    ]
-
     gametype = db.Column(db.String(64), nullable=False)
     gamemode = db.Column(db.String(64), nullable=False)
 
