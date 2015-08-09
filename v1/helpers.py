@@ -1350,19 +1350,17 @@ class DummyPoller(Poller):
     def pollGame(self, game):
         pass
 
-def poll_all(poller=Poller):
-    if poller is Poller:
-        log.info('Polling started')
+def poll_all():
+    log.info('Polling started')
 
-    if poller.gametypes:
+    # TODO: run them all simultaneously in background, to use 2sec api delays
+    for poller in Poller.allPollers():
+        if not poller.gametypes or not poller.identity: # root or dummy
+            continue
         pin = poller()
         pin.poll()
-    # TODO: run them all simultaneously, to use 2sec api delays
-    for sub in poller.__subclasses__():
-        poll_all(sub)
 
-    if poller is Poller:
-        log.info('Polling done')
+    log.info('Polling done')
 
 
 # Notification
