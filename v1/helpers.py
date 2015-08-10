@@ -1227,7 +1227,7 @@ class RiotPoller(Poller):
         'RANKED_SOLO_5x5': 'Solo 5x5',
         'RANKED_TEAM_3x3': 'Team 3x3',
         'RANKED_TEAM_5x5': 'Team 5x5',
-    },
+    }
     identity = 'riot_summonerName'
     identity_name = 'Riot Summoner Name ("name" or "region/name")'
     identity_check = Riot.summmoner_check
@@ -1318,6 +1318,7 @@ class Dota2Poller(Poller):
     gametypes = {
         'dota2': 'DOTA 2',
     }
+    # no gamemodes for this game
     identity = 'steam_id'
     identity_name = 'STEAM ID (numeric or URL)'
     identity_check = Steam.parse_id
@@ -1407,6 +1408,7 @@ class StarCraftPoller(Poller):
     gametypes = {
         'starcraft': 'Starcraft II',
     }
+    # no gamemodes for this game
     identity = 'starcraft_uid'
     identity_name = 'StarCraft profile URL from battle.net or sc2ranks.com'
     identity_check = StarCraft.check_uid
