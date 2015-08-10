@@ -1373,6 +1373,37 @@ class Dota2Poller(Poller):
                     match['start_time'] + match['duration']
                 )
 
+class StarCraftPoller(Poller):
+    gametypes = {
+        'starcraft': 'Starcraft II',
+    }
+    # TODO: add region
+    identity = 'starcraft_uid'
+    identity_name = 'StarCraft user ID'
+    identity_check = StarCraft.check_uid
+
+    def prepare(self):
+        self.lists = {}
+    def pollGame(self, game):
+        crea = SimpleNamespace(uid=game.gamertag_creator)
+        oppo = SimpleNamespace(uid=game.gamertag_opponent)
+        game_ts = game.accept_date.timestamp()
+        for user in crea, oppo:
+            if user.uid not in self.lists:
+                ret = StarCraft.profile(region, user.uid, 'matches')
+                if 'matches' not in ret:
+                    raise ValueError('Couldn\'t fetch matches for user '+user.uid)
+                self.lists[user.uid] = ret['matches']
+            user.hist = [m for m in self.lists[user.uid]
+                         if m['date'] >= game_ts]
+        for mc in crea.hist:
+            for mo in oppo.hist:
+                if all(map(lambda field: mc[field] == mo[field],
+                           ['map', 'type', 'speed', 'date'])):
+                    # found the match
+                    winner = 'creator' if mc['decision'] == 'WIN' else 'opponent'
+                    return self.gameDone(game, winner, mc['date'])
+
 class DummyPoller(Poller):
     """
     This poller covers all game types not supported yet.
@@ -1384,7 +1415,6 @@ class DummyPoller(Poller):
         'grand-theft-auto-5': 'Grand Theft Auto V',
         'minecraft': 'Minecraft',
         'rocket-league': 'Rocket League',
-        'starcraft': 'Starcraft II',
 #        'diablo': 'Diablo III',
     }
     identity = ''
