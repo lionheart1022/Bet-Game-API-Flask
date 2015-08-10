@@ -1230,7 +1230,7 @@ class RiotPoller(Poller):
     }
     identity = 'riot_summonerName'
     identity_name = 'Riot Summoner Name ("name" or "region/name")'
-    identity_check = Riot.summmoner_check
+    identity_check = Riot.summoner_check
 
     def prepare(self):
         self.matches = {}
