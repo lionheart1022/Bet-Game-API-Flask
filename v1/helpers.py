@@ -1073,7 +1073,7 @@ class FifaPoller(Poller):
         'fut': 'FUT',
         'friendlies': 'Friendlies',
         'coop': 'Cooperative',
-    },
+    }
     identity = 'ea_gamertag'
     identity_name = 'EA Games GamerTag'
     identity_check = gamertag_field
