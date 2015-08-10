@@ -451,7 +451,7 @@ class StarCraft(BattleNet):
             raise ValueError('Unknown region '+region)
         int(uid) # to check for valueerror
         int(ureg)
-        return val
+        return '/'.join([region, uid, ureg, uname])
     @classmethod
     def profile(cls, user, part=''):
         region, uid, ureg, uname = user.split('/')
