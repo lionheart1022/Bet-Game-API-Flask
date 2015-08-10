@@ -1413,6 +1413,11 @@ class StarCraftPoller(Poller):
     def prepare(self):
         self.lists = {}
     def pollGame(self, game):
+        """
+        For SC2, we cannot determine user's opponent in match.
+        So we just fetch histories for both players
+        and look for identical match.
+        """
         crea = SimpleNamespace(uid=game.gamertag_creator)
         oppo = SimpleNamespace(uid=game.gamertag_opponent)
         if crea.uid.split('/')[0] != oppo.uid.split('/')[0]:
@@ -1432,7 +1437,12 @@ class StarCraftPoller(Poller):
                 if all(map(lambda field: mc[field] == mo[field],
                            ['map', 'type', 'speed', 'date'])):
                     # found the match
-                    winner = 'creator' if mc['decision'] == 'WIN' else 'opponent'
+                    if mc['decision'] == mo['decision']:
+                        winner = 'draw'
+                    else:
+                        winner = ('creator'
+                                  if mc['decision'] == 'WIN' else
+                                  'opponent')
                     return self.gameDone(game, winner, mc['date'])
 
 class DummyPoller(Poller):
