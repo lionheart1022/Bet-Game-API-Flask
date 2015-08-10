@@ -131,6 +131,10 @@ Player registration.
  * `password`
  * `facebook_token` - optional
  * `ea_gamertag` - optional, should match the one used on EA Games
+ * `riot_summonerName` - optional, should match the one used on RIOT (League of Legends)
+ * `steam_id` - optional, should be STEAM ID of any kind:
+	either integer ID (32- or 64-bit), STEAM_0:1:abcdef, or link to SteamCommunity portal
+ * `starcraft_uid` - optional, should be a link to user profile either on battle.net or sc2ranks.com
  * `push_token` - device identifier for push notifications - only for login-related methods.
 Can be omitted and provided later with `POST /players/<nick>/pushtoken` endpoint.
 
@@ -446,6 +450,9 @@ Resources
 	"email": "user@name.org",
 	"facebook_connected": true, // boolean
 	"ea_gamertag": "DERP HACKER",
+	"riot_summonerName": null,
+	"steam_id": null,
+	"starcraft_uid": null,
 	"devices": [ list of Device resources ],
 	"balance": { Balance resource },
 	... // some stats will be added
