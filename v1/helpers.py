@@ -395,6 +395,71 @@ class Steam(LimitedApi):
         return cls.call('IDOTA2{}_570'.format('Match' if match else ''),
                         method, 'V001', **params)
 
+class BattleNet(LimitedApi):
+    # FIXME: there are 2 partitions - CN and Worldwide. We only use worldwide.
+    # https://dev.battle.net/docs/concepts/Regionality
+    # https://dev.battle.net/docs/concepts/AccountIds
+    HOSTS = dict(
+        us = 'https://us.api.battle.net/',
+        eu = 'https://eu.api.battle.net/',
+        kr = 'https://kr.api.battle.net/',
+        tw = 'https://tw.api.battle.net/',
+        cn = 'https://api.battlenet.com.cn/',
+        sea = 'https://sea.api.battle.net/',
+    )
+    @classmethod
+    def call(cls, region, game, endpoint, *params):
+        host = cls.HOSTS[region]
+        url = 'https://{host}/{game}/{endpoint}'.format(**locals())
+        params['apikey'] = config.BATTLENET_KEY
+        return cls.request('GET', url, params=params)
+class StarCraft(BattleNet):
+    @classmethod
+    def find_uid(cls, val):
+        """
+        Search given user ID on sc2ranks site.
+        """
+        # TODO: api seems not functional
+        ret = cls.request(
+            'POST',
+            'http://api.sc2ranks.com/v2/characters/search',
+        )
+    @classmethod
+    def check_uid(cls, val):
+        if val.startswith('http'):
+            val = val.split('://',1)[1]
+        parts = val.split('/')
+        if 'sc2ranks.com/character' in val:
+            # sc2ranks url example:
+            # http://www.sc2ranks.com/character/us/5751755/Violet/hots/1v1
+            region, uid, uname = parts[2:5]
+            ureg = '1' # seems that it is always 1
+        elif 'battle.net/sc2' in val and '/profile/' in val:
+            # battle.net url example:
+            # http://us.battle.net/sc2/en/profile/7098504/1/Neeblet/matches
+            if parts[0] == 'www.battlenet.com.cn':
+                region = 'cn'
+            else:
+                # region = subdomain
+                region = parts[0].split('.',1)[0]
+            uid, ureg, uname = parts[4:7]
+        else:
+            if len(parts) != 4:
+                return cls.find_uid(val)
+            region, uid, ureg, uname = parts
+        if region not in cls.HOSTS:
+            raise ValueError('Unknown region '+region)
+        int(uid) # to check for valueerror
+        int(ureg)
+        return '/'.join([region, uid, ureg, uname])
+    @classmethod
+    def profile(cls, user, part=''):
+        region, uid, ureg, uname = user.split('/')
+        return cls.call(
+            region,
+            'sc2',
+            '{}/{}/{}/{}'.format(uid, ureg, uname, part),
+        )
 
 ### Tokens ###
 def validateFederatedToken(service, refresh_token):
@@ -1027,7 +1092,8 @@ class Poller:
         """
         Mark the game as done, setting all needed fields.
         Winner is a string.
-        Timestamp is in seconds
+        Timestamp is in seconds.
+        Returns True for convenience (`return self.gameDone(...)`).
         """
         log.debug('Marking game {} as done'.format(game))
         game.winner = winner
@@ -1330,11 +1396,54 @@ class Dota2Poller(Poller):
                 else:
                     winner = 'creator' if crea.won else 'opponent'
 
-                self.gameDone(
+                return self.gameDone(
                     game,
                     winner,
                     match['start_time'] + match['duration']
                 )
+
+class StarCraftPoller(Poller):
+    gametypes = {
+        'starcraft': 'Starcraft II',
+    }
+    identity = 'starcraft_uid'
+    identity_name = 'StarCraft profile URL from battle.net or sc2ranks.com'
+    identity_check = StarCraft.check_uid
+
+    def prepare(self):
+        self.lists = {}
+    def pollGame(self, game):
+        """
+        For SC2, we cannot determine user's opponent in match.
+        So we just fetch histories for both players
+        and look for identical match.
+        """
+        crea = SimpleNamespace(uid=game.gamertag_creator)
+        oppo = SimpleNamespace(uid=game.gamertag_opponent)
+        if crea.uid.split('/')[0] != oppo.uid.split('/')[0]:
+            # should be filtered in endpoint...
+            raise ValueError('Region mismatch')
+        game_ts = game.accept_date.timestamp()
+        for user in crea, oppo:
+            if user.uid not in self.lists:
+                ret = StarCraft.profile(user.uid, 'matches')
+                if 'matches' not in ret:
+                    raise ValueError('Couldn\'t fetch matches for user '+user.uid)
+                self.lists[user.uid] = ret['matches']
+            user.hist = [m for m in self.lists[user.uid]
+                         if m['date'] >= game_ts]
+        for mc in crea.hist:
+            for mo in oppo.hist:
+                if all(map(lambda field: mc[field] == mo[field],
+                           ['map', 'type', 'speed', 'date'])):
+                    # found the match
+                    if mc['decision'] == mo['decision']:
+                        winner = 'draw'
+                    else:
+                        winner = ('creator'
+                                  if mc['decision'] == 'WIN' else
+                                  'opponent')
+                    return self.gameDone(game, winner, mc['date'])
 
 class DummyPoller(Poller):
     """
@@ -1347,7 +1456,7 @@ class DummyPoller(Poller):
         'grand-theft-auto-5': 'Grand Theft Auto V',
         'minecraft': 'Minecraft',
         'rocket-league': 'Rocket League',
-        'starcraft': 'Starcraft',
+#        'diablo': 'Diablo III',
     }
     identity = ''
     identity_name = ''
