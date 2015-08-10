@@ -1064,7 +1064,8 @@ class Poller:
         """
         Mark the game as done, setting all needed fields.
         Winner is a string.
-        Timestamp is in seconds
+        Timestamp is in seconds.
+        Returns True for convenience (`return self.gameDone(...)`).
         """
         log.debug('Marking game {} as done'.format(game))
         game.winner = winner
@@ -1367,7 +1368,7 @@ class Dota2Poller(Poller):
                 else:
                     winner = 'creator' if crea.won else 'opponent'
 
-                self.gameDone(
+                return self.gameDone(
                     game,
                     winner,
                     match['start_time'] + match['duration']
