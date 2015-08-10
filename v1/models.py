@@ -20,6 +20,7 @@ class Player(db.Model):
     riot_summonerName = db.Column(db.String(64), unique=True)
     # in fact, it is integer, but saved as string for compatibility
     steam_id = db.Column(db.String(64), unique=True)
+    starcraft_uid = db.Column(db.String(64), unique=True)
 
     balance = db.Column(db.Float, default=0)
     locked = db.Column(db.Float, default=0)
@@ -73,6 +74,8 @@ class Player(db.Model):
             p = cls.query.filter_by(ea_gamertag=key).first()
         if not p:
             p = cls.query.filter_by(riot_summonerName=key).first()
+        if not p:
+            p = cls.query.filter_by(steam_id=key).first()
         return p
 
     @classmethod

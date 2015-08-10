@@ -41,6 +41,7 @@ class PlayerResource(restful.Resource):
             ('ea_gamertag', gamertag_field, False),
             ('riot_summonerName', summoner_field, False),
             ('steam_id', Steam.parse_id, False),
+            ('starcraft_uid', StarCraft.check_uid, False),
         ]:
             if hasattr(Player, name):
                 type = string_field(getattr(Player, name), ftype=type)
@@ -76,6 +77,7 @@ class PlayerResource(restful.Resource):
             ea_gamertag = fields.String,
             riot_summonerName = fields.String,
             steam_id = fields.String,
+            starcraft_uid = fields.String,
             # TODO: some stats
         )
     @classproperty
