@@ -17,7 +17,7 @@ try:
 except ImportError:
     TEST = False
 from secret import ADMIN_IDS
-from secret import RIOT_KEY
+from secret import RIOT_KEY, STEAM_KEY
 
 # DB_URL format: "mysql+mysqlconnector://USER:PASSWORD@HOST/DATABASE"
 

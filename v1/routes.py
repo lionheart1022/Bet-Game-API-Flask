@@ -40,6 +40,7 @@ class PlayerResource(restful.Resource):
             ('facebook_token', federatedRenewFacebook, False), # should be last to avoid extra queries
             ('ea_gamertag', gamertag_field, False),
             ('riot_summonerName', summoner_field, False),
+            ('steam_id', Steam.parse_id, False),
         ]:
             if hasattr(Player, name):
                 type = string_field(getattr(Player, name), ftype=type)
@@ -74,6 +75,7 @@ class PlayerResource(restful.Resource):
             ))),
             ea_gamertag = fields.String,
             riot_summonerName = fields.String,
+            steam_id = fields.String,
             # TODO: some stats
         )
     @classproperty
@@ -470,15 +472,35 @@ def gametypes():
     parser = RequestParser()
     parser.add_argument('full', type=boolean_field, default=False)
     args = parser.parse_args()
+    gamedata = []
+    identities = {}
+    for poller in Poller.allPollers():
+        for gametype, gametype_name in poller.gametypes.items():
+            if poller.identity:
+                gamedata.append(dict(
+                    id = gametype,
+                    name = gametype_name,
+                    supported = True,
+                    gamemodes = poller.gamemodes,
+                    identity = poller.identity,
+                    identity_name = poller.identity_name,
+                ))
+                identities[poller.identity] = poller.identity_name
+            else: # DummyPoller
+                gamedata.append(dict(
+                    id = gametype,
+                    name = gametype_name,
+                    supported = False,
+                ))
     if args.full:
-        return jsonify(gametypes = Game.GAMETYPES,
-                       identities = Game.IDENTITY_NAMES)
+        return jsonify(gametypes = gamedata,
+                       identities = identities)
     else:
-        return jsonify(gametypes = list(Game.GAMETYPES))
+        return jsonify(gametypes = [x['id'] for x in gamedata])
 
 @app.route('/gametypes/<id>/image', methods=['GET'])
 def gametype_image(id):
-    if id not in Game.GAMETYPES:
+    if id not in Poller.all_gametypes:
         raise NotFound
 
     parser = RequestParser()
@@ -486,7 +508,8 @@ def gametype_image(id):
     parser.add_argument('h', type=int, required=False)
     args = parser.parse_args()
 
-    img = Image.open('images/{}.png'.format(id))
+    filename = 'images/{}.png'.format(id)
+    img = Image.open(filename)
     ow, oh = img.size
     if args.w or args.h:
         if not args.h or (args.w and args.h and (args.w/args.h) > (ow/oh)):
@@ -586,26 +609,28 @@ class GameResource(restful.Resource):
                             required=True, dest='opponent')
         parser.add_argument('gamertag_creator', required=False)
         parser.add_argument('gamertag_opponent', required=False)
-        parser.add_argument('gametype', choices=Game.GAMETYPES.keys(),
+        parser.add_argument('gametype', choices=Poller.all_gametypes,
                             required=True)
-        parser.add_argument('gamemode', choices=Game.GAMEMODES, required=True)
+        parser.add_argument('gamemode', choices=Poller.all_gamemodes,
+                            required=True)
         parser.add_argument('bet', type=float, required=True)
         args = parser.parse_args()
 
         if args.opponent == user:
             abort('You cannot compete with yourself')
 
-        if not Game.GAMETYPES[args.gametype]['supported']:
+        poller = Poller.findPoller(args.gametype)
+        if not poller:
             abort('Game type {} is not supported yet'.format(args.gametype))
 
-        gamertag_field = Game.GAMETYPES[args.gametype]['identity']
+        gamertag_field = poller.identity
 
         args.creator = user # to simplify checking
         def check_gamertag(who, msgf):
             if args['gamertag_'+who]:
                 # Checking method might convert data somehow,
                 # so it is mandatory to call it.
-                checker = Game.GAMETYPES[args.gametype]['identity_check']
+                checker = poller.identity_check
                 if isinstance(checker, str): # resolve it here
                     checker = globals()[checker]
                 try:

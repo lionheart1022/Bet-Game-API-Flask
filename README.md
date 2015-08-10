@@ -322,22 +322,25 @@ so it is advised to fetch it from the server rather than hardcode.
 
 ```json
 {
-	"gametypes": {
-		"fifa14-xboxone": {
+	"gametypes": [
+		{
+			"id": "fifa14-xboxone",
+			"name": "FIFA-15",
 			"supported": true,
-			"gamemodes": [
-				"fifaSeasons",
-				"fut",
-				"friendlies",
+			"gamemodes": {
+				"fifaSeasons": "FIFA Seasons,
+				"fut": "FUT",
+				"friendlies": "Friendlies",
 				...
 			],
-			"identity": "ea_gamertag"
+			"identity": "ea_gamertag",
+			"identity_name": "EA Games GamerTag"
 		},
 		...,
-		"destiny": {
-			"supported": false,
-			"gamemodes": [],
-			"identity": null,
+		{
+			"id": "destiny",
+			"name": "Destiny",
+			"supported": false
 		},
 		...
 	},

@@ -8,6 +8,7 @@ from werkzeug.exceptions import HTTPException
 
 import urllib.parse
 from datetime import datetime, timedelta
+import time
 import math
 from collections import OrderedDict, namedtuple
 from types import SimpleNamespace
@@ -55,6 +56,18 @@ restful.utils.error_data = lambda code: {
     'error_code': code,
     'error': http_status_message(code)
 }
+
+class classproperty:
+    """
+    Cached class property; evaluated only once
+    """
+    def __init__(self, fget):
+        self.fget = fget
+        self.obj = {}
+    def __get__(self, owner, cls):
+        if cls not in self.obj:
+            self.obj[cls] = self.fget(cls)
+        return self.obj[cls]
 
 
 ### External APIs ###
@@ -247,7 +260,43 @@ def mailsend(user, mtype, **kwargs):
     except Exception:
         return False
 
-class Riot:
+class LimitedApi:
+    # this is default delay between subsequent requests to the same api,
+    # can be overriden in subclasses
+    DELAY = timedelta(seconds=2)
+
+    @classmethod
+    def request(cls, *args, **kwargs):
+        now = datetime.utcnow()
+        last = getattr(cls, '_last', None)
+        if last:
+            diff = now - last
+            delay = cls.DELAY - diff
+            seconds = delay.total_seconds()
+            if seconds > 0:
+                time.sleep(seconds)
+        # and before we actually call the method, save current time
+        # (so that api's internal delay will count as a part of our delay)
+        cls._last = datetime.utcnow()
+
+        # now that we slept if needed, call Requests
+        # and handle any json-related problems
+        ret = requests.request(*args, **kwargs)
+        try:
+            resp = ret.json()
+        except ValueError: # json decode error
+            # error decoding json
+            log.exception('{} API: not a json in reply, code {}, text {}'.format(
+                cls.__name__,
+                ret.status_code,
+                ret.text,
+            ))
+            resp = {}
+        resp['_code'] = ret.status_code
+
+        return resp
+
+class Riot(LimitedApi):
     URL = 'https://{region}.api.pvp.net/api/lol/{region}/{version}/{method}'
     REGIONS = [
         'br', 'eune', 'euw', 'kr',
@@ -257,8 +306,12 @@ class Riot:
 
     @classmethod
     def call(cls, region, version, method, params, data):
+        if region not in cls.REGIONS:
+            raise ValueError('Unknown region %s' % region)
+
         params['api_key'] = config.RIOT_KEY
-        ret = requests.get(
+        return cls.request(
+            'GET',
             cls.URL.format(
                 region=region,
                 version=version,
@@ -267,13 +320,80 @@ class Riot:
             params = params,
             data = data,
         )
+
+class Steam(LimitedApi):
+    # as recommended in http://dev.dota2.com/showthread.php?t=47115
+    DELAY = timedelta(seconds=1)
+    STEAM_ID_64_BASE = 76561197960265728
+
+    @staticmethod
+    def id_to_32(cls, val):
+        if val > cls.STEAM_ID_64_BASE:
+            val -= cls.STEAM_ID_64_BASE
+        return val
+    @staticmethod
+    def id_to_64(cls, val):
+        if val < cls.STEAM_ID_64_BASE:
+            val += cls.STEAM_ID_64_BASE
+        return val
+
+    @staticmethod
+    def parse_id(cls, val):
+        # convert it to int if applicable
         try:
-            resp = ret.json()
-        except Exception:
-            log.exception('RIOT api error')
-            resp = {}
-        resp['_code'] = ret.status_code
+            val = int(val)
+            return cls.id_to_64(val)
+        except ValueError: pass
+
+        if 'steamcommunity.com/' in val: # url
+            if val.startswith('STEAM_'):
+                val = val.split('STEAM_',1)[1]
+                ver, a, b = map(int, val.split(':'))
+                if ver == 0:
+                    return cls.id_to_64(b << 1 + (a & 1))
+                raise ValueError('unknown ver: '+val)
+            elif '/id/' in val:
+                vanity_name = val.split('/id/',1)[1]
+                ret = cls.call(
+                    'ISteamUser', 'ResolveVanityURL', 'v0001',
+                    dict(vanityurl=vanity_name),
+                )
+                if 'steamid' not in ret:
+                    raise ValueError('Bad vanity URL '+val)
+                return int(ret['steamid']) # it was returned as string
+            elif '/profiles/' in val:
+                val = val.split('/profiles/',1)[1]
+                val = val.split('/')[0]
+                return int(val)
+            else:
+                raise ValueError(val)
+        else:
+            # TODO: resolve nickname somehow?
+            raise ValueError(val)
+
+    @classmethod
+    def call(cls, path, method, version, **params):
+        # TODO: on 503 error, retry in 30 seconds
+        params['key'] = config.STEAM_KEY
+        ret = cls.request(
+            'GET',
+            'https://api.steampowered.com/{}/{}/{}/'.format(
+                path,
+                method,
+                version,
+            ),
+            params = params,
+        )
+        for wrapper in ['result', 'response']:
+            if ret.keys() == set([wrapper, '_code']): # nothing more
+                ret[wrapper]['_code'] = ret.get('_code')
+                return ret[wrapper]
         return ret
+    @classmethod
+    def dota2(cls, method, match=True, **params):
+        # docs available at https://wiki.teamfortress.com/wiki/WebAPI#Dota_2
+        return cls.call('IDOTA2{}_570'.format('Match' if match else ''),
+                        method, 'V001', **params)
 
 
 ### Tokens ###
@@ -822,17 +942,49 @@ class CommaListField(restful.fields.Raw):
 
 ### Polling and notification ###
 class Poller:
-    gametypes = [] # list of supported types for this class
+    gametypes = {} # list of supported types for this class
+    gamemodes = {} # default
     usemodes = False # do we need to init again for each mode?
+
+    @classmethod
+    def findPoller(cls, gametype):
+        """
+        Tries to find poller class for given gametype.
+        Returns None on failure.
+        """
+        if gametype in cls.gametypes:
+            return cls
+        for sub in cls.__subclasses__():
+            ret = sub.findPoller(gametype)
+            if ret:
+                return ret
+    @classmethod
+    def allPollers(cls):
+        yield cls
+        for sub in cls.__subclasses__():
+            yield from sub.allPollers()
+
+    @classproperty
+    def all_gametypes(cls):
+        types = set(cls.gametypes)
+        for sub in cls.__subclasses__():
+            types.update(sub.all_gametypes)
+        return types
+    @classproperty
+    def all_gamemodes(cls):
+        modes = set(cls.gamemodes)
+        for sub in cls.__subclasses__():
+            modes.update(sub.all_gamemodes)
+        return modes
 
     def games(self, gametype, gamemode=None):
         ret = Game.query.filter_by(
-            gametype=gametype,
+            gametype = gametype,
             state = 'accepted',
         )
         if gamemode:
             ret = ret.filter_by(
-                gamemode=gamemode,
+                gamemode = gamemode,
             )
         return ret
     def poll(self, gametype=None, gamemode=None):
@@ -843,7 +995,7 @@ class Poller:
                 self.poll(gametype)
             return
         if self.usemodes and not gamemode:
-            for gamemode in Game.GAMETYPES[gametype]['gamemodes']:
+            for gamemode in self.gamemodes:
                 self.prepare()
                 self.poll(gametype, gamemode)
             return
@@ -911,7 +1063,20 @@ class Poller:
         """
         raise NotImplemented
 class FifaPoller(Poller):
-    gametypes = ['fifa14-xboxone', 'fifa15-xboxone']
+    gametypes = {
+        'fifa14-xboxone': 'FIFA14',
+        'fifa15-xboxone': 'FIFA15',
+    }
+    gamemodes = {
+        'fifaSeasons': 'FIFA Seasons',
+        'futSeasons': 'FUT Seasons',
+        'fut': 'FUT',
+        'friendlies': 'Friendlies',
+        'coop': 'Cooperative',
+    }
+    identity = 'ea_gamertag'
+    identity_name = 'EA Games GamerTag'
+    identity_check = gamertag_field
     usemodes = True
 
     def prepare(self):
@@ -988,7 +1153,17 @@ class FifaPoller(Poller):
             return True
 
 class RiotPoller(Poller):
-    gametypes = ['league-of-legends']
+    gametypes = {
+        'league-of-legends': 'League of Legends',
+    }
+    gamemodes = {
+        'RANKED_SOLO_5x5': 'Solo 5x5',
+        'RANKED_TEAM_3x3': 'Team 3x3',
+        'RANKED_TEAM_5x5': 'Team 5x5',
+    },
+    identity = 'riot_summonerName'
+    identity_name = 'Riot Summoner Name'
+    identity_check = summoner_field
 
     def prepare(self):
         self.matches = {}
@@ -1072,18 +1247,126 @@ class RiotPoller(Poller):
             if shift > ret['totalGames']:
                 break
 
-def poll_all(poller=Poller):
-    if poller is Poller:
-        log.info('Polling started')
+class Dota2Poller(Poller):
+    gametypes = {
+        'dota2': 'DOTA 2',
+    }
+    identity = 'steam_id'
+    identity_name = 'STEAM ID (numeric or URL)'
+    identity_check = Steam.parse_id
 
-    if poller.gametypes:
+    def prepare(self):
+        self.matchlists = {}
+
+    def pollGame(self, game):
+        from_oppo = False
+        matchlist = self.matchlists.get(game.gamertag_creator)
+        if not matchlist:
+            matchlist = self.matchlists.get(game.gamertag_opponent)
+            from_oppo = True
+        if not match:
+            # TODO: handle pagination
+            # Match list is sorted by start time descending,
+            # and 100 matches are returned by default,
+            # so maybe no need (as we check every 30 minutes)
+            matchlist = Steam.dota2(
+                method = 'GetMatchHistory',
+                account_id = game.gamertag_creator, # it is in str, but doesn't matter here
+                date_min = round(game.accept_date.timestamp()),
+            ).get('matches')
+            # TODO: merge all matches in cache, index by match id,
+            # and search players in all matches available -
+            # this may reduce requests count
+            if not matchlist:
+                raise ValueError('Couldn\'t fetch match list for account id {}'
+                                 .format(game.gamertag_creator))
+            self.matchlists[game.gamertag_creator] = match['matches']
+        for match in matchlist:
+            if match['start_time'] < game.accept_date.timestamp:
+                # this match is too old, subsequent are older -> not found
+                break
+            player_ids = (Steam.id_to_64(p['account_id'])
+                          for p in match['players']
+                          if 'account_id' in p)
+            if int(game.gamertag_creator
+                   if from_oppo else
+                   game.gamertag_opponent) in player_ids:
+                # found the right match
+                # now load its details to determine winner and duration
+
+                match = Steam.dota2(
+                    method = 'GetMatchDetails',
+                    match_id = match['match_id'],
+                )
+                # TODO: update it in cache?
+
+                # determine winner
+                crea = SimpleNamespace()
+                oppo = SimpleNamespace()
+                crea.id, oppo.id = map(lambda i: int(i),
+                                       [game.gamertag_creator,
+                                        game.gamertag_opponent])
+                for player in match['players']:
+                    for user in (crea, oppo):
+                        if Steam.id_to_64(player.get('account_id')) == user.id:
+                            user.info = player
+                for user in (crea, oppo):
+                    if not hasattr(user, 'info'):
+                        raise Exception(
+                            'Unexpected condition: crea or oppo not found.'
+                            '{} {}'.format(
+                                match,
+                                game,
+                            )
+                        )
+                    # according to
+                    # https://wiki.teamfortress.com/wiki/WebAPI/GetMatchDetails#Player_Slot
+                    user.dire = bool(user.info['player_slot'] & 0x80)
+                    user.won = user.dire == (not match['radiant_won'])
+
+                if crea.dire == oppo.dire:
+                    # TODO: consider it failure?
+                    winner = 'draw'
+                else:
+                    winner = 'creator' if crea.won else 'opponent'
+
+                self.gameDone(
+                    game,
+                    winner,
+                    match['start_time'] + match['duration']
+                )
+
+class DummyPoller(Poller):
+    """
+    This poller covers all game types not supported yet.
+    """
+    gametypes = {
+        'battlefield-4': 'Battlefield 4',
+        'call-of-duty-advanced-warfare': 'Call Of Duty - Advanced Warfare',
+        'destiny': 'Destiny',
+        'grand-theft-auto-5': 'Grand Theft Auto V',
+        'minecraft': 'Minecraft',
+        'rocket-league': 'Rocket League',
+        'starcraft': 'Starcraft',
+    }
+    identity = ''
+    identity_name = ''
+    identity_check = lambda val: val
+
+    def pollGame(self, game):
+        pass
+
+def poll_all():
+    log.info('Polling started')
+
+    # TODO: run them all simultaneously in background, to use 2sec api delays
+    for poller in Poller.allPollers():
+        if not poller.gametypes or not poller.identity: # root or dummy
+            continue
         pin = poller()
         pin.poll()
-    for sub in poller.__subclasses__():
-        poll_all(sub)
 
-    if poller is Poller:
-        log.info('Polling done')
+    log.info('Polling done')
 
 
 # Notification
@@ -1175,14 +1458,3 @@ def notify_users(game):
     # and send email if applicable
     send_mail(game)
 
-class classproperty:
-    """
-    Cached class property; evaluated only once
-    """
-    def __init__(self, fget):
-        self.fget = fget
-        self.obj = {}
-    def __get__(self, owner, cls):
-        if cls not in self.obj:
-            self.obj[cls] = self.fget(cls)
-        return self.obj[cls]
