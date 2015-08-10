@@ -415,6 +415,16 @@ class BattleNet(LimitedApi):
         return cls.request('GET', url, params=params)
 class StarCraft(BattleNet):
     @classmethod
+    def check_uid(cls, val):
+        # TODO: allow searching users by name?
+        parts = val.split('/')
+        if len(parts) != 3:
+            raise ValueError('Should contain 3 parts separated by /: '+val)
+        uid, ureg, uname = parts
+        int(uid) # to check for valueerror
+        int(ureg)
+        return val
+    @classmethod
     def profile(cls, region, user, part=''):
         uid, ureg, uname = user.split('/')
         return cls.call(
