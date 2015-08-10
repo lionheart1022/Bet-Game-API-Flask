@@ -1136,10 +1136,10 @@ class FifaPoller(Poller, LimitedApi):
     }
     gamemodes = {
         'fifaSeasons': 'FIFA Seasons',
-        'futSeasons': 'FUT Seasons',
+        'futSeasons': 'FUT Online Seasons',
         'fut': 'FUT',
         'friendlies': 'Friendlies',
-        'coop': 'Cooperative',
+        'coop': 'Co-op',
     }
     identity = 'ea_gamertag'
     identity_name = 'EA Games GamerTag'
