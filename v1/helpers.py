@@ -426,10 +426,27 @@ class StarCraft(BattleNet):
         )
     @classmethod
     def check_uid(cls, val):
+        if val.startswith('http'):
+            val = val.split('://',1)[1]
         parts = val.split('/')
-        if len(parts) != 4:
-            return cls.find_uid(val)
-        region, uid, ureg, uname = parts
+        if 'sc2ranks.com/character' in val:
+            # sc2ranks url example:
+            # http://www.sc2ranks.com/character/us/5751755/Violet/hots/1v1
+            region, uid, uname = parts[2:5]
+            ureg = 1 # FIXME: is it always like this?
+        elif 'battle.net/sc2' in val and '/profile/' in val:
+            # battle.net url example:
+            # http://us.battle.net/sc2/en/profile/7098504/1/Neeblet/matches
+            host = parts[0]
+            region = {v:k for k,v in cls.HOSTS.items()}.get(host)
+            if not region:
+                log.warning('Unknown host: '+host)
+                region = val.split('.',1)[0]
+            uid, ureg, uname = parts[4:7]
+        else:
+            if len(parts) != 4:
+                return cls.find_uid(val)
+            region, uid, ureg, uname = parts
         if region not in cls.HOSTS:
             raise ValueError('Unknown region '+region)
         int(uid) # to check for valueerror
