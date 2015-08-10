@@ -415,12 +415,23 @@ class BattleNet(LimitedApi):
         return cls.request('GET', url, params=params)
 class StarCraft(BattleNet):
     @classmethod
+    def find_uid(cls, val):
+        """
+        Search given user ID on sc2ranks site.
+        """
+        # TODO: api seems not functional
+        ret = cls.request(
+            'POST',
+            'http://api.sc2ranks.com/v2/characters/search',
+        )
+    @classmethod
     def check_uid(cls, val):
-        # TODO: allow searching users by name? search on sc2ranks.com ?
         parts = val.split('/')
         if len(parts) != 4:
-            raise ValueError('Should contain 4 parts separated by /: '+val)
+            return cls.find_uid(val)
         region, uid, ureg, uname = parts
+        if region not in cls.HOSTS:
+            raise ValueError('Unknown region '+region)
         int(uid) # to check for valueerror
         int(ureg)
         return val
