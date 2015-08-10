@@ -395,6 +395,33 @@ class Steam(LimitedApi):
         return cls.call('IDOTA2{}_570'.format('Match' if match else ''),
                         method, 'V001', **params)
 
+class BattleNet(LimitedApi):
+    # FIXME: there are 2 partitions - CN and Worldwide. We only use worldwide.
+    # https://dev.battle.net/docs/concepts/Regionality
+    # https://dev.battle.net/docs/concepts/AccountIds
+    HOSTS = dict(
+        us = 'https://us.api.battle.net/',
+        eu = 'https://eu.api.battle.net/',
+        kr = 'https://kr.api.battle.net/',
+        tw = 'https://tw.api.battle.net/',
+        cn = 'https://api.battlenet.com.cn/',
+        sea = 'https://sea.api.battle.net/',
+    )
+    @classmethod
+    def call(cls, region, game, endpoint, *params):
+        host = cls.HOSTS[region]
+        url = 'https://{host}/{game}/{endpoint}'.format(**locals())
+        params['apikey'] = config.BATTLENET_KEY
+        return cls.request('GET', url, params=params)
+class StarCraft(BattleNet):
+    @classmethod
+    def profile(cls, region, user, part=''):
+        uid, ureg, uname = user.split('/')
+        return cls.call(
+            region,
+            'sc2',
+            '{}/{}/{}/{}'.format(uid, ureg, uname, part),
+        )
 
 ### Tokens ###
 def validateFederatedToken(service, refresh_token):
