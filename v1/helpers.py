@@ -418,15 +418,15 @@ class StarCraft(BattleNet):
     def check_uid(cls, val):
         # TODO: allow searching users by name? search on sc2ranks.com ?
         parts = val.split('/')
-        if len(parts) != 3:
-            raise ValueError('Should contain 3 parts separated by /: '+val)
-        uid, ureg, uname = parts
+        if len(parts) != 4:
+            raise ValueError('Should contain 4 parts separated by /: '+val)
+        region, uid, ureg, uname = parts
         int(uid) # to check for valueerror
         int(ureg)
         return val
     @classmethod
-    def profile(cls, region, user, part=''):
-        uid, ureg, uname = user.split('/')
+    def profile(cls, user, part=''):
+        region, uid, ureg, uname = user.split('/')
         return cls.call(
             region,
             'sc2',
@@ -1378,7 +1378,6 @@ class StarCraftPoller(Poller):
     gametypes = {
         'starcraft': 'Starcraft II',
     }
-    # TODO: add region
     identity = 'starcraft_uid'
     identity_name = 'StarCraft user ID'
     identity_check = StarCraft.check_uid
@@ -1388,10 +1387,13 @@ class StarCraftPoller(Poller):
     def pollGame(self, game):
         crea = SimpleNamespace(uid=game.gamertag_creator)
         oppo = SimpleNamespace(uid=game.gamertag_opponent)
+        if crea.uid.split('/')[0] != oppo.uid.split('/')[0]:
+            # should be filtered in endpoint...
+            raise ValueError('Region mismatch')
         game_ts = game.accept_date.timestamp()
         for user in crea, oppo:
             if user.uid not in self.lists:
-                ret = StarCraft.profile(region, user.uid, 'matches')
+                ret = StarCraft.profile(user.uid, 'matches')
                 if 'matches' not in ret:
                     raise ValueError('Couldn\'t fetch matches for user '+user.uid)
                 self.lists[user.uid] = ret['matches']
