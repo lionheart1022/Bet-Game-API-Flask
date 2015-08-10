@@ -979,12 +979,12 @@ class Poller:
 
     def games(self, gametype, gamemode=None):
         ret = Game.query.filter_by(
-            gametype=gametype,
+            gametype = gametype,
             state = 'accepted',
         )
         if gamemode:
             ret = ret.filter_by(
-                gamemode=gamemode,
+                gamemode = gamemode,
             )
         return ret
     def poll(self, gametype=None, gamemode=None):
