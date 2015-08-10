@@ -305,6 +305,40 @@ class Riot(LimitedApi):
     ]
 
     @classmethod
+    def summoner_check(cls, val, region = None):
+        """
+        Summoner name can be either full (with region) or short.
+        If it is full, it should be in format 'region/name'.
+        If it is short, this method will try to find matching name
+        in the first region where it exists.
+
+        Returns summoner data in form 'region/name/id'.
+        """
+        if not region and '/' in val:
+            region, nval = val.split('/',1)
+            if region in cls.REGIONS:
+                val = nval
+            else:
+                region = None
+        if not region:
+            for region in cls.REGIONS:
+                try:
+                    return summoner_field(val, region)
+                except ValueError:
+                    pass
+            else:
+                raise ValueError('Summoner {} not exists in any region')
+
+        ret = cls.call(region, 'v1.4', 'summoner/by-name/'+val)
+        if val.lower() in ret:
+            return '/'.join([
+                region,
+                ret[val.lower()]['name'],
+                ret[val.lower()]['id'],
+            ])
+        raise ValueError('Unknown summoner name')
+
+    @classmethod
     def call(cls, region, version, method, params, data):
         if region not in cls.REGIONS:
             raise ValueError('Unknown region %s' % region)
@@ -815,39 +849,6 @@ def gamertag_field(nick):
         #raise ValueError('Couldn\'t validate this gamertag: {}'.format(nick))
         return nick
 
-def summoner_field(val, region = None):
-    """
-    Summoner field can be either full (with region) or short.
-    If it is full, it should be in format 'region/name'.
-    If it is short, this method will try to find matching name
-    in the first region where it exists.
-
-    Returns summoner data in formt 'region/name/id'.
-    """
-    if not region and '/' in val:
-        region, nval = val.split('/',1)
-        if region in Riot.REGIONS:
-            val = nval
-        else:
-            region = None
-    if not region:
-        for region in Riot.REGIONS:
-            try:
-                return summoner_field(val, region)
-            except ValueError:
-                pass
-        else:
-            raise ValueError('Summoner {} not exists in any region')
-
-    ret = Riot.call(region, 'v1.4', 'summoner/by-name/'+val)
-    if val.lower() in ret:
-        return '/'.join([
-            region,
-            ret[val.lower()]['name'],
-            ret[val.lower()]['id'],
-        ])
-    raise ValueError('Unknown summoner name')
-
 def encrypt_password(val):
     """
     Check password for weakness, and convert it to its hash.
@@ -1228,8 +1229,8 @@ class RiotPoller(Poller):
         'RANKED_TEAM_5x5': 'Team 5x5',
     },
     identity = 'riot_summonerName'
-    identity_name = 'Riot Summoner Name'
-    identity_check = summoner_field
+    identity_name = 'Riot Summoner Name ("name" or "region/name")'
+    identity_check = Riot.summmoner_check
 
     def prepare(self):
         self.matches = {}

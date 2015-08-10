@@ -39,7 +39,7 @@ class PlayerResource(restful.Resource):
             ('password', encrypt_password, True),
             ('facebook_token', federatedRenewFacebook, False), # should be last to avoid extra queries
             ('ea_gamertag', gamertag_field, False),
-            ('riot_summonerName', summoner_field, False),
+            ('riot_summonerName', Riot.summoner_check, False),
             ('steam_id', Steam.parse_id, False),
             ('starcraft_uid', StarCraft.check_uid, False),
         ]:
