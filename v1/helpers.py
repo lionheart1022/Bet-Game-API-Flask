@@ -1129,7 +1129,7 @@ class Poller:
         Returns True if given game was successfully processed.
         """
         raise NotImplemented
-class FifaPoller(Poller):
+class FifaPoller(Poller, LimitedApi):
     gametypes = {
         'fifa14-xboxone': 'FIFA14',
         'fifa15-xboxone': 'FIFA15',
@@ -1149,13 +1149,13 @@ class FifaPoller(Poller):
     def prepare(self):
         self.gamertags = {}
 
-    @staticmethod
-    def fetch(gametype, gamemode, nick):
+    @classmethod
+    def fetch(cls, gametype, gamemode, nick):
         url = 'https://www.easports.com/fifa/api/'\
             '{}/match-history/{}/{}'.format(
                 gametype, gamemode, nick)
         try:
-            return requests.get(url).json()['data']
+            return cls.request('GET', url)['data']
         except Exception as e:
             log.error('Failed to fetch match info '
                       'for player {}, gt {} gm {}'.format(
