@@ -433,7 +433,7 @@ class StarCraft(BattleNet):
             # sc2ranks url example:
             # http://www.sc2ranks.com/character/us/5751755/Violet/hots/1v1
             region, uid, uname = parts[2:5]
-            ureg = 1 # FIXME: is it always like this?
+            ureg = '1' # FIXME: is it always like this?
         elif 'battle.net/sc2' in val and '/profile/' in val:
             # battle.net url example:
             # http://us.battle.net/sc2/en/profile/7098504/1/Neeblet/matches
