@@ -416,7 +416,7 @@ class BattleNet(LimitedApi):
 class StarCraft(BattleNet):
     @classmethod
     def check_uid(cls, val):
-        # TODO: allow searching users by name?
+        # TODO: allow searching users by name? search on sc2ranks.com ?
         parts = val.split('/')
         if len(parts) != 3:
             raise ValueError('Should contain 3 parts separated by /: '+val)
