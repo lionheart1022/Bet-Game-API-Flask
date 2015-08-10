@@ -1407,7 +1407,7 @@ class StarCraftPoller(Poller):
         'starcraft': 'Starcraft II',
     }
     identity = 'starcraft_uid'
-    identity_name = 'StarCraft user ID'
+    identity_name = 'StarCraft profile URL from battle.net or sc2ranks.com'
     identity_check = StarCraft.check_uid
 
     def prepare(self):
