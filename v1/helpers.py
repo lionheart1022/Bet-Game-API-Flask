@@ -1347,7 +1347,8 @@ class DummyPoller(Poller):
         'grand-theft-auto-5': 'Grand Theft Auto V',
         'minecraft': 'Minecraft',
         'rocket-league': 'Rocket League',
-        'starcraft': 'Starcraft',
+        'starcraft': 'Starcraft II',
+#        'diablo': 'Diablo III',
     }
     identity = ''
     identity_name = ''
