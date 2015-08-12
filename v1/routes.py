@@ -73,6 +73,7 @@ class PlayerResource(restful.Resource):
             facebook_connected = fields.Boolean(attribute='facebook_token'),
             balance = fields.Raw, # because it is already JSON
             bio = fields.String,
+            has_userpic = fields.Boolean(attribute='userpic'),
             devices = fields.List(fields.Nested(dict(
                 id = fields.Integer,
                 last_login = fields.DateTime,
