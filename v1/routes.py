@@ -140,6 +140,8 @@ class PlayerResource(restful.Resource):
         for key, val in args.items():
             if hasattr(player, key):
                 setattr(player, key, val)
+        if 'userpic' in request.files:
+            UserpicResource.upload(request.files['userpic'], player)
         # TODO: validate fb token and nick
         db.session.add(player)
         db.session.commit()
@@ -175,6 +177,8 @@ class PlayerResource(restful.Resource):
         for key, val in args.items():
             if val and hasattr(user, key):
                 setattr(user, key, val)
+        if 'userpic' in request.files:
+            UserpicResource.upload(request.files['userpic'], player)
 
         db.session.commit()
 
@@ -317,16 +321,13 @@ class UserpicResource(restful.Resource):
     @classmethod
     def upload(cls, f, player):
         if not f.filename.lower().endswith('.png'):
-            return 'only PNG files allowed'
+            abort('[userpic]: only PNG files allowed')
 
         # FIXME: this consumes memory
         # FIXME: limit size!
         player.userpic = f.read()
         if len(player.userpic) > 4096*1024:
-            return 'file too large!'
-
-        db.session.commit()
-        return None # no error
+            abort('[userpic]: file too large!')
 
     def put(self, id):
         player = Player.find(id)
@@ -339,9 +340,9 @@ class UserpicResource(restful.Resource):
         if not f:
             abort('[userpic]: please provide file!')
 
-        msg = self.upload(f, player)
-        if msg:
-            abort('[userpic]: '+msg)
+        self.upload(f, player)
+
+        db.session.commit() # save
 
         return jsonify(success=True)
 
