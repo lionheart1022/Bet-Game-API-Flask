@@ -137,6 +137,8 @@ Player registration.
  * `starcraft_uid` - optional, should be a link to user profile either on battle.net or sc2ranks.com
  * `push_token` - device identifier for push notifications - only for login-related methods.
 Can be omitted and provided later with `POST /players/<nick>/pushtoken` endpoint.
+ * `bio` - optional player's biography (text)
+ * `userpic` - this field can be passed as an uploaded file. It has to be a PNG.
 
  * `_force`: force registration with invalid gamertag (effectively disables gamertag validation). Should not be used for production.
 
@@ -158,6 +160,16 @@ ID may be either integer internal ID, player's nick or `me`.
 
 For the player requesting will return whole info;
 for other players will only return *Limited Player resource*.
+
+### GET /players/<id>/userpic
+Returns given player's userpic with `image/png` MIME type.
+If given user has no userpic, will return HTTP code `204 NO CONTENT`.
+
+### PUT /players/<id>/userpic
+This is an alternate way to specify userpic.
+Accepts `userpic` parameter containing a file to be uploaded.
+File has to be in PNG format.
+Upon success, returns `{"success": true}`.
 
 ### PATCH /players/<id>
 Update player's data.
@@ -449,6 +461,8 @@ Resources
 	"nickname": "John Smith",
 	"email": "user@name.org",
 	"facebook_connected": true, // boolean
+	"bio": "player's biography, if specified",
+	"has_userpic": false,
 	"ea_gamertag": "DERP HACKER",
 	"riot_summonerName": null,
 	"steam_id": null,
@@ -477,7 +491,13 @@ Doesn't include sensitive information like `balance` or `devices`.
 	"nickname": "John Smith",
 	"email": "user@name.org",
 	"facebook_connected": true, // boolean
+	"bio": "player's biography, if specified",
+	"has_userpic": false,
+	
 	"ea_gamertag": "DERP HACKER",
+	"riot_summonerName": null,
+	"steam_id": null,
+	"starcraft_uid": null,
 	... // some stats
 }
 ```
