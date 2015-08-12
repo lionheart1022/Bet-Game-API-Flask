@@ -1012,6 +1012,7 @@ class Poller:
     gamemodes = {} # default
     usemodes = False # do we need to init again for each mode?
     sameregion = False # do we need to ensure region is the same for both gamertags
+    # region is stored as slash delimited prefix of gamertag.
 
     @classmethod
     def findPoller(cls, gametype):

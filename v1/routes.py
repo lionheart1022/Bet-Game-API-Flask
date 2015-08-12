@@ -38,6 +38,8 @@ class PlayerResource(restful.Resource):
             ('email', email, True),
             ('password', encrypt_password, True),
             ('facebook_token', federatedRenewFacebook, False), # should be last to avoid extra queries
+            ('bio', None, False),
+
             ('ea_gamertag', gamertag_field, False),
             ('riot_summonerName', Riot.summoner_check, False),
             ('steam_id', Steam.parse_id, False),
@@ -70,6 +72,7 @@ class PlayerResource(restful.Resource):
             email = fields.String,
             facebook_connected = fields.Boolean(attribute='facebook_token'),
             balance = fields.Raw, # because it is already JSON
+            bio = fields.String,
             devices = fields.List(fields.Nested(dict(
                 id = fields.Integer,
                 last_login = fields.DateTime,
