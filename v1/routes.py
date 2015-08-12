@@ -618,6 +618,9 @@ class GameResource(restful.Resource):
         args.gamemode = None
 
         poller = Poller.findPoller(args.gametype)
+        if not poller or poller == DummyPoller:
+            abort('Game type {} is not supported yet'.format(args.gametype))
+
         if poller.gamemodes:
             gmparser = RequestParser()
             gmparser.add_argument('gamemode', choices=poller.gamemodes,
@@ -627,9 +630,6 @@ class GameResource(restful.Resource):
 
         if args.opponent == user:
             abort('You cannot compete with yourself')
-
-        if not poller:
-            abort('Game type {} is not supported yet'.format(args.gametype))
 
         gamertag_field = poller.identity
 
