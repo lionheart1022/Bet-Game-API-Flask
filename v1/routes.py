@@ -313,8 +313,37 @@ class UserpicResource(restful.Resource):
         img.write(player.userpic) # bytes object
         img.seek(0)
         return send_file(img, mimetype='image/png')
+
+    @classmethod
+    def upload(cls, f, player):
+        if not f.filename.lower().endswith('.png'):
+            return 'only PNG files allowed'
+
+        # FIXME: this consumes memory
+        # FIXME: limit size!
+        player.userpic = f.read()
+        if len(player.userpic) > 4096*1024:
+            return 'file too large!'
+
+        db.session.commit()
+        return None # no error
+
     def put(self, id):
-        pass
+        player = Player.find(id)
+        if not player:
+            raise NotFound
+
+        had_upic = bool(player.userpic)
+
+        f = request.files['userpic']
+        if not f:
+            abort('[userpic]: please provide file!')
+
+        msg = self.upload(f, player)
+        if msg:
+            abort('[userpic]: '+msg)
+
+        return jsonify(success=True)
 
 # Balance
 @app.route('/balance', methods=['GET'])
