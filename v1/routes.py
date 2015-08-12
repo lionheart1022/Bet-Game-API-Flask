@@ -613,15 +613,21 @@ class GameResource(restful.Resource):
         parser.add_argument('gamertag_opponent', required=False)
         parser.add_argument('gametype', choices=Poller.all_gametypes,
                             required=True)
-        parser.add_argument('gamemode', choices=Poller.all_gamemodes,
-                            required=True)
         parser.add_argument('bet', type=float, required=True)
         args = parser.parse_args()
+        args.gamemode = None
+
+        poller = Poller.findPoller(args.gametype)
+        if poller.gamemodes:
+            gmparser = RequestParser()
+            gmparser.add_argument('gamemode', choices=poller.gamemodes,
+                                required=True)
+            gmargs = gmparser.parse_args()
+            args.gamemode = gmargs.gamemode
 
         if args.opponent == user:
             abort('You cannot compete with yourself')
 
-        poller = Poller.findPoller(args.gametype)
         if not poller:
             abort('Game type {} is not supported yet'.format(args.gametype))
 
