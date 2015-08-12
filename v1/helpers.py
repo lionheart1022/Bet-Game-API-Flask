@@ -1011,6 +1011,7 @@ class Poller:
     gametypes = {} # list of supported types for this class
     gamemodes = {} # default
     usemodes = False # do we need to init again for each mode?
+    sameregion = False # do we need to ensure region is the same for both gamertags
 
     @classmethod
     def findPoller(cls, gametype):
@@ -1231,6 +1232,7 @@ class RiotPoller(Poller):
     identity = 'riot_summonerName'
     identity_name = 'Riot Summoner Name ("name" or "region/name")'
     identity_check = Riot.summoner_check
+    sameregion = True
 
     def prepare(self):
         self.matches = {}
@@ -1412,6 +1414,7 @@ class StarCraftPoller(Poller):
     identity = 'starcraft_uid'
     identity_name = 'StarCraft profile URL from battle.net or sc2ranks.com'
     identity_check = StarCraft.check_uid
+    sameregion = True
 
     def prepare(self):
         self.lists = {}

@@ -654,7 +654,7 @@ class GameResource(restful.Resource):
         check_gamertag('creator', ('your', ''))
         check_gamertag('opponent', ('opponent\'s', 'they '))
 
-        if args.gametype in ('league-of-legends', 'starcraft'):
+        if poller.sameregion:
             # additional check for regions
             region1 = args['gamertag_creator'].split('/',1)[0]
             region2 = args['gamertag_opponent'].split('/',1)[0]
