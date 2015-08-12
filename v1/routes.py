@@ -297,6 +297,25 @@ class PlayerResource(restful.Resource):
         db.session.commit()
         return jsonify(success=True)
 
+
+# Userpic
+@api.resource('/players/<id>/userpic')
+class UserpicResource(restful.Resource):
+    def get(self, id):
+        player = Player.find(id)
+        if not player:
+            raise NotFound
+
+        if not player.userpic:
+            return (None, 204) # HTTP code 204 NO CONTENT
+
+        img = BytesIO()
+        img.write(player.userpic) # bytes object
+        img.seek(0)
+        return send_file(img, mimetype='image/png')
+    def put(self, id):
+        pass
+
 # Balance
 @app.route('/balance', methods=['GET'])
 @require_auth
