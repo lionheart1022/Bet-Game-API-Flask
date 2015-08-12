@@ -306,7 +306,8 @@ class PlayerResource(restful.Resource):
 # Userpic
 @api.resource('/players/<id>/userpic')
 class UserpicResource(restful.Resource):
-    def get(self, id):
+    @require_auth
+    def get(self, user, id):
         player = Player.find(id)
         if not player:
             raise NotFound
@@ -330,10 +331,13 @@ class UserpicResource(restful.Resource):
         if len(player.userpic) > 4096*1024:
             abort('[userpic]: file too large!')
 
+    @require_auth(allow_nonfilled=True)
     def put(self, id):
         player = Player.find(id)
         if not player:
             raise NotFound
+        if player != user:
+            raise Forbidden
 
         had_upic = bool(player.userpic)
 
