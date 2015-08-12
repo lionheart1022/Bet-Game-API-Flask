@@ -15,6 +15,8 @@ class Player(db.Model):
     password = db.Column(db.LargeBinary(36))
     facebook_token = db.Column(db.String(128))
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
+    bio = db.Column(db.Text)
+    userpic = db.Column(db.LargeBinary)
 
     ea_gamertag = db.Column(db.String(64), unique=True)
     riot_summonerName = db.Column(db.String(64), unique=True)
