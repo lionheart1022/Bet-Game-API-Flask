@@ -154,6 +154,31 @@ class Stream(db.Model):
 
 
 # Main logic
+class Handler:
+    """
+    This hierarchy is similar to Poller's one
+    """
+    gametypes = []
+
+    @classmethod
+    def start(cls, stream):
+        pass
+
+    @classmethod
+    def find(cls, gametype):
+        if gametype in cls.gametypes:
+            return cls
+        for sub in cls.__subclasses__():
+            ret = sub.find(gametype)
+            if ret:
+                return ret
+
+class FifaHandler(Handler):
+    gametypes = [
+        'fifa14-xboxone',
+        'fifa15-xboxone',
+    ]
+
 pool = []
 def add_stream(stream):
     """
@@ -162,9 +187,13 @@ def add_stream(stream):
     """
     if len(pool) >= MAX_STREAMS:
         return 'busy'
+
     # TODO: check if we support this gametype
     if False:
         return 'unsupported'
+
+    # TODO
+    return True
 
 def stream_done(stream, winner, timestamp):
     """
