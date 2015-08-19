@@ -186,6 +186,9 @@ def stream_done(stream, winner, timestamp):
 
     return True
 
+def current_load():
+    return 0 # TODO
+
 
 # now define our endpoints
 def child_url(cname, sid=''):
@@ -323,6 +326,14 @@ class StreamResource(restful.Resource):
         db.session.delete(stream)
         db.session.commit()
         return jsonify(deleted=True)
+
+@app.route('/load')
+def load_ep():
+    # TODO: allow querying `load average` of each child
+    load = current_load()
+    for child in CHILDREN.values():
+        load += requests.get(child+'/load').json()['load']
+    return load / (len(CHILDREN)+1)
 
 if __name__ == '__main__':
     init_app()
