@@ -36,6 +36,7 @@ from werkzeug.exceptions import default_exceptions
 from werkzeug.exceptions import BadRequest, MethodNotAllowed, Forbidden, NotImplemented, NotFound
 
 import os
+from datetime import datetime, timedelta
 import subprocess
 import requests
 import logging
@@ -164,6 +165,8 @@ class Handler:
     path = None
     env = None
     process = None
+    quorum = 5 # min results, or
+    maxdelta = timedelta(seconds=10)
 
     @classmethod
     def find(cls, gametype):
@@ -196,16 +199,36 @@ class Handler:
         )
 
         # and now the main loop starts
+        results = []
+        first_res = None
         while True:
             line = sub.stdout.readline().strip()
             result = cls.check(stream, line)
             if result is not None:
+                results.append(result)
+                if not first_res:
+                    first_res = datetime.utcnow()
+            # consider game done when either got quorum results
+            # or maxdelta passed since first result
+            if results and (len(results) >= cls.quorum or
+                            datetime.utcnow() > first_res + cls.maxdelta):
+                # calculate most trusted result
+                freqs = {}
+                for r in results:
+                    if r in freqs:
+                        freqs[r] += 1
+                    else:
+                        freqs[r] = 1
+                pairs = sorted(freqs.items(), key=lambda p: p[1])
+                result = pairs[0][0]
+
                 log.debug('got result: %s' % result)
                 # terminate process as we don't need it anymore
                 sub.kill()
                 # and handle result
-                cls.done(stream, result)
+                cls.done(stream, result, first_res.timestamp())
                 break
+
             # if process stopped itself and no more output left
             if not line and sub.poll() is not None:
                 log.debug('process stopped itself')
@@ -218,12 +241,13 @@ class Handler:
         pool.remove(stream.handle)
 
     @classmethod
-    def done(stream, result):
+    def done(stream, result, timestamp):
         # determine winner and propagate result to master
         requests.patch(
             '{}/streams/{}'.format(SELF_URL, stream.handle),
             data = dict(
                 winner = result,
+                timestamp = timestamp,
             ),
         )
 
