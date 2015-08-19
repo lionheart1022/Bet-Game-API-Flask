@@ -208,6 +208,12 @@ class Handler:
                 results.append(result)
                 if not first_res:
                     first_res = datetime.utcnow()
+
+            # if process stopped itself and no more output left
+            if not line and sub.poll() is not None:
+                log.debug('process stopped itself, considering draw')
+                result = 'draw'
+
             # consider game done when either got quorum results
             # or maxdelta passed since first result
             if results and (len(results) >= cls.quorum or
@@ -223,16 +229,15 @@ class Handler:
                 result = pairs[0][0]
 
                 log.debug('got result: %s' % result)
-                # terminate process as we don't need it anymore
-                sub.kill()
-                # and handle result
+                # handle result
                 cls.done(stream, result, first_res.timestamp())
+                # and terminate process as we don't need it anymore
+                if sub.poll() is None:
+                    sub.terminate()
+                    eventlet.sleep(3)
+                    sub.kill()
                 break
 
-            # if process stopped itself and no more output left
-            if not line and sub.poll() is not None:
-                log.debug('process stopped itself')
-                break
             eventlet.sleep(.5)
 
         # TODO: clean sub?
