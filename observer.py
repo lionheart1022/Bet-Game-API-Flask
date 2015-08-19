@@ -161,7 +161,10 @@ def add_stream(stream):
     Returns False on failure (e.g. if list is full).
     """
     if len(pool) >= MAX_STREAMS:
-        return False
+        return 'busy'
+    # TODO: check if we support this gametype
+    if False:
+        return 'unsupported'
 
 def stream_done(stream, winner, timestamp):
     """
@@ -259,10 +262,15 @@ class StreamResource(restful.Resource):
                 break
         else:
             # nobody accepted? try to handle ourself
-            if add_stream(stream):
+            result = add_stream(stream)
+            if result == True:
                 stream.child = None
-            else:
+            elif result == 'busy':
                 abort('All observers are busy', 507) # 507 Insufficient Stroage
+            elif result == 'unsupported':
+                abort('Gametype not supported')
+            else:
+                abort('Unknown error '+result, 500)
 
         db.session.add(stream)
         db.session.commit()
