@@ -242,7 +242,16 @@ class StreamResource(restful.Resource):
     def delete(self, id=None):
         if not id:
             raise MethodNotAllowed
-        pass
+        stream = Stream.find(id)
+        if not stream:
+            raise NotFound
+        if stream.child:
+            ret = requests.delete(child_url(stream.child, stream.handle))
+            if ret.status_code != 200:
+                abort('Couldn\'t delete stream', ret.status_code, details=ret)
+        db.session.delete(stream)
+        db.session.commit()
+        return jsonify(deleted=True)
 
 if __name__ == '__main__':
     init_app()
