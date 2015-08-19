@@ -677,6 +677,7 @@ class GameResource(restful.Resource):
             'opponent': fields.Nested(PlayerResource.fields_public),
             'gamertag_creator': fields.String,
             'gamertag_opponent': fields.String,
+            'twitch_handle': fields.String,
             'gamemode': fields.String,
             'gametype': fields.String,
             'bet': fields.Float,
@@ -730,6 +731,7 @@ class GameResource(restful.Resource):
                             required=True, dest='opponent')
         parser.add_argument('gamertag_creator', required=False)
         parser.add_argument('gamertag_opponent', required=False)
+        parser.add_argument('twitch_handle', required=False)
         parser.add_argument('gametype', choices=Poller.all_gametypes,
                             required=True)
         parser.add_argument('bet', type=float, required=True)
@@ -787,11 +789,19 @@ class GameResource(restful.Resource):
         if args.bet > user.available:
             abort('[bet]: not enough coins', problem='coins')
 
+        if args.twitch_handle and not poller.twitch:
+            abort('Twitch streams are not yet supported for this gametype')
+        if poller.twitch == 2 and not args.twitch_handle:
+            abort('[twitch_handle] mandatory for this gametype',
+                  problem='twitch_handle')
+        # TODO: validate twitch handle, if any ?
+
         game = Game()
         game.creator = user
         game.opponent = args.opponent
         game.gamertag_creator = args.gamertag_creator
         game.gamertag_opponent = args.gamertag_opponent
+        game.twitch_handle = args.twitch_handle
         game.gametype = args.gametype
         game.gamemode = args.gamemode
         game.bet = args.bet

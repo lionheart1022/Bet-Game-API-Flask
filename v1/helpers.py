@@ -1015,6 +1015,8 @@ class Poller:
     usemodes = False # do we need to init again for each mode?
     sameregion = False # do we need to ensure region is the same for both gamertags
     # region is stored as slash delimited prefix of gamertag.
+    twitch = 0 # do we support twitch for this gametype?
+    # 0 - not supported, 1 - optional, 2 - mandatory
 
     @classmethod
     def findPoller(cls, gametype):
@@ -1093,8 +1095,7 @@ class Poller:
             count_ended, count_games,
         ))
 
-    @classmethod
-    def gameDone(cls, game, winner, timestamp):
+    def gameDone(self, game, winner, timestamp):
         """
         Mark the game as done, setting all needed fields.
         Winner is a string.
@@ -1150,6 +1151,7 @@ class FifaPoller(Poller, LimitedApi):
     identity_name = 'EA Games GamerTag'
     identity_check = gamertag_field
     usemodes = True
+    twitch = 1
 
     def prepare(self):
         self.gamertags = {}
