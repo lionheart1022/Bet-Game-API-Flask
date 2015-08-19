@@ -26,11 +26,13 @@
 from flask import Flask, jsonify
 from flask.ext import restful
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.restful import fields, marshal
 from flask.ext.restful.utils import http_status_message
 from werkzeug.exceptions import default_exceptions
 from werkzeug.exceptions import BadRequest, MethodNotAllowed, Forbidden, NotImplemented, NotFound
 
 import logging
+import requests
 
 import config
 
@@ -91,7 +93,26 @@ class Stream(db.Model):
     # this is an ID of Game object.
     # We don't use foreign key because we may reside on separate server
     # and use separate db.
-    game = db.Column(db.Integer, unique=True)
+    game_id = db.Column(db.Integer, unique=True)
+
+    # TODO: more fields...
+
+    @classmethod
+    def find(cls, id):
+        try:
+            ret = cls.query.get(int(id))
+        except ValueError: pass
+        if not ret:
+            ret = cls.query.filter_by(handle=id)
+        return ret
+
+def child_url(cname, sid=''):
+    if cname in config.CHILDREN:
+        return '{host}/streams/{sid}'.format(
+            host = config.CHILDREN[cname],
+            sid = sid,
+        )
+    return None
 
 # now define our endpoints
 @api.resource(
@@ -100,10 +121,25 @@ class Stream(db.Model):
     '/streams/<id>',
 )
 class StreamResource(restful.Resource):
+    fields = dict(
+        handle = fields.String,
+        gametype = fields.String,
+        game_id = fields.Integer,
+        state = fields.String,
+        # TODO...
+    )
+
     def get(self, id=None):
         if not id:
             # TODO
             raise NotImplemented
+        stream = Stream.find(id)
+
+        if stream.child:
+            # forward request
+            return requests.get(child_url(stream.child, stream.handle)).json()
+
+        return marshal(stream, self.fields)
 
     def put(self, id=None):
         if not id:
