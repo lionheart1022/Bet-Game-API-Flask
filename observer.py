@@ -133,6 +133,9 @@ def add_stream(stream):
     # TODO
     pass
 
+def stream_done(stream):
+    pass
+
 def child_url(cname, sid=''):
     if cname in config.CHILDREN:
         return '{host}/streams/{sid}'.format(
@@ -224,11 +227,16 @@ class StreamResource(restful.Resource):
         if not stream:
             raise NotFound
 
-        if config.PARENT:
-            # send upstream
-            return requests.patch(URL).json() # FIXME
+        parser = RequestParser()
+        parser.add_argument('winner')
+        args = parser.parse_args()
 
-        stream_done(stream)
+        if config.PARENT:
+            # send this request upstream
+            return requests.patch('{}/streams/{}'.format(*config.PARENT),
+                                  data = args).json()
+
+        stream_done(stream, args.winner)
         return jsonify(success = True)
 
     def delete(self, id=None):
