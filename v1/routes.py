@@ -531,24 +531,25 @@ def balance_withdraw(user):
 def gametypes():
     parser = RequestParser()
     parser.add_argument('betcount', type=boolean_field, default=False)
-    parser.add_argument('bettime', type=boolean_field, default=False)
+    parser.add_argument('latest', type=boolean_field, default=False)
     args = parser.parse_args()
 
     counts = {}
     if args.betcount:
         bca = (db.session.query(Game.gametype,
                                 func.count(Game.gametype),
+                                func.max(Game.create_date),
                                 )
                .group_by(Game.gametype).all())
-        counts = dict(bca) # tuples to dict (gametype: count)
-    times = {}
-    if args.bettime:
+        counts = {k: (c, d) for k,c,d in bca}
+    times = []
+    if args.latest:
         bta = (Game.query
                .with_entities(Game.gametype, func.max(Game.create_date))
                .group_by(Game.gametype)
                .order_by(Game.create_date.desc())
                .all())
-        times = dict(bta) # tuples to dict (gametype: time)
+        times = bta # in proper order
 
     gamedata = []
     identities = {}
@@ -563,10 +564,9 @@ def gametypes():
                     identity = poller.identity,
                     identity_name = poller.identity_name,
                 )
-                if counts:
-                    data['betcount'] = counts.get(gametype, 0)
-                if times:
-                    data['lastbet'] = times.get(gametype, None)
+                if args.betcount:
+                    data['betcount'], data['lastbet'] = \
+                        counts.get(gametype, (0, None))
                 gamedata.append(data)
                 identities[poller.identity] = poller.identity_name
             else: # DummyPoller
@@ -575,8 +575,18 @@ def gametypes():
                     name = gametype_name,
                     supported = False,
                 ))
-    return jsonify(gametypes = gamedata,
-                    identities = identities)
+    ret = dict(
+        gametypes = gamedata,
+        identities = identities,
+    )
+    if args.latest:
+        ret['latest'] = [
+            dict(
+                gametype = gametype,
+                date = date,
+            ) for gametype, date in times
+        ]
+    return jsonify(**ret)
 
 @app.route('/gametypes/<id>/image', methods=['GET'])
 def gametype_image(id):

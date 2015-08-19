@@ -301,8 +301,9 @@ List available game types.
 
 *Arguments:*
 
-* `betcount`: whether to include count of bets (i.e. popularity) for each gametype; defaults to `false`
-* `bettime`: whether to include last bet time for each gametype; defaults to `false`
+* `betcount`: whether to include count of bets (i.e. popularity)
+  and last bet time for each gametype; defaults to `false`
+* `latest`: whether to include `latest` list
 
 Will return the following detials about each game type:
 
@@ -324,6 +325,10 @@ Also, for convenience, it returns separate `identities` list
 which contains all possible identity fields stored in `Player` resource.
 That list may change when we add support for new games,
 so it is advised to fetch it from the server rather than hardcode.
+
+And if `latest` parameter is set to `true`,
+this endpoint will also return `latest` list ordered by data descendingly
+showing last betted gametypes.
 
 ```json
 {
@@ -353,7 +358,14 @@ so it is advised to fetch it from the server rather than hardcode.
 		"ea_gamertag": "EA Gamertag",
 		"riot_summonerName": "RIOT Summoner Name",
 		...
-	}
+	},
+	"latest": [
+		{
+			"gametype": "league-of-legends",
+			"date": "datetime_object"
+		},
+		...
+	]
 }
 ```
 
