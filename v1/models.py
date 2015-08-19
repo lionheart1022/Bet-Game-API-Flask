@@ -46,6 +46,12 @@ class Player(db.Model):
         return Game.query.filter(
             (Game.creator_id == self.id) | # OR
             (Game.opponent_id == self.id))
+    @property
+    def gamecount(self):
+        return fast_count(self.games)
+    @property
+    def winrate(self):
+        return 0 # TODO
 
     @classmethod
     def find(cls, key):

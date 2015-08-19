@@ -79,11 +79,15 @@ class PlayerResource(restful.Resource):
                 id = fields.Integer,
                 last_login = fields.DateTime,
             ))),
+
             ea_gamertag = fields.String,
             riot_summonerName = fields.String,
             steam_id = fields.String,
             starcraft_uid = fields.String,
-            # TODO: some stats
+
+            # some stats
+            gamecount = fields.Integer, # FIXME: optimize query somehow?
+            winrate = fields.Integer,
         )
     @classproperty
     def fields_public(cls):
@@ -120,7 +124,7 @@ class PlayerResource(restful.Resource):
     @require_auth
     def get(self, user, id=None):
         if not id:
-            # TODO?
+            # Leaderboard mode
             raise NotImplemented
 
         player = Player.find(id)
@@ -351,6 +355,7 @@ class UserpicResource(restful.Resource):
         db.session.commit() # save
 
         return jsonify(success=True)
+
 
 # Balance
 @app.route('/balance', methods=['GET'])
