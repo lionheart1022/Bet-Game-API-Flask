@@ -24,6 +24,7 @@ class MyRequest(Request):
         return self.headers.get('X-Real-IP') or super().remote_addr
 app.request_class = MyRequest
 
+
 # JSONful error handling
 def make_json_error(ex):
     code = getattr(ex, 'code', 500)
