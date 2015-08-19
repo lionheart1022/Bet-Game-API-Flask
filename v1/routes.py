@@ -845,6 +845,31 @@ class GameResource(restful.Resource):
         if args.state == 'accepted' and game.bet > user.available:
             abort('Not enough coins', problem='coins')
 
+        # Now, before we save state change, start twitch stream if required
+        # so that we can abort if it failed
+        if game.twitch_handle:
+            ret = requests.put(
+                '{}/streams/{}'.format(
+                    config.OBSERVER_URL,
+                    game.twitch_handle,
+                ),
+                data = dict(
+                    gametype = game.gametype,
+                    game_id = game.id,
+                    creator = game.gamertag_creator,
+                    opponent = game.gamertag_opponent,
+                ),
+            )
+            if ret.status_code not in (200, 201):
+                jret = ret.json()
+                if ret.status_code == 409: # dup
+                    # TODO: check it on creation??
+                    abort('This twitch stream is already watched')
+                elif ret.status_code == 507: # full
+                    abort('Cannot start twitch observing, all servers are busy now; '
+                          'please retry later', 500)
+                abort('Couldn\'t start Twitch: '+jret.get('error', 'Unknown err'))
+
         game.state = args.state
         game.accept_date = datetime.utcnow()
 
