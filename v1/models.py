@@ -51,7 +51,22 @@ class Player(db.Model):
         return fast_count(self.games)
     @property
     def winrate(self):
-        return 0 # TODO
+        # FIXME: rewrite in sql?
+        count = 0
+        wins = 0
+        for game in self.games:
+            if game.state != 'finished':
+                continue
+            count += 1
+            whoami = 'creator' if game.creator_id == self.id else 'opponent'
+            if game.winner == 'draw':
+                wins += 0.5
+            elif game.winner == whoami:
+                wins += 1
+        if count == 0:
+            # no finished games, no data
+            return None
+        return wins / count
 
     @classmethod
     def find(cls, key):
