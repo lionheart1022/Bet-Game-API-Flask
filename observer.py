@@ -277,8 +277,11 @@ class FifaHandler(Handler):
         if 'Impossible to recognize who won' in line:
             log.warning('Couldn\'t get result, returning draw')
             return 'draw'
-        if 'result:' in line:
-            _, nick1, nick2, score1, score2 = line.split(':')
+        if 'Score:' in line:
+            nick1, nick2 = line.split('Players:',1)[1].strip().split('\t\t',1)
+            score1, score2 = [p for p in line.split('Score: ',1)[1]
+                              .split('Players:',1)[0]
+                              .split() if '-' in p and p[0].isdigit()][0].split('-')
             nick1, nick2 = map(lambda x: x.lower(), (nick1, nick2))
             score1, score2 = map(int, (score1, score2))
 
