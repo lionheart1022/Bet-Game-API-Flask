@@ -188,11 +188,12 @@ def add_stream(stream):
     if len(pool) >= MAX_STREAMS:
         return 'busy'
 
-    # TODO: check if we support this gametype
-    if False:
+    handler = Handler.find(stream.gametype)
+    if not handler:
         return 'unsupported'
 
-    # TODO
+    handler.start(stream)
+
     return True
 
 def stream_done(stream, winner, timestamp):
