@@ -154,17 +154,30 @@ class Stream(db.Model):
 
 
 # Main logic
+pool = []
 def add_stream(stream):
     """
     Tries to append given stream object (which is not yet committed) to watchlist.
     Returns False on failure (e.g. if list is full).
     """
+    if len(pool) >= MAX_STREAMS:
+        return False
 
-def stream_done(stream):
+def stream_done(stream, winner, timestamp):
     """
     Runs on master node only.
     Marks given stream as done, and notifies clients etc.
     """
+    from v1.helpers import Poller
+    from v1.models import Game
+
+    game = Game.query.get(stream.game_id)
+    if not game:
+        abort('Invalid game ID')
+
+    Poller.gameDone(game, winner, timestamp)
+    # no need to remove from pool, because we are on master
+    return True
 
 
 # now define our endpoints
