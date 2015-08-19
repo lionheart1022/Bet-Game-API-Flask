@@ -301,23 +301,10 @@ List available game types.
 
 *Arguments:*
 
-* `full`: boolean, defaults to `false`
+* `betcount`: whether to include count of bets (i.e. popularity) for each gametype; defaults to `false`
+* `bettime`: whether to include last bet time for each gametype; defaults to `false`
 
-There are 2 variants of this endpoint. Default is the compatibility one,
-which returns plain list of types:
-
-```json
-{
-	"gametypes": [
-		"fifa14-xboxone",
-		"fifa15-xboxone",
-		"destiny",
-		...
-	]
-}
-```
-
-And another one, with `full=true`, contains detials about game types:
+Will return the following detials about each game type:
 
 * `supported` field - if it is `false` then the only thing you can do with this gametype
 is to fetch its image with `GET /gametypes/<type>/image`;
@@ -330,6 +317,8 @@ is to fetch its image with `GET /gametypes/<type>/image`;
   This means that if you don't provide `gamertag_creator` field,
   system will look for gamertag in your `ea_gamertag` profile field.
   For other game types special fields will be added in future.
+* `betcount` (if requested) - how many bets were made on this gametype
+* `lastbet` (if requested) - when latest bet was made on this gametype, or `null` if no bets were made
 
 Also, for convenience, it returns separate `identities` list
 which contains all possible identity fields stored in `Player` resource.
