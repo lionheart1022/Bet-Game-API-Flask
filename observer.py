@@ -35,8 +35,10 @@ from flask.ext.restful.utils import http_status_message
 from werkzeug.exceptions import default_exceptions
 from werkzeug.exceptions import BadRequest, MethodNotAllowed, Forbidden, NotImplemented, NotFound
 
-import logging
+import os
+import subprocess
 import requests
+import logging
 
 import config
 from observer_conf import SELF_URL, PARENT, CHILDREN, MAX_STREAMS
@@ -159,10 +161,9 @@ class Handler:
     This hierarchy is similar to Poller's one
     """
     gametypes = []
-
-    @classmethod
-    def start(cls, stream):
-        pass
+    path = None
+    env = None
+    process = None
 
     @classmethod
     def find(cls, gametype):
@@ -173,11 +174,107 @@ class Handler:
             if ret:
                 return ret
 
+    @classmethod
+    def start(cls, stream):
+        eventlet.spawn(cls.watch, stream)
+        pool.append(stream.handle)
+
+    @classmethod
+    def watch(cls, stream):
+        # start subprocess and watch its output
+        if cls.path:
+            os.chdir(cls.path)
+        cmd = cls.process.format(handle = stream.handle)
+        if cls.env:
+            cmd = cls.env + '; ' + cmd
+        sub = subprocess.Popen(
+            cmd,
+            bufsize = 1, # line buffered
+            universal_newlines = True, # text mode
+            shell = True, # interpret ';'-separated commands
+            stdout = subprocess.PIPE, # intercept it!
+        )
+
+        # and now the main loop starts
+        while True:
+            line = sub.stdout.readline().strip()
+            result = cls.check(stream, line)
+            if result is not None:
+                log.debug('got result: %s' % result)
+                # terminate process as we don't need it anymore
+                sub.kill()
+                # and handle result
+                cls.done(stream, result)
+                break
+            # if process stopped itself and no more output left
+            if not line and sub.poll() is not None:
+                log.debug('process stopped itself')
+                break
+            eventlet.sleep(.5)
+
+        # TODO: clean sub?
+
+        # mark that this stream has stopped
+        pool.remove(stream.handle)
+
+    @classmethod
+    def done(stream, result):
+        # determine winner and propagate result to master
+        requests.patch(
+            '{}/streams/{}'.format(SELF_URL, stream.handle),
+            data = dict(
+                winner = result,
+            ),
+        )
+
 class FifaHandler(Handler):
     gametypes = [
         'fifa14-xboxone',
         'fifa15-xboxone',
     ]
+    path = 'fifastreamer'
+    env = '../env2'
+    process = 'python2 fifa_streamer.py "http://twitch.tv/{handle}"'
+
+    @classmethod
+    def check(cls, stream, line):
+        log.debug(line)
+        if 'Impossible to recognize who won' in line:
+            log.warning('Couldn\'t get result, returning draw')
+            return 'draw'
+        if 'result:' in line:
+            _, nick1, nick2, score1, score2 = line.split(':')
+            nick1, nick2 = map(lambda x: x.lower(), (nick1, nick2))
+            score1, score2 = map(int, (score1, score2))
+
+            if score1 == score2:
+                log.info('draw detected')
+                return 'draw'
+
+            cl = stream.creator.lower()
+            ol = stream.opponent.lower()
+            creator = opponent = None
+            if cl == nick1:
+                creator = 1
+            elif cl == nick2:
+                creator = 2
+            if ol == nick1:
+                opponent = 1
+            elif ol == nick2:
+                opponent = 2
+            if not creator and not opponent:
+                log.warning('defaulting to creator! '+line)
+                creator = 1
+                opponent = 2
+            if not creator:
+                creator = 1 if opponent == 2 else 2
+
+            if score1 > score2:
+                winner = 1
+            else:
+                winner = 2
+            return 'creator' if winner == creator else 'opponent'
+        return None
 
 pool = []
 def add_stream(stream):
