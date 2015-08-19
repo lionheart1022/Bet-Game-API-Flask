@@ -144,7 +144,7 @@ class Stream(db.Model):
     # and use separate db.
     game_id = db.Column(db.Integer, unique=True)
 
-    state = db.Column(db.Enum('watching', 'done', 'failed'), default='watching')
+    state = db.Column(db.Enum('watching', 'found', 'failed'), default='watching')
 
     creator = db.Column(db.String(128))
     opponent = db.Column(db.String(128))
@@ -208,6 +208,7 @@ class Handler:
             line = sub.stdout.readline().strip()
             result = cls.check(stream, line)
             if result is not None:
+                stream.state = 'found'
                 results.append(result)
                 if not first_res:
                     first_res = datetime.utcnow()
@@ -215,6 +216,7 @@ class Handler:
             # if process stopped itself and no more output left
             if not line and sub.poll() is not None:
                 log.debug('process stopped itself, considering draw')
+                stream.state = 'failed'
                 result = 'draw'
 
             # consider game done when either got quorum results
@@ -233,6 +235,7 @@ class Handler:
 
                 log.debug('got result: %s' % result)
                 # handle result
+                db.session.commit()
                 cls.done(stream, result, first_res.timestamp())
                 # and terminate process as we don't need it anymore
                 if sub.poll() is None:
