@@ -27,6 +27,7 @@ from flask import Flask, jsonify
 from flask.ext import restful
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.restful import fields, marshal
+from flask.ext.restful.reqparse import RequestParser
 from flask.ext.restful.utils import http_status_message
 from werkzeug.exceptions import default_exceptions
 from werkzeug.exceptions import BadRequest, MethodNotAllowed, Forbidden, NotImplemented, NotFound
@@ -64,6 +65,28 @@ def make_json_error(ex):
     return response
 for code in default_exceptions.keys():
     app.error_handler_spec[None][code] = make_json_error
+
+def abort(message, code=400, **kwargs):
+    data = {'error_code': code, 'error': message}
+    if kwargs:
+        data.update(kwargs)
+
+    log.warning('Aborting request {} /{}: {}'.format(
+        # GET /v1/smth
+        request.method,
+        request.base_url.split('//',1)[-1].split('/',1)[-1],
+        ', '.join(['{}: {}'.format(*i) for i in data.items()])))
+
+    try:
+        flask_abort(code)
+    except HTTPException as e:
+        e.data = data
+        raise
+restful.abort = lambda code,message: abort(message,code) # monkey-patch to use our approach to aborting
+restful.utils.error_data = lambda code: {
+    'error_code': code,
+    'error': http_status_message(code)
+}
 
 
 def init_app(logfile=None):
@@ -106,6 +129,10 @@ class Stream(db.Model):
             ret = cls.query.filter_by(handle=id)
         return ret
 
+def add_stream(stream):
+    # TODO
+    pass
+
 def child_url(cname, sid=''):
     if cname in config.CHILDREN:
         return '{host}/streams/{sid}'.format(
@@ -131,8 +158,9 @@ class StreamResource(restful.Resource):
 
     def get(self, id=None):
         if not id:
-            # TODO
+            # TODO?
             raise NotImplemented
+
         stream = Stream.find(id)
 
         if stream.child:
@@ -144,7 +172,46 @@ class StreamResource(restful.Resource):
     def put(self, id=None):
         if not id:
             raise MethodNotAllowed
-        pass
+
+        # id should be stream handle
+        if Stream.find(id):
+            abort('Duplicate stream handle', 409) # 409 Conflict
+
+        parser = RequestParser()
+        parser.add_argument('gametype')
+        parser.add_argument('game_id', type=int)
+        # TODO...
+        args = parser.parse_args()
+
+        stream = Stream()
+        stream.handle = id
+        for k, v in args.items():
+            setattr(stream, k, v)
+
+        ret = None
+        # now find the child who will handle this stream
+        for child, host in config.CHILDREN.items():
+            # try to delegate this stream to that child
+            # FIXME: implement some load balancing
+            result = requests.put(child_url(child, id), data = args)
+            if result.status_code == 200: # accepted?
+                ret = result.json()
+                # remember which child accepted this stream
+                stream.child = child
+                break
+        else:
+            # nobody accepted? try to handle ourself
+            if add_stream(stream):
+                stream.child = None
+            else:
+                abort('All observers are busy', 507) # 507 Insufficient Stroage
+
+        db.session.add(stream)
+        db.session.commit()
+
+        if ret:
+            return ret
+        return marshal(stream, self.fields)
 
     def delete(self, id=None):
         if not id:
