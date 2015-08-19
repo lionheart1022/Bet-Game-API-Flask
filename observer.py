@@ -268,7 +268,7 @@ class FifaHandler(Handler):
         'fifa15-xboxone',
     ]
     path = 'fifastreamer'
-    env = '../env2'
+    env = '../../env2'
     process = 'python2 fifa_streamer.py "http://twitch.tv/{handle}"'
 
     @classmethod
