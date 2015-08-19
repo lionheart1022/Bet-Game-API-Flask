@@ -187,7 +187,8 @@ def stream_done(stream, winner, timestamp):
     return True
 
 def current_load():
-    return 0 # TODO
+    # TODO: use load average as a base, and add some cap on it
+    return len(pool) / MAX_STREAMS
 
 
 # now define our endpoints
