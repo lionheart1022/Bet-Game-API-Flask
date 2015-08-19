@@ -130,11 +130,16 @@ class Stream(db.Model):
         return ret
 
 def add_stream(stream):
-    # TODO
-    pass
+    """
+    Tries to append given stream object (which is not yet committed) to watchlist.
+    Returns False on failure (e.g. if list is full).
+    """
 
 def stream_done(stream):
-    pass
+    """
+    Runs on master node only.
+    Marks given stream as done, and notifies clients etc.
+    """
 
 def child_url(cname, sid=''):
     if cname in config.CHILDREN:
