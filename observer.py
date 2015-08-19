@@ -144,7 +144,10 @@ class Stream(db.Model):
     # and use separate db.
     game_id = db.Column(db.Integer, unique=True)
 
-    # TODO: more fields...
+    state = db.Column(db.Enum('watching', 'done', 'failed'), default='watching')
+
+    creator = db.Column(db.String(128))
+    opponent = db.Column(db.String(128))
 
     @classmethod
     def find(cls, id):
@@ -367,7 +370,8 @@ class StreamResource(restful.Resource):
         gametype = fields.String,
         game_id = fields.Integer,
         state = fields.String,
-        # TODO...
+        creator = fields.String,
+        opponent = fields.String,
     )
 
     def get(self, id=None):
@@ -404,6 +408,8 @@ class StreamResource(restful.Resource):
         parser = RequestParser()
         parser.add_argument('gametype')
         parser.add_argument('game_id', type=int)
+        parser.add_argument('creator')
+        parser.add_argument('opponent')
         # TODO...
         args = parser.parse_args()
 
