@@ -97,3 +97,7 @@ class StreamResource(restful.Resource):
         if not id:
             raise MethodNotAllowed
         pass
+
+if __name__ == '__main__':
+    init_app()
+    app.run(port=8021, debug=True)
