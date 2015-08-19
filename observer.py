@@ -59,6 +59,7 @@ app.request_class = MyRequest
 
 
 # JSONful error handling
+log = app.logger
 def make_json_error(ex):
     code = getattr(ex, 'code', 500)
     if hasattr(ex, 'data'):
