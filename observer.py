@@ -23,6 +23,9 @@
 # PUT /streams/id - watch the stream (client->master->slave)
 # GET /streams/id - check stream status (master->slave)
 
+import eventlet
+eventlet.monkey_patch() # before loading flask
+
 from flask import Flask, jsonify
 from flask.ext import restful
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -36,7 +39,7 @@ import logging
 import requests
 
 import config
-from observer_conf import SLOTS, PARENT, CHILDREN
+from observer_conf import MAX_STREAMS, PARENT, CHILDREN
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = config.DB_URL
@@ -148,6 +151,8 @@ class Stream(db.Model):
             ret = cls.query.filter_by(handle=id)
         return ret
 
+
+# Main logic
 def add_stream(stream):
     """
     Tries to append given stream object (which is not yet committed) to watchlist.
@@ -160,6 +165,8 @@ def stream_done(stream):
     Marks given stream as done, and notifies clients etc.
     """
 
+
+# now define our endpoints
 def child_url(cname, sid=''):
     if cname in CHILDREN:
         return '{host}/streams/{sid}'.format(
@@ -168,7 +175,6 @@ def child_url(cname, sid=''):
         )
     return None
 
-# now define our endpoints
 @api.resource(
     '/streams',
     '/streams/',
