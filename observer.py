@@ -160,6 +160,9 @@ class StreamResource(restful.Resource):
     )
 
     def get(self, id=None):
+        """
+        Returns details (current state) for certain stream.
+        """
         if not id:
             # TODO?
             raise NotImplemented
@@ -175,6 +178,11 @@ class StreamResource(restful.Resource):
         return marshal(stream, self.fields)
 
     def put(self, id=None):
+        """
+        Returns 409 on duplicate twitch id.
+        Returns 507 if no slots are available.
+        Returns newly created stream id otherwise.
+        """
         if not id:
             raise MethodNotAllowed
 
@@ -219,6 +227,9 @@ class StreamResource(restful.Resource):
         return marshal(stream, self.fields)
 
     def patch(self, id=None):
+        """
+        Used to propagate stream result (or status update) from child to parent.
+        """
         if not id:
             raise MethodNotAllowed
 
@@ -240,6 +251,9 @@ class StreamResource(restful.Resource):
         return jsonify(success = True)
 
     def delete(self, id=None):
+        """
+        Deletes all records for given stream.
+        """
         if not id:
             raise MethodNotAllowed
         stream = Stream.find(id)
