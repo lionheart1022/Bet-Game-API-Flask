@@ -39,7 +39,7 @@ import logging
 import requests
 
 import config
-from observer_conf import MAX_STREAMS, PARENT, CHILDREN
+from observer_conf import SELF_URL, PARENT, CHILDREN, MAX_STREAMS
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = config.DB_URL
@@ -179,7 +179,11 @@ def stream_done(stream, winner, timestamp):
         abort('Invalid game ID')
 
     Poller.gameDone(game, winner, timestamp)
+
     # no need to remove from pool, because we are on master
+    # but now let's delete it from DB
+    requests.delete(SELF_URL+'/streams/'+stream.handle)
+
     return True
 
 
