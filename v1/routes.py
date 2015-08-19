@@ -125,7 +125,33 @@ class PlayerResource(restful.Resource):
     def get(self, user, id=None):
         if not id:
             # Leaderboard mode
-            raise NotImplemented
+
+            parser = RequestParser()
+            parser.add_argument('page', type=int, default=1)
+            parser.add_argument('results_per_page', type=int, default=10)
+            args = parser.parse_args()
+            # cap
+            if args.results_per_page > 50:
+                abort('[results_per_page]: max is 50')
+
+            query = Player.query
+
+            # TODO: sort by win rate desc
+
+            total_count = query.count()
+            query = query.paginate(args.page, args.results_per_page,
+                                   error_out = False).items
+
+            return jsonify(
+                players = fields.List(
+                    fields.Nested(
+                        self.fields_public
+                    )
+                ).format(query),
+                num_results = total_count,
+                total_pages = math.ceil(total_count/args.results_per_page),
+                page = args.page,
+            )
 
         player = Player.find(id)
         if not player:

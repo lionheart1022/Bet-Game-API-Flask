@@ -68,6 +68,7 @@ class Player(db.Model):
             return None
         return wins / count
 
+
     @classmethod
     def find(cls, key):
         """
