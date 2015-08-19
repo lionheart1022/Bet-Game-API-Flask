@@ -79,6 +79,20 @@ def init_app(logfile=None):
 class Stream(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
+    # Twitch stream handle
+    handle = db.Column(db.String(64), nullable=False, unique=True)
+
+    # Which child handles this stream? None if self
+    child = db.Column(db.String(64), default=None)
+
+    # Gametype and other metadata goes below
+    gametype = db.Column(db.String(64), default=None)
+
+    # this is an ID of Game object.
+    # We don't use foreign key because we may reside on separate server
+    # and use separate db.
+    game = db.Column(db.Integer, unique=True)
+
 # now define our endpoints
 @api.resource(
     '/streams',
@@ -87,7 +101,9 @@ class Stream(db.Model):
 )
 class StreamResource(restful.Resource):
     def get(self, id=None):
-        pass
+        if not id:
+            # TODO
+            raise NotImplemented
 
     def put(self, id=None):
         if not id:
