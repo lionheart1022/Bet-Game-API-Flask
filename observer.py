@@ -63,12 +63,15 @@ for code in default_exceptions.keys():
     app.error_handler_spec[None][code] = make_json_error
 
 
-app.logger.setLevel(logging.DEBUG)
+def init_app(logfile=None):
+    app.logger.setLevel(logging.DEBUG)
 
-logger = logging.FileHandler(f) if f else logging.StreamHandler()
-logger.setFormatter(logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s'))
-logger.setLevel(logging.DEBUG)
-app.logger.addHandler(logger)
+    logger = logging.FileHandler(logfile) if logfile else logging.StreamHandler()
+    logger.setFormatter(logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s'))
+    logger.setLevel(logging.DEBUG)
+    app.logger.addHandler(logger)
+
+    return app
 
 
 # declare model
