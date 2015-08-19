@@ -90,6 +90,24 @@ restful.utils.error_data = lambda code: {
 }
 
 
+# Restrict list of allowed hosts
+def getsiblings():
+    import socket
+    ret = set()
+    for host in list(CHILDREN.values()) + [PARENT[1], 'localhost']:
+        if not host:
+            continue # skip empty addrs, e.g. parent for master node
+        host = host.split('://',1)[1].split(':',1)[0] # cut off protocol and port
+        h, a, ips = socket.gethostbyname_ex(host)
+        ret.update(ips)
+    return ret
+NEIGHBOURS = getsiblings()
+@app.before_request
+def restrict_siblings():
+    if request.remote_addr not in SIBLINGS:
+        raise Forbidden
+
+
 def init_app(logfile=None):
     app.logger.setLevel(logging.DEBUG)
 
