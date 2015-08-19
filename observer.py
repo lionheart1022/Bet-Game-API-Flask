@@ -36,6 +36,7 @@ import logging
 import requests
 
 import config
+from observer_conf import SLOTS, PARENT, CHILDREN
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = config.DB_URL
@@ -142,9 +143,9 @@ def stream_done(stream):
     """
 
 def child_url(cname, sid=''):
-    if cname in config.CHILDREN:
+    if cname in CHILDREN:
         return '{host}/streams/{sid}'.format(
-            host = config.CHILDREN[cname],
+            host = CHILDREN[cname],
             sid = sid,
         )
     return None
@@ -208,10 +209,11 @@ class StreamResource(restful.Resource):
 
         ret = None
         # now find the child who will handle this stream
-        for child, host in config.CHILDREN.items():
+        for child, host in CHILDREN.items():
             # try to delegate this stream to that child
             # FIXME: implement some load balancing
-            result = requests.put(child_url(child, id), data = args)
+            result = requests.put('{}/streams/{}'.format(host, id),
+                                  data = args)
             if result.status_code == 200: # accepted?
                 ret = result.json()
                 # remember which child accepted this stream
@@ -247,9 +249,9 @@ class StreamResource(restful.Resource):
         parser.add_argument('winner')
         args = parser.parse_args()
 
-        if config.PARENT:
+        if PARENT:
             # send this request upstream
-            return requests.patch('{}/streams/{}'.format(*config.PARENT),
+            return requests.patch('{}/streams/{}'.format(*PARENT),
                                   data = args).json()
 
         stream_done(stream, args.winner)
