@@ -1,6 +1,7 @@
 from flask import request, url_for, jsonify, current_app, g, send_file
 from flask.ext import restful
 from flask.ext.restful import fields, marshal, marshal_with, marshal_with_field
+from sqlalchemy.sql.expression import func
 
 from werkzeug.exceptions import HTTPException
 from werkzeug.exceptions import BadRequest, MethodNotAllowed, Forbidden, NotImplemented, NotFound
@@ -529,20 +530,44 @@ def balance_withdraw(user):
 @app.route('/gametypes', methods=['GET'])
 def gametypes():
     parser = RequestParser()
+    parser.add_argument('betcount', type=boolean_field, default=False)
+    parser.add_argument('bettime', type=boolean_field, default=False)
     args = parser.parse_args()
+
+    counts = {}
+    if args.betcount:
+        bca = (db.session.query(Game.gametype,
+                                func.count(Game.gametype),
+                                )
+               .group_by(Game.gametype).all())
+        counts = dict(bca) # tuples to dict (gametype: count)
+    times = {}
+    if args.bettime:
+        bta = (Game.query
+               .with_entities(Game.gametype, func.max(Game.create_date))
+               .group_by(Game.gametype)
+               .order_by(Game.create_date.desc())
+               .all())
+        times = dict(bta) # tuples to dict (gametype: time)
+
     gamedata = []
     identities = {}
     for poller in Poller.allPollers():
         for gametype, gametype_name in poller.gametypes.items():
             if poller.identity:
-                gamedata.append(dict(
+                data = dict(
                     id = gametype,
                     name = gametype_name,
                     supported = True,
                     gamemodes = poller.gamemodes,
                     identity = poller.identity,
                     identity_name = poller.identity_name,
-                ))
+                )
+                if counts:
+                    data['betcount'] = counts.get(gametype, 0)
+                if times:
+                    data['lastbet'] = times.get(gametype, None)
+                gamedata.append(data)
                 identities[poller.identity] = poller.identity_name
             else: # DummyPoller
                 gamedata.append(dict(
