@@ -677,6 +677,7 @@ class GameResource(restful.Resource):
             'opponent': fields.Nested(PlayerResource.fields_public),
             'gamertag_creator': fields.String,
             'gamertag_opponent': fields.String,
+            'twitch_handle': fields.String,
             'gamemode': fields.String,
             'gametype': fields.String,
             'bet': fields.Float,
@@ -730,6 +731,7 @@ class GameResource(restful.Resource):
                             required=True, dest='opponent')
         parser.add_argument('gamertag_creator', required=False)
         parser.add_argument('gamertag_opponent', required=False)
+        parser.add_argument('twitch_handle', required=False)
         parser.add_argument('gametype', choices=Poller.all_gametypes,
                             required=True)
         parser.add_argument('bet', type=float, required=True)
@@ -787,11 +789,19 @@ class GameResource(restful.Resource):
         if args.bet > user.available:
             abort('[bet]: not enough coins', problem='coins')
 
+        if args.twitch_handle and not poller.twitch:
+            abort('Twitch streams are not yet supported for this gametype')
+        if poller.twitch == 2 and not args.twitch_handle:
+            abort('[twitch_handle] mandatory for this gametype',
+                  problem='twitch_handle')
+        # TODO: validate twitch handle, if any ?
+
         game = Game()
         game.creator = user
         game.opponent = args.opponent
         game.gamertag_creator = args.gamertag_creator
         game.gamertag_opponent = args.gamertag_opponent
+        game.twitch_handle = args.twitch_handle
         game.gametype = args.gametype
         game.gamemode = args.gamemode
         game.bet = args.bet
@@ -834,6 +844,31 @@ class GameResource(restful.Resource):
 
         if args.state == 'accepted' and game.bet > user.available:
             abort('Not enough coins', problem='coins')
+
+        # Now, before we save state change, start twitch stream if required
+        # so that we can abort if it failed
+        if game.twitch_handle:
+            ret = requests.put(
+                '{}/streams/{}'.format(
+                    config.OBSERVER_URL,
+                    game.twitch_handle,
+                ),
+                data = dict(
+                    gametype = game.gametype,
+                    game_id = game.id,
+                    creator = game.gamertag_creator,
+                    opponent = game.gamertag_opponent,
+                ),
+            )
+            if ret.status_code not in (200, 201):
+                jret = ret.json()
+                if ret.status_code == 409: # dup
+                    # TODO: check it on creation??
+                    abort('This twitch stream is already watched')
+                elif ret.status_code == 507: # full
+                    abort('Cannot start twitch observing, all servers are busy now; '
+                          'please retry later', 500)
+                abort('Couldn\'t start Twitch: '+jret.get('error', 'Unknown err'))
 
         game.state = args.state
         game.accept_date = datetime.utcnow()

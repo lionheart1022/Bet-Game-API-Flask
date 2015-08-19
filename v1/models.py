@@ -127,6 +127,7 @@ class Game(db.Model):
 
     gamertag_creator = db.Column(db.String(128))
     gamertag_opponent = db.Column(db.String(128))
+    twitch_handle = db.Column(db.String(128))
 
     gametype = db.Column(db.String(64), nullable=False)
     gamemode = db.Column(db.String(64), nullable=False)
