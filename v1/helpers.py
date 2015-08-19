@@ -133,7 +133,9 @@ class IPInfo:
 class PayPal:
     token = None
     token_ttl = None
-    base_url = 'https://api.sandbox.paypal.com/v1/'
+    base_url = 'https://{}.paypal.com/v1/'.format('api.sandbox'
+                                                  if config.PAYPAL_SANDBOX else
+                                                  'api')
     @classmethod
     def get_token(cls):
         if cls.token_ttl and cls.token_ttl <= datetime.utcnow():
