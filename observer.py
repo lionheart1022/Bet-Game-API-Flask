@@ -192,7 +192,7 @@ class Handler:
             os.chdir(cls.path)
         cmd = cls.process.format(handle = stream.handle)
         if cls.env:
-            cmd = cls.env + '; ' + cmd
+            cmd = 'source {}/bin/activate; {}'.format(cls.env, cmd)
         sub = subprocess.Popen(
             cmd,
             bufsize = 1, # line buffered
