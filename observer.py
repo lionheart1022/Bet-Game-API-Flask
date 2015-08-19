@@ -162,6 +162,8 @@ class StreamResource(restful.Resource):
             raise NotImplemented
 
         stream = Stream.find(id)
+        if not stream:
+            raise NotFound
 
         if stream.child:
             # forward request
@@ -212,6 +214,22 @@ class StreamResource(restful.Resource):
         if ret:
             return ret
         return marshal(stream, self.fields)
+
+    def patch(self, id=None):
+        if not id:
+            raise MethodNotAllowed
+
+        # this is called from child to parent
+        stream = Stream.find(id)
+        if not stream:
+            raise NotFound
+
+        if config.PARENT:
+            # send upstream
+            return requests.patch(URL).json() # FIXME
+
+        stream_done(stream)
+        return jsonify(success = True)
 
     def delete(self, id=None):
         if not id:
