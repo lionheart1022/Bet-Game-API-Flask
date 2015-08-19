@@ -76,7 +76,7 @@ def init_app(logfile=None):
 
 # declare model
 class Stream(db.Model):
-    pass
+    id = db.Column(db.Integer, primary_key=True)
 
 # now define our endpoints
 @api.resource(
