@@ -461,7 +461,10 @@ class StreamResource(restful.Resource):
                 break
         else:
             # nobody accepted? try to handle ourself
-            result = add_stream(stream)
+            try:
+                result = add_stream(stream)
+            except Exception as e:
+                abort('Error adding stream: '+str(e))
             if result == True:
                 stream.child = None
             elif result == 'busy':
