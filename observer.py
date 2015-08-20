@@ -355,8 +355,12 @@ def stream_done(stream, winner, timestamp):
     # no need to remove from pool, because we are on master
     # and it was already removed anyway
     # but now let's delete it from DB
-    requests.delete('{}/streams/{}'.format(SELF_URL, stream.handle))
-    log.info('deleted')
+
+    # Notice: this is DELETE request to ourselves.
+    # But we are still handling PATCH request, so it will hang.
+    # So launch it as a green thread immediately after we finish
+    eventlet.spawn(requests.delete,
+                   '{}/streams/{}'.format(SELF_URL, stream.handle))
 
     return True
 
@@ -493,11 +497,7 @@ class StreamResource(restful.Resource):
             return requests.patch('{}/streams/{}'.format(*PARENT),
                                   data = args).json()
         else:
-            #stream_done(stream, args.winner, args.timestamp)
-            # it will issue DELETE request to ourselves.
-            # But we are still handling this request, so it will hang.
-            # So launch it as a green thread immediately after we finish
-            eventlet.spawn(stream_done, stream, args.winner, args.timestamp)
+            stream_done(stream, args.winner, args.timestamp)
 
         return jsonify(success = True)
 
