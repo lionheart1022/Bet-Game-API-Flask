@@ -228,7 +228,8 @@ class Handler:
                     first_res = datetime.utcnow()
 
             # if process stopped itself and no more output left
-            if not line and sub.poll() is not None:
+            stat = sub.poll()
+            if not line and stat is not None:
                 log.debug('process stopped itself, considering draw')
                 stream.state = 'failed'
                 results.append('draw')
@@ -238,7 +239,8 @@ class Handler:
             # consider game done when either got quorum results
             # or maxdelta passed since first result
             if results and (len(results) >= cls.quorum or
-                            datetime.utcnow() > first_res + cls.maxdelta):
+                            datetime.utcnow() > first_res + cls.maxdelta or
+                            (stat is not None and stat != 0)): # exited with err status
                 # calculate most trusted result
                 freqs = {}
                 for r in results:
