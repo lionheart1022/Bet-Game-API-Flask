@@ -183,7 +183,12 @@ class Handler:
     def start(cls, stream):
         def watch_tc(stream):
             try:
-                return cls.watch(stream)
+                result = cls.watch(stream)
+                while result == 'offline':
+                    # wait & retry
+                    eventlet.sleep(30)
+                    result = cls.watch('stream')
+                return result
             except Exception:
                 log.exception('Watching failed')
                 # mark it as Done anyway
@@ -222,6 +227,13 @@ class Handler:
         for line in sub.stdout:
             line = line.strip()
             result = cls.check(stream, line)
+
+            if result == 'offline':
+                # handle it specially:
+                # force stop this process and retry in 30 seconds
+                # (will be done in watch_tc)
+                return 'offline'
+
             if result is not None:
                 stream.state = 'found'
                 results.append(result)
@@ -294,7 +306,10 @@ class FifaHandler(Handler):
     @classmethod
     def check(cls, stream, line):
         log.debug('checking line: '+line)
-        # FIXME: handle «stream is offline» message - delay and restart
+
+        if 'Stream is offline' in line:
+            return 'offline'
+
         if 'Impossible to recognize who won' in line:
             log.warning('Couldn\'t get result, skipping')
             return None #'draw'
