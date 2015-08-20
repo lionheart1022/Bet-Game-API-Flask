@@ -214,6 +214,8 @@ class Handler:
                 log.debug('process stopped itself, considering draw')
                 stream.state = 'failed'
                 results.append('draw')
+                if not first_res:
+                    first_res = datetime.utcnow()
 
             # consider game done when either got quorum results
             # or maxdelta passed since first result
