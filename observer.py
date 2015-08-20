@@ -275,8 +275,8 @@ class FifaHandler(Handler):
     def check(cls, stream, line):
         log.debug(line)
         if 'Impossible to recognize who won' in line:
-            log.warning('Couldn\'t get result, returning draw')
-            return 'draw'
+            log.warning('Couldn\'t get result, skipping')
+            return None #'draw'
         if 'Score:' in line:
             nick1, nick2 = line.split('Players:',1)[1].strip().split('\t\t',1)
             score1, score2 = [p for p in line.split('Score: ',1)[1]
