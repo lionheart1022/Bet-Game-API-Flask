@@ -111,7 +111,8 @@ def getsiblings():
 NEIGHBOURS = getsiblings()
 @app.before_request
 def restrict_siblings():
-    if request.remote_addr not in SIBLINGS:
+    if request.remote_addr not in NEIGHBOURS:
+        log.debug('Attempt to request from unknown address '+request.remote_addr)
         raise Forbidden
 
 
