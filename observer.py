@@ -37,7 +37,7 @@ from werkzeug.exceptions import HTTPException, BadRequest, MethodNotAllowed, For
 
 import os
 from datetime import datetime, timedelta
-import subprocess
+from eventlet.green import subprocess
 import requests
 import logging
 
