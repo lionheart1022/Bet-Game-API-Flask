@@ -158,6 +158,7 @@ class Stream(db.Model):
 
 
 # Main logic
+ROOT = os.path.dirname(os.path.abspath(__file__))
 class Handler:
     """
     This hierarchy is similar to Poller's one
@@ -198,7 +199,7 @@ class Handler:
         # start subprocess and watch its output
 
         # first, chdir to this script's directory
-        os.chdir(os.path.dirname(os.path.abspath(__name__)))
+        os.chdir(ROOT)
 
         # then, if required, chdir handler's requested dir (relative to script's)
         if cls.path:
