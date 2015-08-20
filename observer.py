@@ -409,10 +409,10 @@ class StreamResource(restful.Resource):
             abort('Duplicate stream handle', 409) # 409 Conflict
 
         parser = RequestParser()
-        parser.add_argument('gametype')
-        parser.add_argument('game_id', type=int)
-        parser.add_argument('creator')
-        parser.add_argument('opponent')
+        parser.add_argument('gametype', required=True)
+        parser.add_argument('game_id', type=int, required=True)
+        parser.add_argument('creator', required=True)
+        parser.add_argument('opponent', required=True)
         # TODO...
         args = parser.parse_args()
 
@@ -465,7 +465,7 @@ class StreamResource(restful.Resource):
             raise NotFound
 
         parser = RequestParser()
-        parser.add_argument('winner')
+        parser.add_argument('winner', required=True)
         args = parser.parse_args()
 
         if PARENT:
