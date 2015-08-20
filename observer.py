@@ -469,8 +469,9 @@ class StreamResource(restful.Resource):
         if not stream:
             raise NotFound
 
-        parser = RequestParser()
+        parser = RequestParser(bundle_errors=True)
         parser.add_argument('winner', required=True)
+        parser.add_argument('timestamp', type=int, required=True)
         args = parser.parse_args()
 
         if PARENT:
@@ -478,7 +479,7 @@ class StreamResource(restful.Resource):
             return requests.patch('{}/streams/{}'.format(*PARENT),
                                   data = args).json()
         else:
-            stream_done(stream, args.winner)
+            stream_done(stream, args.winner, args.timestamp)
 
         return jsonify(success = True)
 
