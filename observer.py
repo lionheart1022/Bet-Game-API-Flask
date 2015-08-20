@@ -104,7 +104,7 @@ def getsiblings():
     for host in list(CHILDREN.values()) + [PARENT[1], 'localhost']:
         if not host:
             continue # skip empty addrs, e.g. parent for master node
-        host = host.split('://',1)[1].split(':',1)[0] # cut off protocol and port
+        host = host.split('://',1)[-1].split(':',1)[0] # cut off protocol and port
         h, a, ips = socket.gethostbyname_ex(host)
         ret.update(ips)
     return ret
