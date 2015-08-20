@@ -271,7 +271,7 @@ class FifaHandler(Handler):
 
     @classmethod
     def check(cls, stream, line):
-        log.debug(line)
+        log.debug('checking line: '+line)
         if 'Impossible to recognize who won' in line:
             log.warning('Couldn\'t get result, skipping')
             return None #'draw'
