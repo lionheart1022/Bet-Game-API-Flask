@@ -250,7 +250,7 @@ class Handler:
         pool.remove(stream.handle)
 
     @classmethod
-    def done(stream, result, timestamp):
+    def done(cls, stream, result, timestamp):
         # determine winner and propagate result to master
         requests.patch(
             '{}/streams/{}'.format(SELF_URL, stream.handle),
