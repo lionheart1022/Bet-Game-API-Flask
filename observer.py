@@ -219,8 +219,8 @@ class Handler:
         # and now the main loop starts
         results = []
         first_res = None
-        while True:
-            line = sub.stdout.readline().strip()
+        for line in sub.stdout:
+            line = line.strip()
             result = cls.check(stream, line)
             if result is not None:
                 stream.state = 'found'
@@ -228,43 +228,46 @@ class Handler:
                 if not first_res:
                     first_res = datetime.utcnow()
 
-            # if process stopped itself and no more output left
-            stat = sub.poll()
-            if not line and stat is not None:
-                log.debug('process stopped itself (status %d), '
-                          'considering draw' % stat)
-                stream.state = 'failed'
-                results.append('draw')
-                if not first_res:
-                    first_res = datetime.utcnow()
-
             # consider game done when either got quorum results
             # or maxdelta passed since first result
             if results and (len(results) >= cls.quorum or
-                            datetime.utcnow() > first_res + cls.maxdelta or
-                            (stat is not None and stat != 0)): # exited with err status
-                # calculate most trusted result
-                freqs = {}
-                for r in results:
-                    if r in freqs:
-                        freqs[r] += 1
-                    else:
-                        freqs[r] = 1
-                pairs = sorted(freqs.items(), key=lambda p: p[1])
-                result = pairs[0][0]
+                            datetime.utcnow() > first_res + cls.maxdelta):
+                # FIXME: maybe don't rely on first result
+                # as it might be errorneous
 
-                log.debug('got result: %s' % result)
-                # handle result
-                db.session.commit()
-                cls.done(stream, result, first_res.timestamp())
-                # and terminate process as we don't need it anymore
-                if sub.poll() is None:
-                    sub.terminate()
-                    eventlet.sleep(3)
-                    sub.kill()
-                break
+                # kill the process as we don't need more results
+                sub.terminate()
+                # will kill() later, after done() - to avoid delaying it
 
-            eventlet.sleep(.5)
+                break # don't handle remaining output
+
+        # now that process is stopped, handle results found
+        if not results:
+            log.warning('process failed with status %d, considering draw' % sub.poll())
+            results = ['failed']
+            stream.state = 'failed'
+            first_res = datetime.utcnow()
+
+        # calculate most trusted result
+        freqs = {}
+        for r in results:
+            if r in freqs:
+                freqs[r] += 1
+            else:
+                freqs[r] = 1
+        pairs = sorted(freqs.items(), key=lambda p: p[1])
+        # use most frequently occuring result
+        result = pairs[0][0]
+
+        log.debug('got result: %s' % result)
+        # handle result
+        db.session.commit()
+        cls.done(stream, result, first_res.timestamp())
+
+        # if process didn't stop itself yet, kill it as we don't need it anymore
+        if sub.poll() is None:
+            eventlet.sleep(3)
+            sub.kill()
 
         # TODO: clean sub?
 
