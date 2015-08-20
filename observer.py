@@ -405,6 +405,7 @@ class StreamResource(restful.Resource):
 
         # id should be stream handle
         if Stream.find(id):
+            # FIXME: instead of failing, append game to existing stream
             abort('Duplicate stream handle', 409) # 409 Conflict
 
         parser = RequestParser()
