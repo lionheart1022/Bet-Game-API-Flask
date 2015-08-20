@@ -101,7 +101,9 @@ restful.utils.error_data = lambda code: {
 def getsiblings():
     import socket
     ret = set()
-    for host in list(CHILDREN.values()) + [PARENT[1], 'localhost']:
+    for host in list(CHILDREN.values()) + ([PARENT[1], 'localhost']
+                                           if PARENT else
+                                           ['localhost']):
         if not host:
             continue # skip empty addrs, e.g. parent for master node
         host = host.split('://',1)[-1].split(':',1)[0] # cut off protocol and port
@@ -272,6 +274,7 @@ class FifaHandler(Handler):
     @classmethod
     def check(cls, stream, line):
         log.debug('checking line: '+line)
+        # FIXME: handle «stream is offline» message - delay and restart
         if 'Impossible to recognize who won' in line:
             log.warning('Couldn\'t get result, skipping')
             return None #'draw'
