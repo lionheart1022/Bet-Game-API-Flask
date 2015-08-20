@@ -26,14 +26,14 @@
 import eventlet
 eventlet.monkey_patch() # before loading flask
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, abort as flask_abort
 from flask.ext import restful
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.restful import fields, marshal
 from flask.ext.restful.reqparse import RequestParser
 from flask.ext.restful.utils import http_status_message
 from werkzeug.exceptions import default_exceptions
-from werkzeug.exceptions import BadRequest, MethodNotAllowed, Forbidden, NotImplemented, NotFound
+from werkzeug.exceptions import HTTPException, BadRequest, MethodNotAllowed, Forbidden, NotImplemented, NotFound
 
 import os
 from datetime import datetime, timedelta
