@@ -180,7 +180,17 @@ class Handler:
 
     @classmethod
     def start(cls, stream):
-        eventlet.spawn(cls.watch, stream)
+        def watch_tc(stream):
+            try:
+                return cls.watch(stream)
+            except Exception:
+                log.exception('Watching failed')
+                # mark it as Done anyway
+                cls.done(stream, 'failed', datetime.utcnow().timestamp())
+            finally:
+                # mark that this stream has stopped
+                pool.remove(stream.handle)
+        eventlet.spawn(watch_tc, stream)
         pool.append(stream.handle)
 
     @classmethod
@@ -252,9 +262,6 @@ class Handler:
             eventlet.sleep(.5)
 
         # TODO: clean sub?
-
-        # mark that this stream has stopped
-        pool.remove(stream.handle)
 
     @classmethod
     def done(cls, stream, result, timestamp):
