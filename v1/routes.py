@@ -847,7 +847,7 @@ class GameResource(restful.Resource):
 
         # Now, before we save state change, start twitch stream if required
         # so that we can abort if it failed
-        if game.twitch_handle:
+        if game.twitch_handle and args.state == 'accepted':
             ret = requests.put(
                 '{}/streams/{}'.format(
                     config.OBSERVER_URL,
