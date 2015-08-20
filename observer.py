@@ -332,6 +332,10 @@ def add_stream(stream):
 
     return True
 
+def abort_stream(stream):
+    # TODO
+    raise NotImplemented
+
 def stream_done(stream, winner, timestamp):
     """
     Runs on master node only.
@@ -346,7 +350,10 @@ def stream_done(stream, winner, timestamp):
     else:
         log.error('Invalid game ID: %d' % stream.game_id)
 
+    # and anyway issue DELETE request, because this stream is unneeded anymore
+
     # no need to remove from pool, because we are on master
+    # and it was already removed anyway
     # but now let's delete it from DB
     requests.delete(SELF_URL+'/streams/'+stream.handle)
 
