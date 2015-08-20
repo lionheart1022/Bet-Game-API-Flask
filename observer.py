@@ -152,12 +152,7 @@ class Stream(db.Model):
 
     @classmethod
     def find(cls, id):
-        try:
-            ret = cls.query.get(int(id))
-        except ValueError: pass
-        if not ret:
-            ret = cls.query.filter_by(handle=id)
-        return ret
+        return cls.query.filter_by(handle=id)
 
 
 # Main logic
