@@ -396,6 +396,8 @@ class StreamResource(restful.Resource):
             # TODO?
             raise NotImplemented
 
+        log.info('Stream queried with id '+id)
+
         stream = Stream.find(id)
         if not stream:
             raise NotFound
@@ -414,6 +416,8 @@ class StreamResource(restful.Resource):
         """
         if not id:
             raise MethodNotAllowed
+
+        log.info('Stream put with id '+id)
 
         # id should be stream handle
         if Stream.find(id):
@@ -471,6 +475,8 @@ class StreamResource(restful.Resource):
         if not id:
             raise MethodNotAllowed
 
+        log.info('Stream patched with id '+id)
+
         # this is called from child to parent
         stream = Stream.find(id)
         if not stream:
@@ -496,6 +502,7 @@ class StreamResource(restful.Resource):
         """
         if not id:
             raise MethodNotAllowed
+        log.info('Stream deleted with id '+id)
         stream = Stream.find(id)
         if not stream:
             raise NotFound
