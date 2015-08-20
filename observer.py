@@ -152,7 +152,7 @@ class Stream(db.Model):
 
     @classmethod
     def find(cls, id):
-        return cls.query.filter_by(handle=id)
+        return cls.query.filter_by(handle=id).first()
 
 
 # Main logic
