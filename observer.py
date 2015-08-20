@@ -355,7 +355,8 @@ def stream_done(stream, winner, timestamp):
     # no need to remove from pool, because we are on master
     # and it was already removed anyway
     # but now let's delete it from DB
-    requests.delete(SELF_URL+'/streams/'+stream.handle)
+    requests.delete('{}/streams/{}'.format(SELF_URL, stream.handle))
+    log.info('deleted')
 
     return True
 
