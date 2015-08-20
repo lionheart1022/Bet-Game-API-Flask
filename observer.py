@@ -244,7 +244,7 @@ class Handler:
         log.info('process started')
 
         stream.state = 'watching'
-        #db.session.commit()
+        db.session.commit()
 
         # and now the main loop starts
         results = []
