@@ -213,7 +213,7 @@ class Handler:
             if not line and sub.poll() is not None:
                 log.debug('process stopped itself, considering draw')
                 stream.state = 'failed'
-                result = 'draw'
+                results.append('draw')
 
             # consider game done when either got quorum results
             # or maxdelta passed since first result
