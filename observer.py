@@ -474,8 +474,9 @@ class StreamResource(restful.Resource):
             # send this request upstream
             return requests.patch('{}/streams/{}'.format(*PARENT),
                                   data = args).json()
+        else:
+            stream_done(stream, args.winner)
 
-        stream_done(stream, args.winner)
         return jsonify(success = True)
 
     def delete(self, id=None):
