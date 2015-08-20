@@ -187,6 +187,7 @@ class Handler:
     @classmethod
     def start(cls, stream):
         def watch_tc(stream):
+            log.info('watch_tc started')
             try:
                 result = cls.watch(stream)
                 waits = 0
@@ -214,6 +215,7 @@ class Handler:
             finally:
                 # mark that this stream has stopped
                 pool.remove(stream.handle)
+        log.info('spawning handler')
         eventlet.spawn(watch_tc, stream)
         pool.append(stream.handle)
 
@@ -230,6 +232,7 @@ class Handler:
         cmd = cls.process.format(handle = stream.handle)
         if cls.env:
             cmd = '. {}/bin/activate; {}'.format(cls.env, cmd)
+        log.info('starting process...')
         sub = subprocess.Popen(
             cmd,
             bufsize = 1, # line buffered
@@ -238,6 +241,7 @@ class Handler:
             stdout = subprocess.PIPE, # intercept it!
             stderr = subprocess.STDOUT, # intercept it as well
         )
+        log.info('process started')
 
         stream.state = 'watching'
         #db.session.commit()
@@ -384,6 +388,7 @@ def add_stream(stream):
     if not handler:
         return 'unsupported'
 
+    log.info('Adding stream')
     handler.start(stream)
 
     return True
