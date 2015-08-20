@@ -503,7 +503,7 @@ def load_ep():
     load = current_load()
     for child in CHILDREN.values():
         load += requests.get(child+'/load').json()['load']
-    return load / (len(CHILDREN)+1)
+    return jsonify(total = load / (len(CHILDREN)+1))
 
 
 if __name__ == '__main__':
