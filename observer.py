@@ -508,4 +508,4 @@ def load_ep():
 
 if __name__ == '__main__':
     init_app()
-    app.run(port=8021, debug=True)
+    app.run(port=8021, debug=False, use_debugger=False)
