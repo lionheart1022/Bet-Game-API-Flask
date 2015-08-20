@@ -26,7 +26,7 @@
 import eventlet
 eventlet.monkey_patch() # before loading flask
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask.ext import restful
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.restful import fields, marshal
