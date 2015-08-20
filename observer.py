@@ -198,7 +198,7 @@ class Handler:
                     log.info('Stream {} is offline, waiting'
                              .format(stream.handle))
                     stream.state = 'waiting'
-                    db.session.commit()
+                    #db.session.commit()
                     # wait & retry
                     eventlet.sleep(WAIT_DELAY)
                     result = cls.watch(stream)
@@ -208,7 +208,7 @@ class Handler:
                 log.exception('Watching failed')
 
                 stream.state = 'failed'
-                db.session.commit()
+                #db.session.commit()
                 # mark it as Done anyway
                 cls.done(stream, 'failed', datetime.utcnow().timestamp())
             finally:
@@ -240,7 +240,7 @@ class Handler:
         )
 
         stream.state = 'watching'
-        db.session.commit()
+        #db.session.commit()
 
         # and now the main loop starts
         results = []
