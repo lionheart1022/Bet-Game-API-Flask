@@ -44,6 +44,10 @@ import logging
 import config
 from observer_conf import SELF_URL, PARENT, CHILDREN, MAX_STREAMS
 
+# if stream happens to be online, wait some time...
+WAIT_DELAY = 30 # seconds between retries
+WAIT_MAX = 360 # 3 hours
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = config.DB_URL
 app.config['ERROR_404_HELP'] = False # disable this flask_restful feature
@@ -185,16 +189,26 @@ class Handler:
         def watch_tc(stream):
             try:
                 result = cls.watch(stream)
+                waits = 0
                 while result == 'offline':
-                    log.info('Stream {} is offline, waiting'.format(stream.handle))
+                    if waits > WAIT_MAX:
+                        # will be caught below
+                        raise Exception('We waited for too long, '
+                                        'abandoning stream '+stream.handle)
+                    log.info('Stream {} is offline, waiting'
+                             .format(stream.handle))
                     stream.state = 'waiting'
                     db.session.commit()
                     # wait & retry
-                    eventlet.sleep(30)
+                    eventlet.sleep(WAIT_DELAY)
                     result = cls.watch(stream)
+                    waits += 1
                 return result
             except Exception:
                 log.exception('Watching failed')
+
+                stream.state = 'failed'
+                db.session.commit()
                 # mark it as Done anyway
                 cls.done(stream, 'failed', datetime.utcnow().timestamp())
             finally:
