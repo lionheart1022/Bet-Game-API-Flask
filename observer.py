@@ -213,6 +213,7 @@ class Handler:
             universal_newlines = True, # text mode
             shell = True, # interpret ';'-separated commands
             stdout = subprocess.PIPE, # intercept it!
+            stderr = subprocess.STDOUT, # intercept it as well
         )
 
         # and now the main loop starts
@@ -230,7 +231,8 @@ class Handler:
             # if process stopped itself and no more output left
             stat = sub.poll()
             if not line and stat is not None:
-                log.debug('process stopped itself, considering draw')
+                log.debug('process stopped itself (status %d), '
+                          'considering draw' % stat)
                 stream.state = 'failed'
                 results.append('draw')
                 if not first_res:
