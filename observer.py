@@ -249,7 +249,9 @@ class Handler:
         # and now the main loop starts
         results = []
         first_res = None
+        log.info('waiting for output')
         for line in sub.stdout:
+            log.info('got line '+line)
             line = line.strip()
             result = cls.check(stream, line)
 
