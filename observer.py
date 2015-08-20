@@ -408,7 +408,7 @@ class StreamResource(restful.Resource):
             # FIXME: instead of failing, append game to existing stream
             abort('Duplicate stream handle', 409) # 409 Conflict
 
-        parser = RequestParser()
+        parser = RequestParser(bundle_errors=True)
         parser.add_argument('gametype', required=True)
         parser.add_argument('game_id', type=int, required=True)
         parser.add_argument('creator', required=True)
