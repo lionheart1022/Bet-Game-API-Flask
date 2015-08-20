@@ -493,7 +493,11 @@ class StreamResource(restful.Resource):
             return requests.patch('{}/streams/{}'.format(*PARENT),
                                   data = args).json()
         else:
-            stream_done(stream, args.winner, args.timestamp)
+            #stream_done(stream, args.winner, args.timestamp)
+            # it will issue DELETE request to ourselves.
+            # But we are still handling this request, so it will hang.
+            # So launch it as a green thread immediately after we finish
+            eventlet.spawn(stream_done, stream, args.winner, args.timestamp)
 
         return jsonify(success = True)
 
