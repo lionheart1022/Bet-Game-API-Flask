@@ -191,7 +191,7 @@ class Handler:
                     db.session.commit()
                     # wait & retry
                     eventlet.sleep(30)
-                    result = cls.watch('stream')
+                    result = cls.watch(stream)
                 return result
             except Exception:
                 log.exception('Watching failed')
