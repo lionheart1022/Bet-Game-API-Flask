@@ -186,6 +186,11 @@ class Handler:
     @classmethod
     def watch(cls, stream):
         # start subprocess and watch its output
+
+        # first, chdir to this script's directory
+        os.chdir(os.path.dirname(os.path.abspath(__name__)))
+
+        # then, if required, chdir handler's requested dir (relative to script's)
         if cls.path:
             os.chdir(cls.path)
         cmd = cls.process.format(handle = stream.handle)
