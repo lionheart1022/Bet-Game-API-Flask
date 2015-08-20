@@ -344,7 +344,7 @@ def stream_done(stream, winner, timestamp):
     if not game:
         abort('Invalid game ID')
 
-    Poller.gameDone(game, winner, timestamp)
+    Poller.gameDone(game, winner, int(timestamp))
 
     # no need to remove from pool, because we are on master
     # but now let's delete it from DB
@@ -471,7 +471,7 @@ class StreamResource(restful.Resource):
 
         parser = RequestParser(bundle_errors=True)
         parser.add_argument('winner', required=True)
-        parser.add_argument('timestamp', type=int, required=True)
+        parser.add_argument('timestamp', type=float, required=True)
         args = parser.parse_args()
 
         if PARENT:
