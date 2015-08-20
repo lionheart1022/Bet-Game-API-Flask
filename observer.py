@@ -341,10 +341,10 @@ def stream_done(stream, winner, timestamp):
     from v1.models import Game
 
     game = Game.query.get(stream.game_id)
-    if not game:
-        abort('Invalid game ID')
-
-    Poller.gameDone(game, winner, int(timestamp))
+    if game:
+        Poller.gameDone(game, winner, int(timestamp))
+    else:
+        log.error('Invalid game ID: %d' % stream.game_id)
 
     # no need to remove from pool, because we are on master
     # but now let's delete it from DB
