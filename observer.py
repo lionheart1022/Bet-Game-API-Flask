@@ -147,7 +147,8 @@ class Stream(db.Model):
     # and use separate db.
     game_id = db.Column(db.Integer, unique=True)
 
-    state = db.Column(db.Enum('watching', 'found', 'failed'), default='watching')
+    state = db.Column(db.Enum('waiting', 'watching', 'found', 'failed'),
+                      default='waiting')
 
     creator = db.Column(db.String(128))
     opponent = db.Column(db.String(128))
@@ -185,6 +186,9 @@ class Handler:
             try:
                 result = cls.watch(stream)
                 while result == 'offline':
+                    log.info('Stream {} is offline, waiting'.format(stream.handle))
+                    stream.state = 'waiting'
+                    db.session.commit()
                     # wait & retry
                     eventlet.sleep(30)
                     result = cls.watch('stream')
@@ -220,6 +224,9 @@ class Handler:
             stdout = subprocess.PIPE, # intercept it!
             stderr = subprocess.STDOUT, # intercept it as well
         )
+
+        stream.state = 'watching'
+        db.session.commit()
 
         # and now the main loop starts
         results = []
