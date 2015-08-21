@@ -1,32 +1,35 @@
 {% extends "layout.html" %}
 {% block body %}
-	<input name="opponent" id="opponent-choose" type="text" placeholder="choose your opponent"/>
+	<form action="" method="post">
 
-	<input class="bet-amount" name="bet-amount" placeholder="bet amount"/>
+		<input name="opponent" id="opponent-choose" type="text" placeholder="Choose your Opponent"/>
 
-	<a class="line" href="{{ url_for('gametype') }}">
-		game
-		<span>select here...</span>
-	</a>
+		<input class="bet-amount" name="bet-amount" placeholder="Bet amount"/>
 
-	<a class="line" {% if session.gametype %}href="{{ url_for('gamemode', gt=session.gametype) }}"{% endif %}>
-		game mode
-		<span>select here...</span>
-	</a>
+		<a class="line" href="{{ url_for('gametype') }}">
+			Game
+			<span>Select here...</span>
+		</a>
 
-	<label class="line">
-		twitch link
-		<input name="twitch" placeholder="..."/>
-	</label>
+		<a class="line" {% if session.gametype %}href="{{ url_for('gamemode', gt=session.gametype) }}"{% endif %}>
+			Game mode
+			<span>Select here...</span>
+		</a>
 
-	<label class="line">
-		to win
-		<input name="bet" class="coins" placeholder="0"/>
-	</label>
+		<label class="line">
+			Twitch link
+			<input name="twitch" placeholder="..."/>
+		</label>
 
-	<a class="line">
-		potential new balance
-		<span id="new-balance">4</span>
-	</a>
+		<label class="line">
+			To win
+			<input name="bet" class="coins" placeholder="0"/>
+		</label>
+
+		<a class="line">
+			Potential new balance
+			<span id="new-balance">4</span>
+		</a>
+
 	</form>
 {% endblock %}
