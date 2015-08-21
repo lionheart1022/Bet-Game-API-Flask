@@ -19,7 +19,7 @@ def bets():
 @app.route('/gametype', methods=['GET','POST'])
 def gametype():
     if request.method == 'POST':
-        session.gametype = request.args.get('gametype')
+        session['gametype'] = request.args.get('gametype')
         return redirect(url_for('bets'))
     games = requests.get(app.config['API_ROOT']+'/gametypes').json().get('gametypes')
     return render_template('gametype.html', games=games)

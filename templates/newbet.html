@@ -5,13 +5,12 @@
 		<input name="opponent" id="opponent-choose" type="text" placeholder="Choose your Opponent"/>
 
 		<input class="bet-amount" name="bet-amount" placeholder="Bet amount"/>
-
 		<a class="line" href="{{ url_for('gametype') }}">
 			Game
-			<span>Select here...</span>
+			<span>{{ session['gametype'] or "Select here..." }}</span>
 		</a>
 
-		<a class="line" {% if session.gametype %}href="{{ url_for('gamemode', gt=session.gametype) }}"{% endif %}>
+		<a class="line" {% if 'gametype' in session %}href="{{ url_for('gamemode', gt=session['gametype']) }}"{% endif %}>
 			Game mode
 			<span>Select here...</span>
 		</a>
@@ -31,7 +30,7 @@
 			<span id="new-balance">4</span>
 		</a>
 
-		{% if session.gametype and session.gamemode %}
+		{% if 'gametype' in session and 'gamemode' in session %}
 		<input type="submit" value="SEND CHALLENGE"/>
 	{% endif %}
 
