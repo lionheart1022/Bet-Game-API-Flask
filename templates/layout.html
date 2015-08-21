@@ -14,14 +14,14 @@
 
 		{% block body %}{% endblock %}
 
-		<nav id="menu">
+		<nav id="menu" class="row-fluid">
 		{% for endpoint, name in [
 			('bets', 'Bets'),
 			('leaderboard', 'Leaderboard'),
 			('challenges', 'Challenges'),
 			('profile', 'Profile'),
 		] %}
-			<a href="{{ url_for(endpoint) }}" class="{{ endpoint }}{% if endpoint == request.endpoint %} active{% endif %}">{{name}}</a>
+			<a href="{{ url_for(endpoint) }}" class="col-md-4 {{ endpoint }}{% if endpoint == request.endpoint %} active{% endif %}">{{name}}</a>
 		{% endfor %}
 		</nav>
 	</body>
