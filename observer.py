@@ -251,7 +251,7 @@ class Handler:
         first_res = None
         log.info('waiting for output')
         for line in sub.stdout:
-            log.info('got line '+line)
+            log.info('got line '+str(line))
             line = line.strip()
             result = cls.check(stream, line)
 
