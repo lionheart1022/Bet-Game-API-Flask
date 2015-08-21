@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-from flask import Flask, request, session, abort, render_template
+from flask import Flask, request, session, render_template
+from flask import abort, redirect, url_for
 
 import requests
 
@@ -15,8 +16,11 @@ app.config['API_ROOT'] = 'http://betgame.co.uk/v1'
 def bets():
     return render_template('newbet.html')
 
-@app.route('/gametype')
+@app.route('/gametype', methods=['GET','POST'])
 def gametype():
+    if request.method == 'POST':
+        session.gametype = request.args.get('gametype')
+        return redirect(url_for('bets'))
     games = requests.get(app.config['API_ROOT']+'/gametypes').json().get('gametypes')
     return render_template('gametype.html', games=games)
 

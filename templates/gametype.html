@@ -13,7 +13,8 @@
 	<div class="row">
 	{% for game in games %}
 		<form method="post" action="" class="col-xs-4">
-			<button type="submit" class="game-button" title="{{ game.name }}">
+			<input type="hidden" name="gametype" value="{{ game.id }}"/>
+			<button type="submit" class="game-button" title="{{ game.name }}"{% if not game.supported %} disabled{% endif %}>
 				<img src="{{ config.API }}/gametypes/{{ game.id }}/image" alt="{{ game.name }}"/>
 			</button>
 		</form>
