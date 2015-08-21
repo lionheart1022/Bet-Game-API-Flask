@@ -6,11 +6,20 @@
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
 	</head>
 	<body class="container-fluid">
-		<h1>{{ self.title() }}</h1>
 
 		{% for message in get_flashed_messages() %}
 			<div class="flash">{{message}}</div>
 		{% endfor %}
+
+		{% block header %}
+		<header class="row">
+			<h1>{{ self.title() }}</h1>
+			<div class="balance">
+				<span class="money">4</span>
+				<span class="coins">4</span>
+			</div>
+		</header>
+		{% endblock %}
 
 		{% block body %}{% endblock %}
 
