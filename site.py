@@ -3,7 +3,7 @@ from flask import Flask, request, session, abort, render_template
 
 import config
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder = 'static-m')
 # for session...
 app.config['SECRET_KEY'] = config.JWT_SECRET
 
