@@ -5,7 +5,7 @@
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}" />
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
 	</head>
-	<body>
+	<body class="container-fluid">
 		<h1>{{ self.title() }}</h1>
 
 		{% for message in get_flashed_messages() %}
@@ -14,14 +14,19 @@
 
 		{% block body %}{% endblock %}
 
-		<nav id="menu" class="row-fluid">
+		<nav id="menu" class="row">
 		{% for endpoint, name in [
 			('bets', 'Bets'),
 			('leaderboard', 'Leaderboard'),
 			('challenges', 'Challenges'),
 			('profile', 'Profile'),
 		] %}
-			<a href="{{ url_for(endpoint) }}" class="col-md-4 {{ endpoint }}{% if endpoint == request.endpoint %} active{% endif %}">{{name}}</a>
+			<div class="col-xs-3 {{ endpoint }}{% if endpoint == request.endpoint %} active{% endif %}">
+				<a href="{{ url_for(endpoint) }}" >
+					<img src="{{ url_for('static', filename='img/'+endpoint+'.png') }}"/>
+					{{name}}
+				</a>
+			</div>
 		{% endfor %}
 		</nav>
 	</body>
