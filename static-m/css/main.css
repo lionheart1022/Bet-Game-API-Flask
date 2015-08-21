@@ -44,11 +44,13 @@ header .balance .coins:before {
 	text-align: right;
 }
 #opponent-choose {
+	margin-top: -10vh;
+}
+#opponent-choose, input.search {
 	display: block;
 	width: 90%;
 	height: 20vh;
 	border-radius: 10vh;
-	margin-top: -10vh;
 	margin-right: 5vw;
 	padding: 5vh;
 	border: 3px solid #cd6d78;
@@ -65,6 +67,15 @@ input[type=submit] {
 	padding: 4vh;
 	background: #de5463;
 	color: white;
+}
+.game-button {
+	border: 0;
+	padding: 10px 0;
+	width: 100%;
+	background: none;
+}
+.game-button img {
+	width: 100%;
 }
 
 nav#menu {

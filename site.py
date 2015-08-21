@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 from flask import Flask, request, session, abort, render_template
 
+import requests
+
 import config
 
 app = Flask(__name__, static_folder = 'static-m')
 # for session...
 app.config['SECRET_KEY'] = config.JWT_SECRET
+app.config['API'] = 'http://betgame.co.uk/v1'
+app.config['API_ROOT'] = 'http://betgame.co.uk/v1'
 
 @app.route('/')
 def bets():
@@ -13,7 +17,8 @@ def bets():
 
 @app.route('/gametype')
 def gametype():
-    return render_template('gametype.html')
+    games = requests.get(app.config['API_ROOT']+'/gametypes').json().get('gametypes')
+    return render_template('gametype.html', games=games)
 
 @app.route('/leaders')
 def leaderboard():

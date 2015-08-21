@@ -25,6 +25,7 @@
 		{% block body %}{% endblock %}
 		</div>
 
+		{% block nav %}
 		<nav id="menu" class="row">
 		{% for endpoint, name in [
 			('bets', 'Bets'),
@@ -40,5 +41,6 @@
 			</div>
 		{% endfor %}
 		</nav>
+		{% endblock %}
 	</body>
 </html>
