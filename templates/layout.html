@@ -2,6 +2,8 @@
 <html>
 	<head>
 		<title>{% block title %}BetGame{% endblock %}</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}" />
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
 	</head>
 	<body>
 		<h1>{{ self.title() }}</h1>
@@ -19,7 +21,7 @@
 			('challenges', 'Challenges'),
 			('profile', 'Profile'),
 		] %}
-		<a href="{{ url_for(endpoint) }}" class="{{ endpoint }}{% if endpoint == request.endpoint %} active{% endif %}">{{name}}</a>
+			<a href="{{ url_for(endpoint) }}" class="{{ endpoint }}{% if endpoint == request.endpoint %} active{% endif %}">{{name}}</a>
 		{% endfor %}
 		</nav>
 	</body>
