@@ -31,5 +31,9 @@
 			<span id="new-balance">4</span>
 		</a>
 
+		{% if session.gametype and session.gamemode %}
+		<input type="submit" value="SEND CHALLENGE"/>
+	{% endif %}
+
 	</form>
 {% endblock %}

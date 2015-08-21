@@ -56,6 +56,16 @@ header .balance .coins:before {
 	font-size: 2vw;
 	font-style: italic;
 }
+input[type=submit] {
+	display: block;
+	width: 90%;
+	height: 16vh;
+	border-radius: 8vh;
+	border: none;
+	padding: 4vh;
+	background: #de5463;
+	color: white;
+}
 
 nav#menu {
 	background: #255180;
