@@ -419,7 +419,16 @@ def stream_done(stream, winner, timestamp):
 
     game = Game.query.get(stream.game_id)
     if game:
-        Poller.gameDone(game, winner, int(timestamp))
+        poller = Poller.findPoller(stream.gametype)
+        if winner == 'failed':
+            if poller.twitch == 2: # mandatory
+                log.warning('Watching failed, considering it a draw')
+                winner = 'draw'
+            elif poller.twitch == 1: # optional
+                log.warning('Watching failed, not updating game')
+                winner = None # will be fetched by Polling later
+        if winner:
+            Poller.gameDone(game, winner, int(timestamp))
     else:
         log.error('Invalid game ID: %d' % stream.game_id)
 
