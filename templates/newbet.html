@@ -1,16 +1,32 @@
 {% extends "layout.html" %}
 {% block body %}
-	<input name="opponent" id="opponent-choose" type="text" placeholder="Choose your Opponent"/>
+	<input name="opponent" id="opponent-choose" type="text" placeholder="choose your opponent"/>
 
-	<input class="bet-amount" name="bet-amount" placeholder="Bet amount"/>
+	<input class="bet-amount" name="bet-amount" placeholder="bet amount"/>
 
 	<a class="line" href="{{ url_for('gametype') }}">
-		Game
-		<span>Select here...</span>
+		game
+		<span>select here...</span>
 	</a>
 
 	<a class="line" {% if session.gametype %}href="{{ url_for('gamemode', gt=session.gametype) }}"{% endif %}>
-		Game
-		<span>Select here...</span>
+		game mode
+		<span>select here...</span>
 	</a>
+
+	<label class="line">
+		twitch link
+		<input name="twitch" placeholder="..."/>
+	</label>
+
+	<label class="line">
+		to win
+		<input name="bet" class="coins" placeholder="0"/>
+	</label>
+
+	<a class="line">
+		potential new balance
+		<span id="new-balance">4</span>
+	</a>
+	</form>
 {% endblock %}

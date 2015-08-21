@@ -25,16 +25,23 @@ header .balance .coins:before {
 	margin-left: 5vw;
 	clear: both;
 }
-#body a.line {
+#body a.line, #body label {
 	display: block;
 	width: 100%;
 	text-transform: uppercase;
+	color: #2b3c4c;
 	border-bottom: #a0b9d7 solid 2px;
 	padding-bottom: 1vh;
 }
 #body a.line span {
 	text-transform: none;
 	float: right;
+}
+#body label input {
+	width: 50%;
+	float: right;
+	border: none;
+	text-align: right;
 }
 #opponent-choose {
 	display: block;
