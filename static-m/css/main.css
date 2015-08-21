@@ -21,6 +21,35 @@ header .balance .coins:before {
 	background: url(/img/coins.png);
 }
 
+#body {
+	margin-left: 5vw;
+	clear: both;
+}
+#body a.line {
+	display: block;
+	width: 100%;
+	text-transform: uppercase;
+	border-bottom: #a0b9d7 solid 2px;
+	padding-bottom: 1vh;
+}
+#body a.line span {
+	text-transform: none;
+	float: right;
+}
+#opponent-choose {
+	display: block;
+	width: 90%;
+	height: 20vh;
+	border-radius: 10vh;
+	margin-top: -10vh;
+	margin-right: 5vw;
+	padding: 5vh;
+	border: 3px solid #cd6d78;
+	color: #cd6d78;
+	font-size: 2vw;
+	font-style: italic;
+}
+
 nav#menu {
 	background: #255180;
 }

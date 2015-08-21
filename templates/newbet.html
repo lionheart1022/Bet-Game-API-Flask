@@ -1,4 +1,16 @@
 {% extends "layout.html" %}
 {% block body %}
-	Hello World
+	<input name="opponent" id="opponent-choose" type="text" placeholder="Choose your Opponent"/>
+
+	<input class="bet-amount" name="bet-amount" placeholder="Bet amount"/>
+
+	<a class="line" href="{{ url_for('gametype') }}">
+		Game
+		<span>Select here...</span>
+	</a>
+
+	<a class="line" {% if session.gametype %}href="{{ url_for('gamemode', gt=session.gametype) }}"{% endif %}>
+		Game
+		<span>Select here...</span>
+	</a>
 {% endblock %}

@@ -11,6 +11,10 @@ app.config['SECRET_KEY'] = config.JWT_SECRET
 def bets():
     return render_template('newbet.html')
 
+@app.route('/gametype')
+def gametype():
+    return render_template('gametype.html')
+
 @app.route('/leaders')
 def leaderboard():
     return render_template('leaderboard.html')
