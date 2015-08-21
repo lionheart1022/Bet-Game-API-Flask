@@ -382,6 +382,7 @@ class TestHandler(Handler):
     ]
     process = './test.sh'
 
+    @classmethod
     def check(cls, stream, line):
         print('line')
 
