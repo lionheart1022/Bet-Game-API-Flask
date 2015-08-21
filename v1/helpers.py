@@ -227,7 +227,7 @@ def mailsend(user, mtype, **kwargs):
 
     subject = subjects[mtype]
     def load(name, ext, values, base=False):
-        f = open('{}/templates/{}.{}'.format(
+        f = open('{}/templates/mail/{}.{}'.format(
             os.path.dirname(__file__)+'/..', # load from path relative to self
             name, ext
         ), 'r')
