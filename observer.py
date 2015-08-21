@@ -376,6 +376,15 @@ class FifaHandler(Handler):
                 winner = 2
             return 'creator' if winner == creator else 'opponent'
         return None
+class TestHandler(Handler):
+    gametypes = [
+        'test',
+    ]
+    process = './test.sh'
+
+    def check(cls, stream, line):
+        print('line')
+
 
 pool = []
 def add_stream(stream):
