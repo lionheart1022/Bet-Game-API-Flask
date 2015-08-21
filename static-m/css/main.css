@@ -3,25 +3,23 @@ nav#menu {
 }
 nav#menu div {
 	height: 20vw;
-	color: #052443;
 	font-size: 3vw;
-	padding: 20px;
-	text-align: center;
+	padding: 3vw;
 }
 nav#menu div a {
 	display: block;
-	border: 1px red solid;
 	height: 100%;
+	text-align: center;
+	color: #052443;
 }
-nav#menu div a:before {
+nav#menu div a img {
 	display: block;
-	content: " ";
-	border: 1px green solid;
-	width: 100%;
-	height: 100%;
-	margin-bottom: -5vw;
-	position: relative;
+	width: 40%;
+	margin: auto;
 }
-nav#menu div.active {
+nav#menu div a.img span {
+	display: block;
+}
+nav#menu div.active a {
 	color: white;
 }
