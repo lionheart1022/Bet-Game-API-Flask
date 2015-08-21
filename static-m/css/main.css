@@ -1,0 +1,27 @@
+nav#menu {
+	background: #255180;
+}
+nav#menu div {
+	height: 20vw;
+	color: #052443;
+	font-size: 3vw;
+	padding: 20px;
+	text-align: center;
+}
+nav#menu div a {
+	display: block;
+	border: 1px red solid;
+	height: 100%;
+}
+nav#menu div a:before {
+	display: block;
+	content: " ";
+	border: 1px green solid;
+	width: 100%;
+	height: 100%;
+	margin-bottom: -5vw;
+	position: relative;
+}
+nav#menu div.active {
+	color: white;
+}
