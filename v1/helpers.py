@@ -1095,7 +1095,8 @@ class Poller:
             count_ended, count_games,
         ))
 
-    def gameDone(self, game, winner, timestamp):
+    @classmethod
+    def gameDone(cls, game, winner, timestamp):
         """
         Mark the game as done, setting all needed fields.
         Winner is a string.
