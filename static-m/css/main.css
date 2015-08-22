@@ -37,11 +37,14 @@ header .balance .coins:before {
 	text-transform: none;
 	float: right;
 }
-#body label input {
+#body label input, #body label select {
 	width: 50%;
 	float: right;
 	border: none;
 	text-align: right;
+}
+#body label select {
+	background: none;
 }
 #opponent-choose {
 	margin-top: -10vh;

@@ -10,10 +10,16 @@
 			<span>{{ session['gametype'] or "Select here..." }}</span>
 		</a>
 
-		<a class="line" {% if 'gametype' in session %}href="{{ url_for('gamemode', gt=session['gametype']) }}"{% endif %}>
+		<label>
 			Game mode
-			<span>Select here...</span>
-		</a>
+			<select name="gamemode">
+				{% if gamemodes %}
+				<option>xyz</option>
+				{% else %}
+				<option value="" selected disabled>Select here...</option>
+				{% endif %}
+			</select>
+		</label>
 
 		<label class="line">
 			Twitch link
