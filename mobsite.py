@@ -7,6 +7,7 @@ import requests
 import config
 
 app = Flask(__name__, static_folder = 'static-m')
+app.config['APPLICATION_ROOT'] = '/m'
 # for session...
 app.config['SECRET_KEY'] = config.JWT_SECRET
 app.config['API'] = 'http://betgame.co.uk/v1'
