@@ -12,7 +12,7 @@ app.config['SECRET_KEY'] = config.JWT_SECRET
 app.config['API'] = 'http://betgame.co.uk/v1'
 app.config['API_ROOT'] = 'http://betgame.co.uk/v1'
 
-class Gametypes:
+class GameTypes:
     """
     Caching access to /gametypes endpoint
     """
@@ -33,6 +33,10 @@ class Gametypes:
 
 @app.route('/')
 def bets():
+    modes = None
+    if session.get('gametype'):
+        modes = GameTypes.get(session['gametype'])['gamemodes']
+        print('m: '+str(modes))
     return render_template('newbet.html')
 
 @app.route('/gametype', methods=['GET','POST'])
@@ -40,19 +44,7 @@ def gametype():
     if request.method == 'POST':
         session['gametype'] = request.form.get('gametype')
         return redirect(url_for('bets'))
-    # TODO: caching
-    ret = requests.get(app.config['API_ROOT']+'/gametypes').json()
-    games = ret.get('gametypes')
-    modes = None
-    print('gt: '+str(session.get('gametype', 'no')))
-    if session.get('gametype'):
-        game = next(filter(
-            lambda g: g['id'] == session['gametype'],
-            games,
-        ), None)
-        modes = game['gamemodes']
-        print('t: %s, m:%s' % (game, modes))
-    return render_template('gametype.html', games=games, gamemodes=modes)
+    return render_template('gametype.html', games=GameTypes.get())
 
 @app.route('/leaders')
 def leaderboard():
