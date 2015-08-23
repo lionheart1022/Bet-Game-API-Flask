@@ -13,6 +13,25 @@ app.config['SECRET_KEY'] = config.JWT_SECRET
 app.config['API'] = 'http://betgame.co.uk/v1'
 app.config['API_ROOT'] = 'http://betgame.co.uk/v1'
 
+# Fix app root...
+class ReverseProxied:
+    def __init__(self, app):
+        self.app = app
+    def __call__(self, env, start_resp):
+        script_name = env.get('HTTP_X_SCRIPT_NAME', '')
+        if script_name:
+            env['SCRIPT_NAME'] = script_name
+            path_info = env['PATH_INFO']
+            if path_info.startswith(script_name):
+                env['PATH_INFO'] = path_info[len(script_name):]
+        schema = env.get('HTTP_X_SCHEME', '')
+        if scheme:
+            env['wsgi.url_scheme'] = scheme
+        return self.app(env, start_resp)
+app.wsgi_app = ReverseProxied(app.wsgi_app)
+
+
+# API access
 class GameTypes:
     """
     Caching access to /gametypes endpoint
