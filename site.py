@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from flask import Flask, request, session, render_template
+from flask import Flask, request, Response, session, render_template
 from flask import abort, redirect, url_for
 
 import requests
@@ -30,6 +30,21 @@ class GameTypes:
         if not name:
             return cls._load().values()
         return cls._load().get(name)
+
+
+@app.before_request
+def beta_auth():
+    auth = request.authorization
+    if auth:
+        login, password = auth.username, auth.password
+        if login == 'tester' and password == 'bet123':
+            # passed
+            return
+    # require auth
+    return Response(
+        'This is a testing site, please authenticate!',
+        401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
 
 @app.route('/')
 def bets():
