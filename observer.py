@@ -215,15 +215,14 @@ class Handler:
     def watch_tc(self):
         log.info('watch_tc started')
         try:
-            # re-add stream to session if needed
-            # to avoid DetachedInstanceError
-            if not db.session.object_session(self.stream):
-                db.session.add(self.stream)
-            log.info(self.stream.handle)
-
             result = self.watch()
             waits = 0
             while result == 'offline':
+                # re-add stream to session if needed
+                # to avoid DetachedInstanceError
+                if not db.session.object_session(self.stream):
+                    db.session.add(self.stream)
+
                 if waits > WAIT_MAX:
                     # will be caught below
                     raise Exception('We waited for too long, '
