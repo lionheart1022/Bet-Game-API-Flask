@@ -37,6 +37,7 @@ from werkzeug.exceptions import HTTPException, BadRequest, MethodNotAllowed, For
 
 import os
 from datetime import datetime, timedelta
+import itertools
 from eventlet.green import subprocess
 import requests
 import logging
@@ -453,25 +454,42 @@ def stream_done(stream, winner, timestamp):
     from v1.helpers import Poller
     from v1.models import Game
 
-    game = Game.query.get(stream.game_id)
-    if game:
-        poller = Poller.findPoller(stream.gametype)
-        if winner == 'failed':
-            if poller.twitch == 2: # mandatory
-                log.warning('Watching failed, considering it a draw')
-                winner = 'draw'
-            elif poller.twitch == 1: # optional
-                log.warning('Watching failed, not updating game')
-                winner = None # will be fetched by Polling later
-        if winner:
-            Poller.gameDone(game, winner, int(timestamp))
-    else:
-        log.error('Invalid game ID: %d' % stream.game_id)
+    for gid in itertools.chain(
+        [stream.game_id],
+        map(
+            int,
+            filter(
+                None,
+                stream.game_ids_supplementary.split(','),
+            ),
+        ),
+    ):
+        if gid < 0:
+            gid = -gid
+            reverse = True
+        else:
+            reverse = False
+        game = Game.query.get(gid)
+        if game:
+            poller = Poller.findPoller(stream.gametype)
+            if winner == 'failed':
+                if poller.twitch == 2: # mandatory
+                    log.warning('Watching failed, considering it a draw')
+                    winner = 'draw'
+                elif poller.twitch == 1: # optional
+                    log.warning('Watching failed, not updating game')
+                    winner = None # will be fetched by Polling later
+            if winner:
+                if winner in ['creator','opponent'] and reverse:
+                    winner = 'creator' if winner == 'opponent' else 'opponent'
+                Poller.gameDone(game, winner, int(timestamp))
+        else:
+            log.error('Invalid game ID: %d' % stream.game_id)
 
     # and anyway issue DELETE request, because this stream is unneeded anymore
 
     # no need to remove from pool, because we are on master
-    # and it was already removed anyway
+    # and it was already removed from pool anyway
     # but now let's delete it from DB
 
     # Notice: this is DELETE request to ourselves.
