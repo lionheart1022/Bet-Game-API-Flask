@@ -224,8 +224,6 @@ class Handler:
             self.sub.terminate()
             eventlet.spawn_after(3, self.sub.kill)
 
-    def ensure_db(self):
-        "Make sure that stream object is bound to db session"
     def watch_tc(self):
         log.info('watch_tc started')
         try:
@@ -271,7 +269,7 @@ class Handler:
         # then, if required, chdir handler's requested dir (relative to script's)
         if self.path:
             os.chdir(self.path)
-        cmd = self.process.format(handle = self.stream.handle)
+        cmd = 'exec ' + self.process.format(handle = self.stream.handle)
         if self.env:
             cmd = 'VIRTUAL_ENV_DISABLE_PROMPT=1 . {}/bin/activate; {}'.format(self.env, cmd)
         log.info('starting process...')
