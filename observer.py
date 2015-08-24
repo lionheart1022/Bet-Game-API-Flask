@@ -210,6 +210,8 @@ class Handler:
         # this will automatically execute `finally` clause in `watch_tc`
         # and remove us from pool
 
+    def ensure_db(self):
+        "Make sure that stream object is bound to db session"
     def watch_tc(self):
         log.info('watch_tc started')
         try:
@@ -217,6 +219,7 @@ class Handler:
             # to avoid DetachedInstanceError
             if not db.session.object_session(self.stream):
                 db.session.add(self.stream)
+            log.info(self.stream.handle)
 
             result = self.watch()
             waits = 0
