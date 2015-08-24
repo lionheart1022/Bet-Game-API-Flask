@@ -184,41 +184,46 @@ class Handler:
             if ret:
                 return ret
 
-    def start(self, stream):
-        def watch_tc(stream):
-            log.info('watch_tc started')
-            try:
-                result = self.watch(stream)
-                waits = 0
-                while result == 'offline':
-                    if waits > WAIT_MAX:
-                        # will be caught below
-                        raise Exception('We waited for too long, '
-                                        'abandoning stream '+stream.handle)
-                    log.info('Stream {} is offline, waiting'
-                             .format(stream.handle))
-                    stream.state = 'waiting'
-                    #db.session.commit()
-                    # wait & retry
-                    eventlet.sleep(WAIT_DELAY)
-                    result = self.watch(stream)
-                    waits += 1
-                return result
-            except Exception:
-                log.exception('Watching failed')
+    def __init__(self, stream):
+        self.stream = stream
+        self.start()
 
-                stream.state = 'failed'
-                #db.session.commit()
-                # mark it as Done anyway
-                self.done(stream, 'failed', datetime.utcnow().timestamp())
-            finally:
-                # mark that this stream has stopped
-                pool.remove(stream.handle)
+    def start(self):
         log.info('spawning handler')
-        eventlet.spawn(watch_tc, stream)
-        pool.append(stream.handle)
+        eventlet.spawn(self.watch_tc)
+        pool.append(self.stream.handle)
 
-    def watch(self, stream):
+    def watch_tc(self):
+        log.info('watch_tc started')
+        try:
+            result = self.watch()
+            waits = 0
+            while result == 'offline':
+                if waits > WAIT_MAX:
+                    # will be caught below
+                    raise Exception('We waited for too long, '
+                                    'abandoning stream '+self.stream.handle)
+                log.info('Stream {} is offline, waiting'
+                            .format(self.stream.handle))
+                self.stream.state = 'waiting'
+                #db.session.commit()
+                # wait & retry
+                eventlet.sleep(WAIT_DELAY)
+                result = self.watch()
+                waits += 1
+            return result
+        except Exception:
+            log.exception('Watching failed')
+
+            self.stream.state = 'failed'
+            #db.session.commit()
+            # mark it as Done anyway
+            self.done('failed', datetime.utcnow().timestamp())
+        finally:
+            # mark that this stream has stopped
+            pool.remove(self.stream.handle)
+
+    def watch(self):
         # start subprocess and watch its output
 
         # first, chdir to this script's directory
@@ -227,7 +232,7 @@ class Handler:
         # then, if required, chdir handler's requested dir (relative to script's)
         if self.path:
             os.chdir(self.path)
-        cmd = self.process.format(handle = stream.handle)
+        cmd = self.process.format(handle = self.stream.handle)
         if self.env:
             cmd = '. {}/bin/activate; {}'.format(self.env, cmd)
         log.info('starting process...')
@@ -241,7 +246,7 @@ class Handler:
         )
         log.info('process started')
 
-        stream.state = 'watching'
+        self.stream.state = 'watching'
         db.session.commit()
 
         # and now the main loop starts
@@ -251,7 +256,7 @@ class Handler:
         for line in sub.stdout:
             log.info('got line '+str(line))
             line = line.strip().decode()
-            result = self.check(stream, line)
+            result = self.check(line)
 
             if result == 'offline':
                 # handle it specially:
@@ -260,7 +265,7 @@ class Handler:
                 return 'offline'
 
             if result is not None:
-                stream.state = 'found'
+                self.stream.state = 'found'
                 results.append(result)
                 if not first_res:
                     first_res = datetime.utcnow()
@@ -282,7 +287,7 @@ class Handler:
         if not results:
             log.warning('process failed with status %d, considering draw' % sub.poll())
             results = ['failed']
-            stream.state = 'failed'
+            self.stream.state = 'failed'
             first_res = datetime.utcnow()
 
         # calculate most trusted result
@@ -299,7 +304,7 @@ class Handler:
         log.debug('got result: %s' % result)
         # handle result
         db.session.commit()
-        self.done(stream, result, first_res.timestamp())
+        self.done(result, first_res.timestamp())
 
         # if process didn't stop itself yet, kill it as we don't need it anymore
         if sub.poll() is None:
@@ -308,10 +313,10 @@ class Handler:
 
         # TODO: clean sub?
 
-    def done(self, stream, result, timestamp):
+    def done(self, result, timestamp):
         # determine winner and propagate result to master
         requests.patch(
-            '{}/streams/{}'.format(SELF_URL, stream.handle),
+            '{}/streams/{}'.format(SELF_URL, self.stream.handle),
             data = dict(
                 winner = result,
                 timestamp = timestamp,
@@ -327,7 +332,7 @@ class FifaHandler(Handler):
     env = '../../env2'
     process = 'python2 fifa_streamer.py "http://twitch.tv/{handle}"'
 
-    def check(self, stream, line):
+    def check(self, line):
         log.debug('checking line: '+line)
 
         if 'Stream is offline' in line:
@@ -348,8 +353,8 @@ class FifaHandler(Handler):
                 log.info('draw detected')
                 return 'draw'
 
-            cl = stream.creator.lower()
-            ol = stream.opponent.lower()
+            cl = self.stream.creator.lower()
+            ol = self.stream.opponent.lower()
             creator = opponent = None
             if cl == nick1:
                 creator = 1
@@ -378,7 +383,7 @@ class TestHandler(Handler):
     ]
     process = './test.sh'
 
-    def check(self, stream, line):
+    def check(self, line):
         print('line')
 
 
