@@ -186,7 +186,6 @@ class Handler:
 
     def __init__(self, stream):
         self.stream = stream
-        self.start()
 
     def start(self):
         log.info('spawning handler')
@@ -401,7 +400,7 @@ def add_stream(stream):
         return 'unsupported'
 
     log.info('Adding stream')
-    handler().start(stream)
+    handler(stream).start()
 
     return True
 
