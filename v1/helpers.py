@@ -1107,6 +1107,7 @@ class Poller:
         game.winner = winner
         game.state = 'finished'
         game.finish_date = datetime.utcfromtimestamp(timestamp)
+        db.session.commit() # to avoid observer overwriting it before us..
 
         # move funds...
         if winner == 'creator':
@@ -1119,6 +1120,8 @@ class Poller:
         # withdrawing them finally from accounts
         game.creator.locked -= game.bet
         game.opponent.locked -= game.bet
+
+        db.session.commit()
 
         notify_users(game)
 
