@@ -218,6 +218,11 @@ class Handler:
         # this will automatically execute `finally` clause in `watch_tc`
         # and remove us from pool
 
+        # if subprocess is still alive, kill it
+        if hasattr(self, sub) and self.sub.poll() is None: # still running?
+            self.sub.terminate()
+            eventlet.spawn_after(3, self.sub.kill)
+
     def ensure_db(self):
         "Make sure that stream object is bound to db session"
     def watch_tc(self):
@@ -269,7 +274,7 @@ class Handler:
         if self.env:
             cmd = 'VIRTUAL_ENV_DISABLE_PROMPT=1 . {}/bin/activate; {}'.format(self.env, cmd)
         log.info('starting process...')
-        sub = subprocess.Popen(
+        sub = self.sub = subprocess.Popen(
             cmd,
             bufsize = 1, # line buffered
             universal_newlines = True, # text mode
