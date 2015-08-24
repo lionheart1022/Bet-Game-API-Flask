@@ -541,8 +541,11 @@ class StreamResource(restful.Resource):
         Returns details (current state) for certain stream.
         """
         if not id:
-            # TODO?
-            raise NotImplemented
+            # at least for debugging
+            q = Stream.query
+            return dict(
+                streams = fields.List(fields.Nested(self.fields)).format(q),
+            )
 
         log.info('Stream queried with id '+id)
 
