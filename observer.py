@@ -239,7 +239,7 @@ class Handler:
                 log.info('Stream {} is offline, waiting'
                             .format(self.stream.handle))
                 self.stream.state = 'waiting'
-                #db.session.commit()
+                db.session.commit()
                 # wait & retry
                 eventlet.sleep(WAIT_DELAY)
                 result = self.watch()
@@ -249,7 +249,7 @@ class Handler:
             log.exception('Watching failed')
 
             self.stream.state = 'failed'
-            #db.session.commit()
+            db.session.commit()
             # mark it as Done anyway
             self.done('failed', datetime.utcnow().timestamp())
         finally:
