@@ -189,11 +189,13 @@ class Handler:
 
     def start(self):
         log.info('spawning handler')
-        eventlet.spawn(self.watch_tc)
+        self.thread = eventlet.spawn(self.watch_tc)
         pool[self.stream.handle] = self
 
     def abort(self):
-        pass
+        self.thread.kill()
+        # this will automatically execute `finally` clause in `watch_tc`
+        # and remove us from pool
 
     def watch_tc(self):
         log.info('watch_tc started')
@@ -214,7 +216,7 @@ class Handler:
                 result = self.watch()
                 waits += 1
             return result
-        except Exception:
+        except Exception: # will not catch GreenletExit
             log.exception('Watching failed')
 
             self.stream.state = 'failed'
