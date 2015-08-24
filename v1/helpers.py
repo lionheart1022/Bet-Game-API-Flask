@@ -1125,6 +1125,19 @@ class Poller:
 
         notify_users(game)
 
+        # cancel stream watcher (if any)
+        if game.twitch_handle:
+            try:
+                ret = requests.delete(
+                    '{}/streams/{}'.format(
+                        config.OBSERVER_URL,
+                        game.twitch_handle,
+                    ),
+                )
+                log.info('Deleting watcher: %d' % ret.status_code)
+            except Exception:
+                log.exception('Failed to delete watcher')
+
         return True # for convenience
 
     def prepare(self):
