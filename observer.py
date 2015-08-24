@@ -81,7 +81,7 @@ def make_json_error(ex):
         response = jsonify(error_code = code, error = http_status_message(code))
     response.status_code = code
     return response
-for code in default_exceptions.keys():
+for code in flask_abort.mapping.keys():
     app.error_handler_spec[None][code] = make_json_error
 
 def abort(message, code=400, **kwargs):
