@@ -220,6 +220,7 @@ class Handler:
             while result == 'offline':
                 # re-add stream to session if needed
                 # to avoid DetachedInstanceError
+                # FIXME: why is it detached after watch() but not before?
                 if not db.session.object_session(self.stream):
                     db.session.add(self.stream)
 
