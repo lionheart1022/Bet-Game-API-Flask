@@ -338,6 +338,7 @@ class Handler:
             results = ['failed']
             self.stream.state = 'failed'
             first_res = datetime.utcnow()
+        log.debug('results list: '+str(results))
 
         # calculate most trusted result
         freqs = {}
