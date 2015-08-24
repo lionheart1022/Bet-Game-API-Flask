@@ -406,8 +406,10 @@ def add_stream(stream):
     return True
 
 def abort_stream(stream):
+    """
+    If stream is running, abort it. Else do nothing.
+    """
     # TODO
-    raise NotImplemented
 
 def stream_done(stream, winner, timestamp):
     """
@@ -589,10 +591,11 @@ class StreamResource(restful.Resource):
     def delete(self, id=None):
         """
         Deletes all records for given stream.
+        Also aborts watching if stream is still watched.
         """
         if not id:
             raise MethodNotAllowed
-        log.info('Stream deleted with id '+id)
+        log.info('Stream delete for id '+id)
         stream = Stream.find(id)
         if not stream:
             raise NotFound
@@ -600,6 +603,8 @@ class StreamResource(restful.Resource):
             ret = requests.delete(child_url(stream.child, stream.handle))
             if ret.status_code != 200:
                 abort('Couldn\'t delete stream', ret.status_code, details=ret)
+        else: # watching ourself:
+            abort_stream(stream)
         db.session.delete(stream)
         db.session.commit()
         return jsonify(deleted=True)
