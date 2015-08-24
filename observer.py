@@ -212,11 +212,12 @@ class Handler:
 
     def __init__(self, stream):
         self.stream = stream
+        self.handle = stream.handle
 
     def start(self):
         log.info('spawning handler')
         self.thread = eventlet.spawn(self.watch_tc)
-        pool[self.stream.handle] = self
+        pool[self.handle] = self
 
     def abort(self):
         self.thread.kill()
@@ -263,7 +264,8 @@ class Handler:
             self.done('failed', datetime.utcnow().timestamp())
         finally:
             # mark that this stream has stopped
-            del pool[self.stream.handle]
+            # stream may be already deleted from db, so use saved handle
+            del pool[self.handle]
 
     def watch(self):
         # start subprocess and watch its output
