@@ -131,7 +131,7 @@ def init_app(logfile=None):
     app.logger.addHandler(logger)
 
     # now restart all active streams
-    # and remove
+    # and remove stale records
     with app.test_request_context():
         for stream in Stream.query:
             log.info('restarting stream '+stream.handle)
