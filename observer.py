@@ -184,12 +184,11 @@ class Handler:
             if ret:
                 return ret
 
-    @classmethod
-    def start(cls, stream):
+    def start(self, stream):
         def watch_tc(stream):
             log.info('watch_tc started')
             try:
-                result = cls.watch(stream)
+                result = self.watch(stream)
                 waits = 0
                 while result == 'offline':
                     if waits > WAIT_MAX:
@@ -202,7 +201,7 @@ class Handler:
                     #db.session.commit()
                     # wait & retry
                     eventlet.sleep(WAIT_DELAY)
-                    result = cls.watch(stream)
+                    result = self.watch(stream)
                     waits += 1
                 return result
             except Exception:
@@ -211,7 +210,7 @@ class Handler:
                 stream.state = 'failed'
                 #db.session.commit()
                 # mark it as Done anyway
-                cls.done(stream, 'failed', datetime.utcnow().timestamp())
+                self.done(stream, 'failed', datetime.utcnow().timestamp())
             finally:
                 # mark that this stream has stopped
                 pool.remove(stream.handle)
@@ -219,19 +218,18 @@ class Handler:
         eventlet.spawn(watch_tc, stream)
         pool.append(stream.handle)
 
-    @classmethod
-    def watch(cls, stream):
+    def watch(self, stream):
         # start subprocess and watch its output
 
         # first, chdir to this script's directory
         os.chdir(ROOT)
 
         # then, if required, chdir handler's requested dir (relative to script's)
-        if cls.path:
-            os.chdir(cls.path)
-        cmd = cls.process.format(handle = stream.handle)
-        if cls.env:
-            cmd = '. {}/bin/activate; {}'.format(cls.env, cmd)
+        if self.path:
+            os.chdir(self.path)
+        cmd = self.process.format(handle = stream.handle)
+        if self.env:
+            cmd = '. {}/bin/activate; {}'.format(self.env, cmd)
         log.info('starting process...')
         sub = subprocess.Popen(
             cmd,
@@ -253,7 +251,7 @@ class Handler:
         for line in sub.stdout:
             log.info('got line '+str(line))
             line = line.strip().decode()
-            result = cls.check(stream, line)
+            result = self.check(stream, line)
 
             if result == 'offline':
                 # handle it specially:
@@ -269,8 +267,8 @@ class Handler:
 
             # consider game done when either got quorum results
             # or maxdelta passed since first result
-            if results and (len(results) >= cls.quorum or
-                            datetime.utcnow() > first_res + cls.maxdelta):
+            if results and (len(results) >= self.quorum or
+                            datetime.utcnow() > first_res + self.maxdelta):
                 # FIXME: maybe don't rely on first result
                 # as it might be errorneous
 
@@ -301,7 +299,7 @@ class Handler:
         log.debug('got result: %s' % result)
         # handle result
         db.session.commit()
-        cls.done(stream, result, first_res.timestamp())
+        self.done(stream, result, first_res.timestamp())
 
         # if process didn't stop itself yet, kill it as we don't need it anymore
         if sub.poll() is None:
@@ -310,8 +308,7 @@ class Handler:
 
         # TODO: clean sub?
 
-    @classmethod
-    def done(cls, stream, result, timestamp):
+    def done(self, stream, result, timestamp):
         # determine winner and propagate result to master
         requests.patch(
             '{}/streams/{}'.format(SELF_URL, stream.handle),
@@ -330,8 +327,7 @@ class FifaHandler(Handler):
     env = '../../env2'
     process = 'python2 fifa_streamer.py "http://twitch.tv/{handle}"'
 
-    @classmethod
-    def check(cls, stream, line):
+    def check(self, stream, line):
         log.debug('checking line: '+line)
 
         if 'Stream is offline' in line:
@@ -382,8 +378,7 @@ class TestHandler(Handler):
     ]
     process = './test.sh'
 
-    @classmethod
-    def check(cls, stream, line):
+    def check(self, stream, line):
         print('line')
 
 
@@ -401,7 +396,7 @@ def add_stream(stream):
         return 'unsupported'
 
     log.info('Adding stream')
-    handler.start(stream)
+    handler().start(stream)
 
     return True
 
