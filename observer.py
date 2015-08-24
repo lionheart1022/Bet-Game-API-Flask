@@ -130,6 +130,19 @@ def init_app(logfile=None):
     logger.setLevel(logging.DEBUG)
     app.logger.addHandler(logger)
 
+    # now restart all active streams
+    # and remove
+    with app.test_request_context():
+        for stream in Stream.query:
+            log.info('restarting stream '+stream.handle)
+            if stream.state in ('waiting', 'active'):
+                add_stream(stream)
+            elif stream.state in ('found', 'failed'):
+                # was not yet deleted - delete now
+                # FIXME: maybe send result (again)?
+                db.session.delete(stream)
+            db.session.commit()
+
     return app
 
 
