@@ -190,7 +190,10 @@ class Handler:
     def start(self):
         log.info('spawning handler')
         eventlet.spawn(self.watch_tc)
-        pool.append(self.stream.handle)
+        pool[self.stream.handle] = self
+
+    def abort(self):
+        pass
 
     def watch_tc(self):
         log.info('watch_tc started')
@@ -220,7 +223,7 @@ class Handler:
             self.done('failed', datetime.utcnow().timestamp())
         finally:
             # mark that this stream has stopped
-            pool.remove(self.stream.handle)
+            del pool[self.stream.handle]
 
     def watch(self):
         # start subprocess and watch its output
@@ -386,11 +389,11 @@ class TestHandler(Handler):
         print('line')
 
 
-pool = []
+pool = {}
 def add_stream(stream):
     """
     Tries to append given stream object (which is not yet committed) to watchlist.
-    Returns False on failure (e.g. if list is full).
+    Returns string on failure (e.g. if list is full).
     """
     if len(pool) >= MAX_STREAMS:
         return 'busy'
@@ -400,7 +403,7 @@ def add_stream(stream):
         return 'unsupported'
 
     log.info('Adding stream')
-    handler(stream).start()
+    handler(stream).start() # will add stream to pool
 
     return True
 
@@ -408,7 +411,11 @@ def abort_stream(stream):
     """
     If stream is running, abort it. Else do nothing.
     """
-    # TODO
+    if stream.handle not in pool:
+        return False
+    pool[stream.handle].abort()
+    # will remove itself
+    return True
 
 def stream_done(stream, winner, timestamp):
     """
