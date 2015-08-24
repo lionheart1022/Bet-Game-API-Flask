@@ -398,12 +398,16 @@ class FifaHandler(Handler):
             nick1, nick2 = map(lambda x: x.lower(), (nick1, nick2))
             score1, score2 = map(int, (score1, score2))
 
+            log.info('Got score data. Nicks {} / {}, scores {} / {}'.format(
+                nick1, nick2, score1, score2))
+
             if score1 == score2:
                 log.info('draw detected')
                 return 'draw'
 
             cl = self.stream.creator.lower()
             ol = self.stream.opponent.lower()
+            log.debug('cl: {}, ol: {}'.format(cl, ol))
             creator = opponent = None
             if cl == nick1:
                 creator = 1
