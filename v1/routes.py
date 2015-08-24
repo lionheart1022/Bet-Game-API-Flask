@@ -594,6 +594,7 @@ def gametypes():
                     gamemodes = poller.gamemodes,
                     identity = poller.identity,
                     identity_name = poller.identity_name,
+                    twitch = poller.twitch,
                 )
                 if args.betcount:
                     data['betcount'], data['lastbet'] = \

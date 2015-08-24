@@ -318,6 +318,10 @@ is to fetch its image with `GET /gametypes/<type>/image`;
   This means that if you don't provide `gamertag_creator` field,
   system will look for gamertag in your `ea_gamertag` profile field.
   For other game types special fields will be added in future.
+* `twitch` - whether twitch link is supported for this gametype:
+  `0` means unsupported,
+  `1` means optional (i.e. game results can be fetched with other means, but slower),
+  and `2` means mandatory (i.e. twitch is the only result polling method for this game).
 * `betcount` (if requested) - how many bets were made on this gametype
 * `lastbet` (if requested) - when latest bet was made on this gametype, or `null` if no bets were made
 
