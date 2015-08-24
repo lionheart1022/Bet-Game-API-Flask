@@ -68,6 +68,11 @@ app.request_class = MyRequest
 
 # JSONful error handling
 log = app.logger
+# allow 507 error code
+class InsufficientStorage(HTTPException):
+    code = 507
+    description = 'No observers available'
+flask_abort.mappings[507] = InsufficientStorage
 def make_json_error(ex):
     code = getattr(ex, 'code', 500)
     if hasattr(ex, 'data'):
