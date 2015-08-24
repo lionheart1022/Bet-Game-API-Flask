@@ -238,7 +238,7 @@ class Handler:
             os.chdir(self.path)
         cmd = self.process.format(handle = self.stream.handle)
         if self.env:
-            cmd = '. {}/bin/activate; {}'.format(self.env, cmd)
+            cmd = 'VIRTUAL_ENV_DISABLE_PROMPT=1 . {}/bin/activate; {}'.format(self.env, cmd)
         log.info('starting process...')
         sub = subprocess.Popen(
             cmd,
