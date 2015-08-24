@@ -220,6 +220,7 @@ class Handler:
 
         # if subprocess is still alive, kill it
         if hasattr(self, 'sub') and self.sub.poll() is None: # still running?
+            log.info('Killing subprocess')
             self.sub.terminate()
             eventlet.spawn_after(3, self.sub.kill)
 
