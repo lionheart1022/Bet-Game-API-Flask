@@ -136,13 +136,15 @@ def init_app(logfile=None):
     with app.test_request_context():
         for stream in Stream.query:
             log.info('restarting stream '+stream.handle)
-            if stream.state in ('waiting', 'active'):
+            if stream.state in ('waiting', 'watching'):
                 add_stream(stream)
             elif stream.state in ('found', 'failed'):
                 # was not yet deleted - delete now
                 # FIXME: maybe send result (again)?
                 db.session.delete(stream)
-            db.session.commit()
+                db.session.commit()
+            else:
+                log.warning('Unexpected stream state '+stream.state)
 
     return app
 
