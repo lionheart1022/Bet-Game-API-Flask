@@ -594,8 +594,11 @@ class StreamResource(restful.Resource):
             else:
                 abort('Duplicate stream ID with different players', 409)
 
+            # now add game id
             if stream.game_ids_supplementary:
                 stream.game_ids_supplementary += ','
+            else:
+                stream.game_ids_supplementary = ''
             stream.game_ids_supplementary += str(game)
 
         else:
