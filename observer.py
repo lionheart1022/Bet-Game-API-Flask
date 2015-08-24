@@ -367,7 +367,7 @@ class FifaHandler(Handler):
     ]
     path = 'fifastreamer'
     env = '../../env2'
-    process = 'python2 fifa_streamer.py "http://twitch.tv/{handle}"'
+    process = 'python2 -u fifa_streamer.py "http://twitch.tv/{handle}"'
 
     def check(self, line):
         log.debug('checking line: '+line)
