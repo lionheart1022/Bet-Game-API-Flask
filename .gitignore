@@ -2,3 +2,4 @@ __pycache__
 
 secret.py
 observer_conf.py
+apns.pem
