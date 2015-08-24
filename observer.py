@@ -219,7 +219,7 @@ class Handler:
         # and remove us from pool
 
         # if subprocess is still alive, kill it
-        if hasattr(self, sub) and self.sub.poll() is None: # still running?
+        if hasattr(self, 'sub') and self.sub.poll() is None: # still running?
             self.sub.terminate()
             eventlet.spawn_after(3, self.sub.kill)
 
