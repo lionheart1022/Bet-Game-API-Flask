@@ -1532,8 +1532,8 @@ def notify_users(game):
     for p in players:
         for d in p.devices:
             if d.push_token:
-                if len(d.push_token) in (16, 32, 64, 128):
-                    # according to err it should be 32, but actually is 64
+                if len(d.push_token) == 64:
+                    # 64 hex digits = 32 bytes, valid token length
                     receivers.append(d.push_token)
                 else:
                     log.warning('Incorrect push token '+d.push_token)
@@ -1549,7 +1549,8 @@ def notify_users(game):
         if not apns_session:
             try:
                 apns_session = apns_clerk.Session()
-                conn = apns_session.get_connection('push', cert_file=None) # TODO
+                conn = apns_session.get_connection('push_sandbox',
+                                                   cert_file='apns.pem')
             except Exception: # import error, OpenSSL error
                 log.exception('APNS failure!')
                 message = None # will not send PUSH
