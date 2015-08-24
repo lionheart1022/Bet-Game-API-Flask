@@ -1192,7 +1192,7 @@ class FifaPoller(Poller, LimitedApi):
             for who in ['creator', 'opponent']:
                 tag = getattr(game, 'gamertag_'+who)
                 if tag in self.gamertags:
-                    return self.handleGame(game, who, self.gamertags[tag])
+                    return self.pollGame(game, who, self.gamertags[tag])
 
             who = 'creator'
             matches = self.fetch(game.gametype, game.gamemode,
