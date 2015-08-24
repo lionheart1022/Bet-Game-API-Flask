@@ -866,7 +866,8 @@ class GameResource(restful.Resource):
                 jret = ret.json()
                 if ret.status_code == 409: # dup
                     # TODO: check it on creation??
-                    abort('This twitch stream is already watched')
+                    abort('This twitch stream is already watched '
+                          'for another game (or another players)')
                 elif ret.status_code == 507: # full
                     abort('Cannot start twitch observing, all servers are busy now; '
                           'please retry later', 500)
