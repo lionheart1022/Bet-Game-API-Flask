@@ -159,10 +159,15 @@ class Stream(db.Model):
     # Gametype and other metadata goes below
     gametype = db.Column(db.String(64), default=None)
 
-    # this is an ID of Game object.
+    # this is an ID of the primary Game object for this stream.
     # We don't use foreign key because we may reside on separate server
     # and use separate db.
     game_id = db.Column(db.Integer, unique=True)
+    # supplementary game IDs - ones which follow the same stream.
+    # Some of them might be reversed (winner for them should be inverted).
+    # Format: 10,-20,15,3,-17
+    # -n means reversed game
+    game_ids_supplementary = db.Column(db.String, default='')
 
     state = db.Column(db.Enum('waiting', 'watching', 'found', 'failed'),
                       default='waiting')
@@ -528,19 +533,16 @@ class StreamResource(restful.Resource):
 
     def put(self, id=None):
         """
-        Returns 409 on duplicate twitch id.
+        Returns 409 if stream with this handle exists with different parameters.
         Returns 507 if no slots are available.
         Returns newly created stream id otherwise.
+        Will return 201 code if new stream was added
+        or 200 code if game was added to existing stream.
         """
         if not id:
             raise MethodNotAllowed
 
         log.info('Stream put with id '+id)
-
-        # id should be stream handle
-        if Stream.find(id):
-            # FIXME: instead of failing, append game to existing stream
-            abort('Duplicate stream handle', 409) # 409 Conflict
 
         parser = RequestParser(bundle_errors=True)
         parser.add_argument('gametype', required=True)
@@ -550,10 +552,41 @@ class StreamResource(restful.Resource):
         # TODO...
         args = parser.parse_args()
 
-        stream = Stream()
-        stream.handle = id
-        for k, v in args.items():
-            setattr(stream, k, v)
+        if Stream.query.filter_by(game_id = args.game_id).first():
+            # FIXME: handle dup ID in supplementaries?
+            abort('This game ID is already watched in some another stream')
+
+        stream = Stream.find(id)
+        if stream:
+            # stream already exists; add this game to it as a supplementary game
+            new = False
+
+            if args.gametype != stream.gametype:
+                # FIXME: add somehow to queue? And gametype against twitch?
+                abort('Duplicate stream ID with different gametype', 409)
+            if args.creator.lower() == stream.creator.lower():
+                if args.opponent.lower() != stream.opponent.lower():
+                    abort('Duplicate stream ID with wrong opponent nickname', 409)
+                game = args.game_id
+            elif args.opponent.lower() == stream.creator.lower():
+                if args.creator.lower() != stream.opponent.lower():
+                    abort('Duplicate stream ID with wrong reverse oppo nickname', 409)
+                game = -args.game_id # reversed result
+            else:
+                abort('Duplicate stream ID with different players', 409)
+
+            if stream.game_ids_supplementary:
+                stream.game_ids_supplementary += ','
+            stream.game_ids_supplementary += str(game)
+
+        else:
+            # new stream
+            new = True
+
+            stream = Stream()
+            stream.handle = id
+            for k, v in args.items():
+                setattr(stream, k, v)
 
         ret = None
         # now find the child who will handle this stream
@@ -582,12 +615,13 @@ class StreamResource(restful.Resource):
             else:
                 abort('Unknown error '+result, 500)
 
-        db.session.add(stream)
+        if new:
+            db.session.add(stream)
         db.session.commit()
 
         if ret:
             return ret
-        return marshal(stream, self.fields)
+        return marshal(stream, self.fields), 201 if new else 200
 
     def patch(self, id=None):
         """
