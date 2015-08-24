@@ -72,6 +72,8 @@ log = app.logger
 class InsufficientStorage(HTTPException):
     code = 507
     description = 'No observers available'
+    # FIXME: for some reason this exception gets propagated to stdout
+    # rather than handled by make_json_error
 flask_abort.mapping[507] = InsufficientStorage
 def make_json_error(ex):
     code = getattr(ex, 'code', 500)
