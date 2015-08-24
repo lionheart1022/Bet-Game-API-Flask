@@ -213,6 +213,11 @@ class Handler:
     def watch_tc(self):
         log.info('watch_tc started')
         try:
+            # re-add stream to session if needed
+            # to avoid DetachedInstanceError
+            if not db.session.object_session(self.stream):
+                db.session.add(self.stream)
+
             result = self.watch()
             waits = 0
             while result == 'offline':
