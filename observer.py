@@ -506,6 +506,7 @@ class StreamResource(restful.Resource):
         handle = fields.String,
         gametype = fields.String,
         game_id = fields.Integer,
+        game_ids_supplementary = fields.String,
         state = fields.String,
         creator = fields.String,
         opponent = fields.String,
