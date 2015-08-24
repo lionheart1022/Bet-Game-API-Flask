@@ -262,6 +262,9 @@ class Handler:
             db.session.commit()
             # mark it as Done anyway
             self.done('failed', datetime.utcnow().timestamp())
+        except eventlet.greenlet.GreenletExit:
+            # do nothing (just perform `finally` block) but don't print traceback
+            log.info('Watcher aborted for handle '+self.handle)
         finally:
             # mark that this stream has stopped
             # stream may be already deleted from db, so use saved handle
