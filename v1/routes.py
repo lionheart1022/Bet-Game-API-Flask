@@ -786,6 +786,10 @@ class GameResource(restful.Resource):
                       'but actually you are in {} and your opponent is in {}'.format(
                           region1, region2))
 
+        if poller.twitch == 2 and not args.twitch_handle:
+            abort('[twitch_handle]: is mandatory for this game type!',
+                  problem='twitch_handle')
+
         if args.bet < 0.99:
             abort('[bet]: too low amount', problem='bet')
         if args.bet > user.available:
