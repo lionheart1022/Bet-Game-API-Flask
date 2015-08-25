@@ -497,6 +497,20 @@ class StarCraft(BattleNet):
             '{}/{}/{}/{}'.format(uid, ureg, uname, part),
         )
 
+class Twitch:
+    @classmethod
+    def call(cls, endpoint, version=None):
+        ret = requests.get(
+            'https://api.twitch.tv/kraken/{}'.format(endpoint),
+            headers = {
+                'Accept': 'application/vnd.twitchtv{}+json'.format(
+                    '.'+version if version else ''),
+                #'Client-ID': ...,
+            },
+        )
+        return ret.json()
+
+
 ### Tokens ###
 def validateFederatedToken(service, refresh_token):
     if service == 'google':
