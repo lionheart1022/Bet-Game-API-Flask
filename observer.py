@@ -723,10 +723,17 @@ class StreamResource(restful.Resource):
 @app.route('/load')
 def load_ep():
     # TODO: allow querying `load average` of each child
-    load = current_load()
+    load, streams, maximum = current_load()
     for child in CHILDREN.values():
-        load += requests.get(child+'/load').json()['load']
-    return jsonify(total = load / (len(CHILDREN)+1))
+        ret = requests.get(child+'/load').json()
+        load += ret.get('total', 0)
+        streams += ret.get('total_streams', 0)
+        maximum += ret.get('max_streams', 0)
+    return jsonify(
+        total = load / (len(CHILDREN)+1),
+        total_streams = streams,
+        max_streams = maximum,
+    )
 
 
 if __name__ == '__main__':
