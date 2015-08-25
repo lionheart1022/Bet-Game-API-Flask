@@ -635,7 +635,10 @@ def gametype_image(id):
         'bg/' if request.path.endswith('/background') else '',
         id,
     )
-    img = Image.open(filename)
+    try:
+        img = Image.open(filename)
+    except FileNotFoundError:
+        raise NotFound # 404
     ow, oh = img.size
     if args.w or args.h:
         if not args.h or (args.w and args.h and (args.w/args.h) > (ow/oh)):
