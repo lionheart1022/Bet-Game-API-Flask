@@ -508,7 +508,12 @@ class Twitch:
                 #'Client-ID': ...,
             },
         )
-        return ret.json()
+        try:
+            jret = ret.json()
+        except ValueError:
+            jret = {}
+        jret['_code'] = ret.status_code
+        return jret
 
 
 ### Tokens ###
@@ -864,6 +869,17 @@ def gamertag_field(nick):
         log.error('Allowing it...')
         #raise ValueError('Couldn\'t validate this gamertag: {}'.format(nick))
         return nick
+
+def twitch_field(val):
+    pos = val.find('twitch.tv/')
+    if pos >= 0:
+        val = val[pos+10:]
+    # now validate id over twitch
+    ret = Twitch.call('channels/{}'.format(val), 'v3')
+    if ret['_code'] == 404:
+        raise ValueError('No such channel')
+    log.info('Twitch channel: current game is '+ret.get('game'))
+    return val
 
 def encrypt_password(val):
     """

@@ -733,7 +733,7 @@ class GameResource(restful.Resource):
         parser.add_argument('gamertag_creator', required=False)
         parser.add_argument('gamertag_opponent', required=False)
         parser.add_argument('twitch_handle',
-                            type=lambda v: v.lower().split('twitch.tv/',1)[-1],
+                            type=twitch_field,
                             required=False)
         parser.add_argument('gametype', choices=Poller.all_gametypes,
                             required=True)
