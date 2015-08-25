@@ -1509,7 +1509,6 @@ def poll_all():
 
 # Notification
 apns_session = None
-apns_conn = None
 def notify_users(game):
     """
     This method sends PUSH notifications about game state change
@@ -1546,18 +1545,19 @@ def notify_users(game):
                                     content_available=1,
                                     game=restful.marshal(
                                         game, routes.GameResource.fields))
-        global apns_session, apns_conn
-        if not apns_session:
-            try:
+        global apns_session
+        try:
+            if not apns_session:
                 apns_session = apns_clerk.Session()
-                apns_conn = apns_session.get_connection('push_sandbox',
-                                                   cert_file='apns.pem')
-            except Exception: # import error, OpenSSL error
-                log.exception('APNS failure!')
-                message = None # will not send PUSH
+        except Exception: # import error, OpenSSL error
+            log.exception('APNS failure!')
+            message = None # will not send PUSH
+        else:
+            conn = apns_session.get_connection('push_sandbox',
+                                                cert_file='apns.pem')
 
     def send_push(msg):
-        srv = apns_clerk.APNs(apns_conn)
+        srv = apns_clerk.APNs(conn)
         try:
             ret = srv.send(message)
         except:
