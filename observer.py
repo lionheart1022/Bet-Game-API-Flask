@@ -730,11 +730,11 @@ def load_ep():
     for child in CHILDREN.values():
         ret = requests.get(child+'/load').json()
         load += ret.get('total', 0)
-        streams += ret.get('total_streams', 0)
+        streams += ret.get('current_streams', 0)
         maximum += ret.get('max_streams', 0)
     return jsonify(
         total = load / (len(CHILDREN)+1),
-        total_streams = streams,
+        current_streams = streams,
         max_streams = maximum,
     )
 
