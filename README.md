@@ -374,7 +374,7 @@ showing last betted gametypes.
 ```
 
 ### GET /gametypes/<type>/image
-Retrieves a picture for given game type.
+Retrieves a cover image for given game type.
 
 Arguments:
 
@@ -385,6 +385,15 @@ If only one of arguments is provided, other will be chosen to maintain aspect ra
 If both are provided, image will be cut to keep aspect ratio.
 
 Returns image itself with corresponding MIME type (most likely PNG).
+
+If image not found for requested gametype, 404 error will be returned.
+
+
+### GET /gametypes/<type>/background
+Retrieves background picture for given game type.
+Arguments and behaviour is the same as for `GET /gametypes/<type>/image` endpoint.
+Background images are generally different from cover images, have better resolution, 
+and exist only for supported games.
 
 
 ### POST /games
