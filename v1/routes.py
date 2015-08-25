@@ -620,7 +620,8 @@ def gametypes():
         ]
     return jsonify(**ret)
 
-@app.route('/gametypes/<id>/image', methods=['GET'])
+@app.route('/gametypes/<id>/image')
+@app.route('/gametypes/<id>/background')
 def gametype_image(id):
     if id not in Poller.all_gametypes:
         raise NotFound
@@ -630,7 +631,10 @@ def gametype_image(id):
     parser.add_argument('h', type=int, required=False)
     args = parser.parse_args()
 
-    filename = 'images/{}.png'.format(id)
+    filename = 'images/{}{}.png'.format(
+        'bg/' if request.path.endswith('/background') else '',
+        id,
+    )
     img = Image.open(filename)
     ow, oh = img.size
     if args.w or args.h:
