@@ -1590,6 +1590,7 @@ def notify_users(game):
         srv = apns_clerk.APNs(conn)
         try:
             ret = srv.send(message)
+            log.info('push sending done for {}'.format(msg))
         except:
             log.error('Failed to connect to APNs', exc_info=True)
         else:
