@@ -1,6 +1,6 @@
 from datetime import datetime
 import math
-from sqlalchemy import sql
+from sqlalchemy import sql, or_
 from sqlalchemy.sql.expression import func
 import sqlalchemy
 from flask import g
@@ -110,14 +110,12 @@ class Player(db.Model):
         return player
 
     def search(cls, filt):
-        p = None
-        for identity in cls._identities:
-            p = cls.query.filter_by(
-                getattr(cls, identity).like('{}%'.format(filt)),
-            )
-            if p.count():
-                return p
-        return None
+        return cls.query.filter(
+            or_(*[
+                getattr(cls, identity).like('{}%'.format(filt))
+                for identity in cls._identities
+            ])
+        )
 
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
