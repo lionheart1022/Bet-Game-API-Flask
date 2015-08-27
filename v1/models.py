@@ -109,7 +109,7 @@ class Player(db.Model):
             raise ValueError('Player {} is not registered on BetGame'.format(key))
         return player
 
-    def search(cls, filt):
+    def search(cls, filt, operation='like'):
         """
         Filt should be suitable for SQL LIKE statement.
         E.g. "word%" will search anything starting with word.
@@ -118,7 +118,10 @@ class Player(db.Model):
             return []
         return cls.query.filter(
             or_(*[
-                getattr(cls, identity).like(filt)
+                getattr(
+                    getattr(cls, identity),
+                    operation,
+                )(filt)
                 for identity in cls._identities
             ])
         )
