@@ -1513,7 +1513,7 @@ class TibiaPoller(Poller, LimitedApi):
     gametypes = {
         'tibia': 'Tibia',
     }
-    identity = 'tibia_character',
+    identity = 'tibia_character'
     identity_name = 'Tibia Character name'
 
     class Parser(HTMLParser):
