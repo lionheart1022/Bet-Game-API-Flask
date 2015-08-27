@@ -1487,6 +1487,27 @@ For this game betting is based on match outcome.
                     match['start_time'] + match['duration']
                 )
 
+class CSGOPoller(Poller):
+    gametypes = {
+        'counter-strike-global-offensive': 'CounterStrike: Global Offensive',
+    }
+    identity = 'steam_id'
+    identity_name = 'STEAM ID (numeric or URL)'
+    identity_check = Steam.parse_id
+    description = """
+For this game betting is based on match outcome.
+    """
+    # We cannot determine time of last match,
+    # so we have to poll current state of both players on game creation.
+    # Then we wait for state to change for both of them
+    # and to match (number of rounds, etc).
+    @classmethod
+    def gamestarted(cls, game):
+        pass
+    def prepare(self):
+        self.matches = {}
+    def pollGame(self, game):
+        pass
 class StarCraftPoller(Poller):
     gametypes = {
         'starcraft': 'Starcraft II',
