@@ -1,5 +1,5 @@
-from flask import request, jsonify, abort as flask_abort
-from flask import g, current_app, copy_current_request_context
+from flask import request, abort as flask_abort
+from flask import g, current_app
 from flask.ext.restful.reqparse import RequestParser, Argument
 from flask.ext import restful
 from flask.ext.restful.utils import http_status_message
@@ -7,10 +7,6 @@ from flask.ext.restful.utils import http_status_message
 from werkzeug.exceptions import HTTPException
 
 import urllib.parse
-from datetime import datetime, timedelta
-from collections import OrderedDict, namedtuple
-import os
-import eventlet
 import jwt
 import hashlib, uuid
 import requests
@@ -20,7 +16,7 @@ import apns_clerk
 
 import config
 from .models import *
-from .main import db, app
+from .main import db
 
 ### Logging ###
 class log_cls:
@@ -655,8 +651,8 @@ def notify_users(game, nomail=False):
             for code, error in ret.errors:
                 log.warning('Error {}: {}'.format(code, error))
 
-            if res.needs_retry():
-                do_send(res.retry)
+            if ret.needs_retry():
+                send_push(ret.retry)
 
     from .apis import mailsend
     def send_mail(game):

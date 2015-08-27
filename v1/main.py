@@ -1,9 +1,6 @@
-from flask import Blueprint, jsonify, current_app
+from flask import Blueprint
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext import restful
-
-from traceback import print_exc
-from pprint import pprint
 
 app = Blueprint('v1', __name__)
 db = SQLAlchemy()
