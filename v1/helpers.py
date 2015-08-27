@@ -1532,6 +1532,7 @@ For this game betting is based on match outcome.
         ])
     @classmethod
     def gamestarted(cls, game):
+        # store "<crea_total>:<oppo_total>" to know when match was played
         meta = ':'.join(map(
             lambda p: str(cls.fetch_match(player).total_matches_played),
             (game.gamertag_creator, game.gamertag_opponent)

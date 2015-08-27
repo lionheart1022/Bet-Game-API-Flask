@@ -885,6 +885,14 @@ class GameResource(restful.Resource):
         if args.state == 'accepted' and game.bet > user.available:
             abort('Not enough coins', problem='coins')
 
+        if args.state == 'accepted':
+            try:
+                poller.gamestarted(game)
+            except Exception as e:
+                log.exception('Error in gamestarted for {}: {}'.format(
+                    poller, e))
+                abort('Failed to initialize poller, please contact support!', 500)
+
         # Now, before we save state change, start twitch stream if required
         # so that we can abort if it failed
         if game.twitch_handle and args.state == 'accepted':
