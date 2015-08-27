@@ -610,11 +610,10 @@ def gametypes():
                 if args.betcount:
                     data['betcount'], data['lastbet'] = \
                         counts.get(gametype, (0, None))
-                if poller.description:
-                    if isinstance(poller.description, dict):
-                        data['description'] = poller.description[gametype]
-                    else:
-                        data['description'] = poller.description
+                if isinstance(poller.description, dict):
+                    data['description'] = poller.description[gametype]
+                else:
+                    data['description'] = poller.description
                 gamedata.append(data)
                 identities[poller.identity] = poller.identity_name
             else: # DummyPoller

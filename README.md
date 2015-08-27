@@ -329,6 +329,10 @@ List available game types.
 
 Will return the following detials about each game type:
 
+* `id` - internal identifier used for that gametype
+* `name` - human-readable name of gametype
+* `description` - textual description of how to bet and play that specific game.
+  Might be `null` if not provided / not required.
 * `supported` field - if it is `false` then the only thing you can do with this gametype
 is to fetch its image with `GET /gametypes/<type>/image`;
 * `gamemodes` lists possible gamemodes for this game type;
