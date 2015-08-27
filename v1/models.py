@@ -110,6 +110,8 @@ class Player(db.Model):
         return player
 
     def search(cls, filt):
+        if len(filt) < 2:
+            return []
         return cls.query.filter(
             or_(*[
                 getattr(cls, identity).like('{}%'.format(filt))
