@@ -1614,11 +1614,11 @@ class TibiaPoller(Poller):
             user.deaths = self.getDeaths(user.uid)
             user.lost = False
             user.losedate = None
-        for user, other in (crea, oppo), (oppo, crea):
+        for user in crea, oppo:
             for date, msg, killers in user.deaths:
                 if date < game.accept_date:
                     continue
-                if other.name in killers:
+                if user.other.name in killers:
                     user.lost = True
                     if not user.losedate:
                         user.losedate = date
