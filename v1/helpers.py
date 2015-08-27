@@ -1243,7 +1243,7 @@ class FifaPoller(Poller, LimitedApi):
             '{}/match-history/{}/{}'.format(
                 gametype, gamemode, nick)
         try:
-            return cls.request('GET', url)['data']
+            return cls.request_json('GET', url)['data']
         except Exception as e:
             log.error('Failed to fetch match info '
                       'for player {}, gt {} gm {}'.format(
