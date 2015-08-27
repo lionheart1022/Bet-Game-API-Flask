@@ -614,6 +614,8 @@ def gametypes():
                     data['description'] = poller.description[gametype]
                 else:
                     data['description'] = poller.description
+                if data['description']:
+                    data['description'] = data['description'].strip()
                 gamedata.append(data)
                 identities[poller.identity] = poller.identity_name
             else: # DummyPoller

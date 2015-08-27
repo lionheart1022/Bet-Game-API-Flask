@@ -1519,6 +1519,19 @@ class TibiaPoller(Poller, LimitedApi):
     }
     identity = 'tibia_character'
     identity_name = 'Tibia Character name'
+    description = """For Tibia, you bet on PvP battle outcome.
+After you and your friend make & accept bet on your Tibia character names,
+system will monitor if one of that characters dies.
+The one who died first from the hand of another character
+is considered looser,
+even if the killer was not the only cause of death
+(e.g. cooperated with monster or other player).
+
+If both characters killed each other in the same second (e.g. with poison),
+game result will be considered draw.
+
+Important: both characters should reside in the same world.
+    """
 
     class Parser(HTMLParser):
         def __call__(self, page):
