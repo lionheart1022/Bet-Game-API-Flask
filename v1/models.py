@@ -23,6 +23,7 @@ class Player(db.Model):
     # in fact, it is integer, but saved as string for compatibility
     steam_id = db.Column(db.String(64), unique=True)
     starcraft_uid = db.Column(db.String(64), unique=True)
+    tibia_character = db.Column(db.String(64), unique=True)
 
     balance = db.Column(db.Float, default=0)
     locked = db.Column(db.Float, default=0)
