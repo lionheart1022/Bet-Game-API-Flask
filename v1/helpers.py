@@ -8,7 +8,6 @@ from werkzeug.exceptions import HTTPException
 
 import urllib.parse
 from datetime import datetime, timedelta
-import time
 from collections import OrderedDict, namedtuple
 import os
 import eventlet

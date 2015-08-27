@@ -1,5 +1,7 @@
-from flask import request, jsonify
+from flask import request
 
+import os
+import time
 from datetime import datetime, timedelta
 from collections import OrderedDict, namedtuple
 import requests
@@ -146,7 +148,7 @@ class Fixer:
 
         cls.cache[(src,dst)] = cls.item(now+cls.cache_ttl, rate)
         if len(cls.cache) > cls.cache_max:
-            cls.popitem(last=False)
+            cls.cache.popitem(last=False)
 
         return rate
 
@@ -162,7 +164,6 @@ def mailsend(user, mtype, **kwargs):
     kwargs['name'] = user.nickname
     kwargs['email'] = user.email
 
-    subject = subjects[mtype]
     def load(name, ext, values, base=False):
         f = open('{}/templates/mail/{}.{}'.format(
             os.path.dirname(__file__)+'/..', # load from path relative to self
@@ -268,8 +269,7 @@ class Riot(LimitedApi):
                     return cls.summoner_check(val, region)
                 except ValueError:
                     pass
-            else:
-                raise ValueError('Summoner {} not exists in any region')
+            raise ValueError('Summoner {} not exists in any region')
 
         ret = cls.call(region, 'v1.4', 'summoner/by-name/'+val)
         if val.lower() in ret:
@@ -281,9 +281,12 @@ class Riot(LimitedApi):
         raise ValueError('Unknown summoner name')
 
     @classmethod
-    def call(cls, region, version, method, params, data):
+    def call(cls, region, version, method, params=None, data=None):
         if region not in cls.REGIONS:
             raise ValueError('Unknown region %s' % region)
+
+        params = params or {}
+        data = data or {}
 
         params['api_key'] = config.RIOT_KEY
         return cls.request_json(
@@ -403,6 +406,7 @@ class StarCraft(BattleNet):
             'POST',
             'http://api.sc2ranks.com/v2/characters/search',
         )
+        # TODO
     @classmethod
     def check_uid(cls, val):
         if val.startswith('http'):

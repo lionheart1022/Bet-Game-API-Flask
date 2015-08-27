@@ -3,7 +3,6 @@ from flask.ext.restful.utils import http_status_message
 from flask.ext.cors import CORS
 
 from werkzeug.exceptions import default_exceptions
-from werkzeug.exceptions import HTTPException
 import logging
 from logging.handlers import SysLogHandler
 import socket
