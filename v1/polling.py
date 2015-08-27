@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from types import SimpleNamespace
 import math
-from collections import OrderedDict, namedtuple
+from collections import namedtuple
 from html.parser import HTMLParser
 
 import requests
@@ -347,7 +347,7 @@ class RiotPoller(Poller):
                 'opponent' if oppo.won else
                 'draw',
                 # creation is in ms, duration is in seconds; convert to seconds
-                round(match['matchCreation']/1000) + match['matchDuration']
+                round(ret['matchCreation']/1000) + ret['matchDuration']
             )
             return True
 
@@ -435,7 +435,7 @@ class Dota2Poller(Poller):
                 # determine winner
                 crea = SimpleNamespace()
                 oppo = SimpleNamespace()
-                crea.id, oppo.id = map(lambda i: int(i),
+                crea.id, oppo.id = map(int,
                                        [game.gamertag_creator,
                                         game.gamertag_opponent])
                 for player in match['players']:
@@ -519,7 +519,7 @@ class CSGOPoller(Poller):
     def gamestarted(cls, game):
         # store "<crea_total>:<oppo_total>" to know when match was played
         game.meta = ':'.join(map(
-            lambda p: str(cls.fetch_match(player).total_matches_played),
+            lambda p: str(cls.fetch_match(p).total_matches_played),
             (game.gamertag_creator, game.gamertag_opponent)
         ))
     def prepare(self):
@@ -706,7 +706,7 @@ class TibiaPoller(Poller, LimitedApi):
 
     @classmethod
     def identity_check(cls, val):
-        name, deaths = cls.fetch(strip(val))
+        name, deaths = cls.fetch(val.strip())
         if not name:
             raise ValueError('Unknown character '+val)
         # TODO: also save world somewhere
