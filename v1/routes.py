@@ -127,6 +127,9 @@ class PlayerResource(restful.Resource):
             # Leaderboard mode
 
             parser = RequestParser()
+            parser.add_argument('filter')
+            #parser.add_argument('sort', ..)
+            #parser.add_argument('names_only', type=boolean_field)
             parser.add_argument('page', type=int, default=1)
             parser.add_argument('results_per_page', type=int, default=10)
             args = parser.parse_args()
@@ -134,9 +137,12 @@ class PlayerResource(restful.Resource):
             if args.results_per_page > 50:
                 abort('[results_per_page]: max is 50')
 
-            query = Player.query
+            if args.filter:
+                query = Player.search(args.filter+'%')
+            else:
+                query = Player.query
 
-            # TODO: sort by win rate desc
+            # TODO: sort by win rate desc if requested
 
             total_count = query.count()
             query = query.paginate(args.page, args.results_per_page,
