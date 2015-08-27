@@ -1152,13 +1152,15 @@ class Poller:
         """
         Mark the game as done, setting all needed fields.
         Winner is a string.
-        Timestamp is in seconds.
+        Timestamp is in seconds, or it can be datetime object, or None for now.
         Returns True for convenience (`return self.gameDone(...)`).
         """
         log.debug('Marking game {} as done'.format(game))
         game.winner = winner
         game.state = 'finished'
-        if isinstance(timestamp, datetime):
+        if not timestamp:
+            game.finish_date = datetime.utcnow()
+        elif isinstance(timestamp, datetime):
             game.finish_date = timestamp
         else:
             game.finish_date = datetime.utcfromtimestamp(timestamp)
