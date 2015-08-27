@@ -180,7 +180,7 @@ class Poller:
         Shall be overriden by subclasses.
         Returns True if given game was successfully processed.
         """
-        raise NotImplemented
+        raise NotImplementedError
 class FifaPoller(Poller, LimitedApi):
     gametypes = {
         'fifa14-xboxone': 'FIFA14',

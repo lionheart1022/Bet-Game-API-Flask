@@ -1,12 +1,9 @@
 from datetime import datetime
-import math
-from sqlalchemy import sql, or_
+from sqlalchemy import or_
 from sqlalchemy.sql.expression import func
-import sqlalchemy
 from flask import g
 
 from .main import db
-import config
 
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)

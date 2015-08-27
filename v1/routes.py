@@ -1,13 +1,12 @@
-from flask import request, url_for, jsonify, current_app, g, send_file
+from flask import request, jsonify, current_app, g, send_file
 from flask.ext import restful
-from flask.ext.restful import fields, marshal, marshal_with, marshal_with_field
+from flask.ext.restful import fields, marshal
 from sqlalchemy.sql.expression import func
 
 from werkzeug.exceptions import HTTPException
 from werkzeug.exceptions import BadRequest, MethodNotAllowed, Forbidden, NotImplemented, NotFound
 
 import requests
-import eventlet
 from datetime import datetime, timedelta
 import math
 from functools import reduce
@@ -760,7 +759,7 @@ class GameResource(restful.Resource):
     @classproperty
     def postparser(cls):
         parser = RequestParser()
-        parser.add_argument('opponent_id', type=lambda k: Player.find_or_fail(k),
+        parser.add_argument('opponent_id', type=Player.find_or_fail,
                             required=True, dest='opponent')
         parser.add_argument('gamertag_creator', required=False)
         parser.add_argument('gamertag_opponent', required=False)
