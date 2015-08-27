@@ -333,6 +333,7 @@ Will return the following detials about each game type:
 * `name` - human-readable name of gametype
 * `description` - textual description of how to bet and play that specific game.
   Might be `null` if not provided / not required.
+  This field may consist of multiple paragraphs divided by `\n` endline character.
 * `supported` field - if it is `false` then the only thing you can do with this gametype
 is to fetch its image with `GET /gametypes/<type>/image`;
 * `gamemodes` lists possible gamemodes for this game type;

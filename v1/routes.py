@@ -615,7 +615,13 @@ def gametypes():
                 else:
                     data['description'] = poller.description
                 if data['description']:
-                    data['description'] = data['description'].strip()
+                    # strip enclosing whites,
+                    # then replace single \n's with spaces
+                    # and double \n's with single \n's
+                    data['description'] = '\n'.join(map(
+                        lambda s: s.replace('\n', ' '),
+                        data['description'].strip().split('\n\n')
+                    ))
                 gamedata.append(data)
                 identities[poller.identity] = poller.identity_name
             else: # DummyPoller
