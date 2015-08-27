@@ -1501,6 +1501,31 @@ For this game betting is based on match outcome.
     # so we have to poll current state of both players on game creation.
     # Then we wait for state to change for both of them
     # and to match (number of rounds, etc).
+    class Match(namedtuple('Match', [
+        'wins', 't_wins', 'ct_wins',
+        'max_players', 'kills', 'deaths',
+        'mvps', 'damage', 'rounds',
+    ])): # there are some other attributes but they are of no use for us
+        __slots__ = () # to avoid memory wasting
+        def __eq__(self, other):
+            # all of the following properties should match
+            # to consider two matches equal
+            return all(map(
+                lambda attr: getattr(self, attr) == getattr(other, attr),
+                [
+                    'rounds',
+                    'max_players',
+                ]
+            ))
+    @classmethod
+    def fetch_info(cls, userid):
+        ret = Steam.call(
+            'ISteamUserStats', 'GetUserStatsForGame', 'v0002',
+            appid=730,
+            steamid=userid, # not worry whether it string or int
+        )
+        if 'stats' not in ret:
+            return {}
     @classmethod
     def gamestarted(cls, game):
         pass
