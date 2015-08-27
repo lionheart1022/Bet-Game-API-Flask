@@ -1112,17 +1112,17 @@ class Poller:
                 gamemode = gamemode,
             )
         return ret
-    def poll(self, gametype=None, gamemode=None):
+    def poll(self, now, gametype=None, gamemode=None):
         if not gametype:
             for gametype in self.gametypes:
                 if not self.usemodes:
                     self.prepare()
-                self.poll(gametype)
+                self.poll(now, gametype)
             return
         if self.usemodes and not gamemode:
             for gamemode in self.gamemodes:
                 self.prepare()
-                self.poll(gametype, gamemode)
+                self.poll(now, gametype, gamemode)
             return
 
         query = self.games(gametype, gamemode)
@@ -1135,7 +1135,12 @@ class Poller:
             gametype, gamemode
         ))
 
+        hourly = now.minute % 60 == 0
         for game in query:
+            if not hourly and now - game.accept_date > timedelta(hours=12):
+                log.info('Skipping game {} because it is long-lasting'
+                         .format(game))
+                continue
             try:
                 if self.pollGame(game):
                     count_ended += 1
@@ -1804,16 +1809,19 @@ def poll_all():
     log.info('Polling started')
 
     # we run each 5 minutes, so round value to avoid delays interfering matching
-    startmin = datetime.utcnow().minute // 5 * 5
+    now = datetime.utcfromtimestamp(
+        datetime.utcnow().timestamp() // (5*60) * (5*60)
+    )
 
     # TODO: run them all simultaneously in background, to use 2sec api delays
     for poller in Poller.allPollers():
         if not poller.identity: # root or dummy
             continue
-        if poller.minutes and startmin % poller.minutes != 0:
+        if poller.minutes and now.minute % poller.minutes != 0:
+            log.info('Skipping poller {} because of timeframes'.format(poller))
             continue
         pin = poller()
-        pin.poll()
+        pin.poll(now)
 
     log.info('Polling done')
 
