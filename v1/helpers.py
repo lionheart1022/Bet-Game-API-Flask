@@ -395,13 +395,7 @@ class Steam(LimitedApi):
         elif 'steamcommunity.com/' in val: # url
             if '/id/' in val:
                 vanity_name = val.split('/id/',1)[1]
-                ret = cls.call(
-                    'ISteamUser', 'ResolveVanityURL', 'v0001',
-                    vanityurl=vanity_name,
-                )
-                if 'steamid' not in ret:
-                    raise ValueError('Bad vanity URL '+val)
-                return int(ret['steamid']) # it was returned as string
+                # and fall down
             elif '/profiles/' in val:
                 val = val.split('/profiles/',1)[1]
                 val = val.split('/')[0]
@@ -409,8 +403,17 @@ class Steam(LimitedApi):
             else:
                 raise ValueError(val)
         else:
-            # TODO: resolve nickname somehow?
-            raise ValueError(val)
+            # val is probably nickname for vanity URL, so -
+            vanity_name = val
+        # at this point val is probably a nickname (or vanity URL part)
+        # so try to parse it
+        ret = cls.call(
+            'ISteamUser', 'ResolveVanityURL', 'v0001',
+            vanityurl=vanity_name,
+        )
+        if 'steamid' not in ret:
+            raise ValueError('Bad vanity URL '+val)
+        return int(ret['steamid']) # it was returned as string
 
     @classmethod
     def call(cls, path, method, version, **params):
