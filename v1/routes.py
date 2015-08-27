@@ -982,7 +982,7 @@ def push_state(state, user):
     if state not in Game.state.prop.columns[0].type.enums:
         abort('Unknown state '+state, 404)
 
-    parser = Game.postparser.copy()
+    parser = GameResource.postparser.copy()
     parser.remove_argument('opponent')
     args = parser.parse_args()
 
