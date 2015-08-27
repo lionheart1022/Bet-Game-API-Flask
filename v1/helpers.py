@@ -994,7 +994,7 @@ class MyArgument(Argument):
         abort(msg, problem=self.name)
 class MyRequestParser(RequestParser):
     def __init__(self, *args, **kwargs):
-        super().__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.argument_class = MyArgument
 
 
