@@ -209,7 +209,7 @@ Returns Player resource.
 ### POST /players/<nick>/login
 Receive a login token.
 
-In url you can include either `nickname`, `ea_gamertag` or email address.
+In url you can include either `nickname`, `ea_gamertag` (or other identity) or email address.
 
 *Arguments*:
 
@@ -503,6 +503,7 @@ Resources
 	"riot_summonerName": null,
 	"steam_id": null,
 	"starcraft_uid": null,
+	"tivia_character": null,
 	"devices": [ list of Device resources ],
 	"balance": { Balance resource },
 	"gamecount": 3, // how many game invitations are there with this player, including declined and ongoing ones
@@ -535,6 +536,7 @@ Doesn't include sensitive information like `balance` or `devices`.
 	"riot_summonerName": null,
 	"steam_id": null,
 	"starcraft_uid": null,
+	"tivia_character": null,
 	... // some stats
 }
 ```
