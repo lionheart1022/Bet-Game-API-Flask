@@ -110,11 +110,15 @@ class Player(db.Model):
         return player
 
     def search(cls, filt):
+        """
+        Filt should be suitable for SQL LIKE statement.
+        E.g. "word%" will search anything starting with word.
+        """
         if len(filt) < 2:
             return []
         return cls.query.filter(
             or_(*[
-                getattr(cls, identity).like('{}%'.format(filt))
+                getattr(cls, identity).like(filt)
                 for identity in cls._identities
             ])
         )
