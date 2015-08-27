@@ -1547,6 +1547,7 @@ def notify_users(game):
     """
     msg = {
         'new': '{} invites you to compete'.format(game.creator.nickname),
+        'cancelled': '{} cancelled their invitation'.format(game.creator.nickname),
         'accepted': '{} accepted your invitation, start playing now!'
             .format(game.opponent.nickname),
         'declined': '{} declined your invitation'.format(game.opponent.nickname),
@@ -1554,7 +1555,7 @@ def notify_users(game):
     }[game.state]
 
     players = []
-    if game.state in ['new', 'finished']:
+    if game.state in ['new', 'cancelled', 'finished']:
         players.append(game.opponent)
     if game.state in ['accepted', 'declined', 'finished']:
         players.append(game.creator)
