@@ -1591,8 +1591,13 @@ class TibiaPoller(Poller):
         parser = cls.Parser(convert_charrefs=True)
         return parser(page)
 
-    def identity_check(val):
-        return val
+    @classmethod
+    def identity_check(cls, val):
+        name, deaths = cls.fetch(strip(val))
+        if not name:
+            raise ValueError('Unknown character '+val)
+        # TODO: also save world somewhere
+        return name
     def pollGame(self, game):
         pass
 
