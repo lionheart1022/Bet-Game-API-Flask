@@ -271,7 +271,7 @@ class LimitedApi:
 
     @classmethod
     def request_json(cls, *args, **kwargs):
-        ret = cls.request_raw(*args, **kwargs)
+        ret = cls.request(*args, **kwargs)
         try:
             resp = ret.json()
         except ValueError: # json decode error
