@@ -988,6 +988,7 @@ def push_state(state, user):
 
     game = Game()
     game.creator = game.opponent = user
+    game.state = state
     for k, v in args.items():
         if hasattr(game, k):
             setattr(game, k, v)
