@@ -1295,6 +1295,9 @@ class RiotPoller(Poller):
     identity_name = 'Riot Summoner Name ("name" or "region/name")'
     identity_check = Riot.summoner_check
     sameregion = True
+    description = """
+For this game betting is based on match outcome.
+    """
 
     def prepare(self):
         self.matches = {}
@@ -1386,6 +1389,9 @@ class Dota2Poller(Poller):
     identity = 'steam_id'
     identity_name = 'STEAM ID (numeric or URL)'
     identity_check = Steam.parse_id
+    description = """
+For this game betting is based on match outcome.
+    """
 
     def prepare(self):
         self.matchlists = {}
@@ -1477,6 +1483,9 @@ class StarCraftPoller(Poller):
     identity_name = 'StarCraft profile URL from battle.net or sc2ranks.com'
     identity_check = StarCraft.check_uid
     sameregion = True
+    description = """
+For this game betting is based on match outcome.
+    """
 
     def prepare(self):
         self.lists = {}
