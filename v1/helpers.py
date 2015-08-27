@@ -1506,6 +1506,10 @@ For this game betting is based on match outcome.
     # so we have to poll current state of both players on game creation.
     # Then we wait for state to change for both of them
     # and to match (number of rounds, etc).
+
+    # FIXME: poll more often!
+    # Because else last match info may be already overwritten when we poll it.
+
     class Match(namedtuple('Match', [
         'wins', 't_wins', 'ct_wins',
         'max_players', 'kills', 'deaths',
@@ -1518,10 +1522,7 @@ For this game betting is based on match outcome.
             # to consider two matches equal
             return all(map(
                 lambda attr: getattr(self, attr) == getattr(other, attr),
-                [
-                    'rounds',
-                    'max_players',
-                ]
+                [ 'rounds', 'max_players', ]
             ))
     @classmethod
     def fetch_match(cls, userid):
@@ -1535,6 +1536,7 @@ For this game betting is based on match outcome.
             stats[stat if stat.startswith('total') else 'last_match_'+stat]
             for stat in cls.Match._fields
         ])
+
     @classmethod
     def gamestarted(cls, game):
         # store "<crea_total>:<oppo_total>" to know when match was played
@@ -1545,7 +1547,33 @@ For this game betting is based on match outcome.
     def prepare(self):
         self.matches = {}
     def pollGame(self, game):
-        pass
+        crea = SimpleNamespace(tag=game.gamertag_creator)
+        oppo = SimpleNamespace(tag=game.gamertag_opponent)
+        crea.initial, oppo.initial = map(int, game.metadata.split(':'))
+        for user in crea, oppo:
+            if user.tag not in self.matches:
+                self.matches[user.tag] = self.fetch_match(user.tag)
+            user.match = self.matches[user.tag]
+            if user.match.total_matches_played == user.total:
+                # total_matches_played didn't change since game was started,
+                # so it is not finished yet
+                log.info('total for {} is still {}, skipping this game'.format(
+                    user.total, user.tag,
+                ))
+                return False
+            user.won = user.match.wins > user.match.rounds/2
+        if crea.match != oppo.match: # this compares only common properties
+            return False # they participated different matches for now
+        if crea.won == oppo.won:
+            winner = 'draw'
+        else:
+            user = 'creator' if crea.won else 'opponent'
+        return self.gameDone(
+            game,
+            winner,
+            None, # now - as we don't know exact match ending time
+        )
+
 class StarCraftPoller(Poller):
     gametypes = {
         'starcraft': 'Starcraft II',
