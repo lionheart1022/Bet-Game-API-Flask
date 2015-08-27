@@ -41,11 +41,11 @@ class PlayerResource(restful.Resource):
             ('facebook_token', federatedRenewFacebook, False), # should be last to avoid extra queries
             ('bio', None, False),
         ]
+        identities = set()
         for poller in Poller.allPollers():
             if poller.identity:
-                fieldlist.append(
-                    (poller.identity, poller.identity_check, False)
-                )
+                identities.add((poller.identity, poller.identity_check, False))
+        fieldlist.extend(identities)
         for name, type, required in fieldlist:
             if hasattr(Player, name):
                 type = string_field(getattr(Player, name), ftype=type)
