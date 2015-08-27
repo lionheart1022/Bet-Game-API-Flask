@@ -151,7 +151,27 @@ Returns object with Player resource and auth token. Returns `201` HTTP code.
 ```
 
 ### GET /players
-Retrieve list of players. Not implemented.
+Retrieve list of players.
+This query is paginated.
+By default, it returns all players registered, but output can be filtered.
+
+*Arguments*:
+
+* `filter` - text with which any of player identities should start for that player to be included.
+* `results_per_page` defaults to 10, max is 50
+* `page` - which page to return, defaults to 1
+
+Result:
+```json
+{
+	"players": [
+		// list of Player resources
+	],
+	"num_results": count of totally available results,
+	"total_pages": 10,
+	"page": 1
+}
+```
 
 ### GET /players/<id>
 Retrieve given player's data.
