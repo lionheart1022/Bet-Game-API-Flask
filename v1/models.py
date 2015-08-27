@@ -109,6 +109,7 @@ class Player(db.Model):
             raise ValueError('Player {} is not registered on BetGame'.format(key))
         return player
 
+    @classmethod
     def search(cls, filt, operation='like'):
         """
         Filt should be suitable for SQL LIKE statement.
