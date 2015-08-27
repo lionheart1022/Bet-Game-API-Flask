@@ -1051,6 +1051,7 @@ class Poller:
     # region is stored as slash delimited prefix of gamertag.
     twitch = 0 # do we support twitch for this gametype?
     # 0 - not supported, 1 - optional, 2 - mandatory
+    identity = None
 
     @classmethod
     def findPoller(cls, gametype):
