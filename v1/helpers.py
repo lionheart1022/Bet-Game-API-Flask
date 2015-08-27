@@ -1046,7 +1046,7 @@ class CommaListField(restful.fields.Raw):
         return val.split(',')
 
 
-### Polling and notification ###
+### Polling ###
 class Poller:
     gametypes = {} # list of supported types for this class
     gamemodes = {} # default
@@ -1060,6 +1060,7 @@ class Poller:
     # Might be dictionary if description should vary
     # for different gametypes in same poller.
     description = None
+    minutes = 0 # by default, poll as often as possible
 
     @classmethod
     def findPoller(cls, gametype):
@@ -1226,6 +1227,7 @@ class FifaPoller(Poller, LimitedApi):
     identity_check = gamertag_field
     usemodes = True
     twitch = 1
+    minutes = 30 # poll at most each 30 minutes
 
     def prepare(self):
         self.gamertags = {}
@@ -1801,9 +1803,14 @@ class DummyPoller(Poller):
 def poll_all():
     log.info('Polling started')
 
+    # we run each 5 minutes, so round value to avoid delays interfering matching
+    startmin = datetime.utcnow().minute // 5 * 5
+
     # TODO: run them all simultaneously in background, to use 2sec api delays
     for poller in Poller.allPollers():
-        if not poller.gametypes or not poller.identity: # root or dummy
+        if not poller.identity: # root or dummy
+            continue
+        if poller.minutes and startmin % poller.minutes != 0:
             continue
         pin = poller()
         pin.poll()
