@@ -1534,9 +1534,7 @@ class TibiaPoller(Poller):
         def handle_starttag(self, tag, attrs):
             self.tags.append(tag)
             self.attrs = dict(attrs)
-            log.debug('tag: {} {}'.format(self.tag, self.attrs))
         def handle_data(self, data):
-            log.debug('data: {}'.format(data))
             if self.name is None and self.tag == 'td' and data == 'Name:':
                 self.name = ''
                 return
@@ -1572,7 +1570,6 @@ class TibiaPoller(Poller):
                 if self.tag == 'a':
                     self.players.append(data)
         def handle_endtag(self, tag):
-            log.debug('endtag: {}'.format(tag))
             self.tags.pop()
             if self.deaths_found and tag == 'table':
                 self.deaths.append(
@@ -1590,7 +1587,10 @@ class TibiaPoller(Poller):
             name = playername,
         )).text
         parser = cls.Parser(convert_charrefs=True)
-        return parser(page)
+        ret = parser(page)
+        log.debug('TiviaPoller: fetching character {}: {}'.format(
+            playername, ret))
+        return ret
 
     @classmethod
     def identity_check(cls, val):
