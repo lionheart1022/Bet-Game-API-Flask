@@ -619,7 +619,10 @@ def gametypes():
                     # then replace single \n's with spaces
                     # and double \n's with single \n's
                     data['description'] = '\n'.join(map(
-                        lambda s: s.replace('\n', ' '),
+                        lambda para: ' '.join(map(
+                            lambda line: line.strip(),
+                            para.split('\n')
+                        )),
                         data['description'].strip().split('\n\n')
                     ))
                 gamedata.append(data)
