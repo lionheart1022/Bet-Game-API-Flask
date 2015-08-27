@@ -1518,14 +1518,20 @@ For this game betting is based on match outcome.
                 ]
             ))
     @classmethod
-    def fetch_info(cls, userid):
+    def fetch_stats(cls, userid):
         ret = Steam.call(
             'ISteamUserStats', 'GetUserStatsForGame', 'v0002',
-            appid=730,
+            appid=730, # CS:GO
             steamid=userid, # not worry whether it string or int
-        )
-        if 'stats' not in ret:
-            return {}
+        ).get('playerstats', {})
+        return {s['name']: s['value'] for s in ret.get('stats', [])}
+    @classmethod
+    def fetch_match(cls, userid):
+        stats = cls.fetch_stats(userid)
+        return cls.Match(*[
+            stats['last_match_'+stat]
+            for stat in cls.Match._fields
+        ])
     @classmethod
     def gamestarted(cls, game):
         pass
