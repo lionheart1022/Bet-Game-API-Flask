@@ -24,7 +24,7 @@ class ReverseProxied:
             path_info = env['PATH_INFO']
             print('pi: %s, sn: %s' % (path_info, script_name))
             if path_info.startswith(script_name):
-                env['PATH_INFO'] = path_info[len(script_name):] or '/'
+                env['PATH_INFO'] = path_info[len(script_name):]
         scheme = env.get('HTTP_X_SCHEME', '')
         if scheme:
             env['wsgi.url_scheme'] = scheme
