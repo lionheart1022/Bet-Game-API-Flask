@@ -739,11 +739,8 @@ class GameResource(restful.Resource):
             page = args.page,
         )
 
-    @require_auth
-    def post(self, user, id=None):
-        if id:
-            raise MethodNotAllowed
-
+    @classproperty
+    def postparser(cls):
         parser = RequestParser()
         parser.add_argument('opponent_id', type=lambda k: Player.find_or_fail(k),
                             required=True, dest='opponent')
@@ -755,7 +752,13 @@ class GameResource(restful.Resource):
         parser.add_argument('gametype', choices=Poller.all_gametypes,
                             required=True)
         parser.add_argument('bet', type=float, required=True)
-        args = parser.parse_args()
+        return parser
+    @require_auth
+    def post(self, user, id=None):
+        if id:
+            raise MethodNotAllowed
+
+        args = self.postparser.parse_args()
         args.gamemode = None
 
         poller = Poller.findPoller(args.gametype)
@@ -973,25 +976,23 @@ class BetaResource(restful.Resource):
 
 
 # Debugging-related endpoints
-@app.route('/debug/push_for_game/<int:id>', methods=['POST'])
-def push_for_game(id):
-    parser = RequestParser()
-    parser.add_argument('state', type=str,
-                        choices=Game.state.prop.columns[0].type.enums,
-                        required=False)
+@app.route('/debug/push_state/<state>', methods=['POST'])
+@require_auth
+def push_state(state, user):
+    if state not in Game.state.prop.columns[0].type.enums:
+        abort('Unknown state '+state, 404)
+
+    parser = Game.postparser.copy()
+    parser.remove_argument('opponent')
     args = parser.parse_args()
 
-    game = Game.query.get(id)
-    if not game:
-        raise NotFound
-
-    if args.state:
-        oldstate, game.state = game.state, args.state
+    game = Game()
+    game.creator = game.opponent = user
+    for k, v in args.items():
+        if hasattr(game, k):
+            setattr(game, k, v)
 
     notify_users(game, nomail=True)
-
-    if args.state:
-        game.state = oldstate
 
     return jsonify(success=True)
 
