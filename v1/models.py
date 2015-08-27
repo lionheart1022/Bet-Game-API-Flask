@@ -109,6 +109,15 @@ class Player(db.Model):
             raise ValueError('Player {} is not registered on BetGame'.format(key))
         return player
 
+    def search(cls, filt):
+        p = None
+        for identity in cls._identities:
+            p = cls.query.filter_by(
+                getattr(cls, identity).like('{}%'.format(filt)),
+            )
+            if p.count():
+                return p
+        return None
 
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
