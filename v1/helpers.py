@@ -1158,7 +1158,10 @@ class Poller:
         log.debug('Marking game {} as done'.format(game))
         game.winner = winner
         game.state = 'finished'
-        game.finish_date = datetime.utcfromtimestamp(timestamp)
+        if isinstance(timestamp, datetime):
+            game.finish_date = timestamp
+        else:
+            game.finish_date = datetime.utcfromtimestamp(timestamp)
         db.session.commit() # to avoid observer overwriting it before us..
 
         # move funds...
