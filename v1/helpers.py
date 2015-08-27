@@ -1539,7 +1539,7 @@ def poll_all():
 
 # Notification
 apns_session = None
-def notify_users(game):
+def notify_users(game, nomail=False):
     """
     This method sends PUSH notifications about game state change
     to all interested users.
@@ -1628,5 +1628,6 @@ def notify_users(game):
     if message: # if had any receivers
         send_push(message)
     # and send email if applicable
-    send_mail(game)
+    if not nomail:
+        send_mail(game)
 
