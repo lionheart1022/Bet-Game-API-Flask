@@ -270,7 +270,7 @@ class LimitedApi:
     DELAY = timedelta(seconds=2)
 
     @classmethod
-    def request(cls, *args, **kwargs):
+    def request_json(cls, *args, **kwargs):
         ret = cls.request_raw(*args, **kwargs)
         try:
             resp = ret.json()
@@ -285,7 +285,7 @@ class LimitedApi:
         resp['_code'] = ret.status_code
 
         return resp
-    def request_raw(cls, *args, **kwargs):
+    def request(cls, *args, **kwargs):
         now = datetime.utcnow()
         last = getattr(cls, '_last', None)
         if last:
@@ -350,7 +350,7 @@ class Riot(LimitedApi):
             raise ValueError('Unknown region %s' % region)
 
         params['api_key'] = config.RIOT_KEY
-        return cls.request(
+        return cls.request_json(
             'GET',
             cls.URL.format(
                 region=region,
@@ -415,7 +415,7 @@ class Steam(LimitedApi):
     def call(cls, path, method, version, **params):
         # TODO: on 503 error, retry in 30 seconds
         params['key'] = config.STEAM_KEY
-        ret = cls.request(
+        ret = cls.request_json(
             'GET',
             'https://api.steampowered.com/{}/{}/{}/'.format(
                 path,
@@ -452,7 +452,7 @@ class BattleNet(LimitedApi):
         host = cls.HOSTS[region]
         url = 'https://{host}/{game}/{endpoint}'.format(**locals())
         params['apikey'] = config.BATTLENET_KEY
-        return cls.request('GET', url, params=params)
+        return cls.request_json('GET', url, params=params)
 class StarCraft(BattleNet):
     @classmethod
     def find_uid(cls, val):
@@ -460,7 +460,7 @@ class StarCraft(BattleNet):
         Search given user ID on sc2ranks site.
         """
         # TODO: api seems not functional
-        ret = cls.request(
+        ret = cls.request_json(
             'POST',
             'http://api.sc2ranks.com/v2/characters/search',
         )
