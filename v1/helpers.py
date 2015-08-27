@@ -1598,8 +1598,45 @@ class TibiaPoller(Poller):
             raise ValueError('Unknown character '+val)
         # TODO: also save world somewhere
         return name
+
+    def prepare(self):
+        self.players = {}
+    def getDeaths(self, name):
+        if name not in self.players:
+            _, deaths = self.fetch(name)
+            self.players[name] = deaths
+        return self.players[name]
     def pollGame(self, game):
-        pass
+        crea = SimpleNamespace(uid=game.gamertag_creator, role='creator')
+        oppo = SimpleNamespace(uid=game.gamertag_opponent, role='opponent')
+        crea.other, oppo.other = oppo, crea
+        for user in crea, oppo:
+            user.deaths = self.getDeaths(user.uid)
+            user.lost = False
+            user.losedate = None
+        for user, other in (crea, oppo), (oppo, crea):
+            for date, msg, killers in user.deaths:
+                if date < game.accept_date:
+                    continue
+                if other.name in killers:
+                    user.lost = True
+                    if not user.losedate:
+                        user.losedate = date
+        for user in crea, oppo:
+            if user.lost:
+                winner = user.other.role
+                date = user.losedate
+                if user.other.lost: # killed each other?
+                    # winner is the one who did it first
+                    if user.losedate == user.other.losedate:
+                        winner = 'draw'
+                    elif user.losedate > user.other.losedate:
+                        # this one won!
+                        date = user.other.losedate
+                        winner = user.role
+                    # else - killed each other but this was killed first
+                return self.gameDone(game, user.other.role, user.losedate)
+        return False
 
 class DummyPoller(Poller):
     """
