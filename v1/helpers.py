@@ -271,6 +271,21 @@ class LimitedApi:
 
     @classmethod
     def request(cls, *args, **kwargs):
+        ret = cls.request_raw(*args, **kwargs)
+        try:
+            resp = ret.json()
+        except ValueError: # json decode error
+            # error decoding json
+            log.exception('{} API: not a json in reply, code {}, text {}'.format(
+                cls.__name__,
+                ret.status_code,
+                ret.text,
+            ))
+            resp = {}
+        resp['_code'] = ret.status_code
+
+        return resp
+    def request_raw(cls, *args, **kwargs):
         now = datetime.utcnow()
         last = getattr(cls, '_last', None)
         if last:
@@ -285,20 +300,7 @@ class LimitedApi:
 
         # now that we slept if needed, call Requests
         # and handle any json-related problems
-        ret = requests.request(*args, **kwargs)
-        try:
-            resp = ret.json()
-        except ValueError: # json decode error
-            # error decoding json
-            log.exception('{} API: not a json in reply, code {}, text {}'.format(
-                cls.__name__,
-                ret.status_code,
-                ret.text,
-            ))
-            resp = {}
-        resp['_code'] = ret.status_code
-
-        return resp
+        return requests.request(*args, **kwargs)
 
 class Riot(LimitedApi):
     URL = 'https://{region}.api.pvp.net/api/lol/{region}/{version}/{method}'
