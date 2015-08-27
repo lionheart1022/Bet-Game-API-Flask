@@ -1508,7 +1508,7 @@ class StarCraftPoller(Poller):
                                   'opponent')
                     return self.gameDone(game, winner, mc['date'])
 
-class TibiaPoller(Poller):
+class TibiaPoller(Poller, LimitedApi):
     gametypes = {
         'tibia': 'Tibia',
     }
@@ -1584,10 +1584,14 @@ class TibiaPoller(Poller):
         If player found, returns tuple of normalized name and list of deaths.
         If player not found, returns (None, None).
         """
-        page = requests.get('http://www.tibia.com/community/', params=dict(
-            subtopic = 'characters',
-            name = playername,
-        )).text
+        page = cls.request(
+            'GET',
+            'http://www.tibia.com/community/',
+            params=dict(
+                subtopic = 'characters',
+                name = playername,
+            ),
+        ).text
         parser = cls.Parser(convert_charrefs=True)
         ret = parser(page)
         log.debug('TiviaPoller: fetching character {}: {}'.format(
