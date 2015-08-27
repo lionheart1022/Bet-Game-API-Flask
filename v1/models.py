@@ -69,6 +69,10 @@ class Player(db.Model):
         return wins / count
 
 
+    _identities = [
+        'nickname',
+        'ea_gamertag', 'riot_summonerName', 'steam_id',
+    ]
     @classmethod
     def find(cls, key):
         """
@@ -92,14 +96,10 @@ class Player(db.Model):
         try:
             p = cls.query.get(int(key))
         except ValueError: pass
-        if not p:
-            p = cls.query.filter_by(nickname=key).first()
-        if not p:
-            p = cls.query.filter_by(ea_gamertag=key).first()
-        if not p:
-            p = cls.query.filter_by(riot_summonerName=key).first()
-        if not p:
-            p = cls.query.filter_by(steam_id=key).first()
+        for identity in cls._identities:
+            if p:
+                return p
+            p = cls.query.filter_by(**{identity: key}).first()
         return p
 
     @classmethod
