@@ -397,7 +397,7 @@ class Steam(LimitedApi):
                 vanity_name = val.split('/id/',1)[1]
                 ret = cls.call(
                     'ISteamUser', 'ResolveVanityURL', 'v0001',
-                    dict(vanityurl=vanity_name),
+                    vanityurl=vanity_name,
                 )
                 if 'steamid' not in ret:
                     raise ValueError('Bad vanity URL '+val)
