@@ -1052,6 +1052,10 @@ class Poller:
     twitch = 0 # do we support twitch for this gametype?
     # 0 - not supported, 1 - optional, 2 - mandatory
     identity = None
+    # human-readable description of how to play this game.
+    # Might be dictionary if description should vary
+    # for different gametypes in same poller.
+    description = None
 
     @classmethod
     def findPoller(cls, gametype):
