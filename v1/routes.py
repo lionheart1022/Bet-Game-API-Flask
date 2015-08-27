@@ -983,7 +983,7 @@ def push_state(state, user):
         abort('Unknown state '+state, 404)
 
     parser = GameResource.postparser.copy()
-    parser.remove_argument('opponent')
+    parser.remove_argument('opponent_id')
     args = parser.parse_args()
 
     game = Game()
