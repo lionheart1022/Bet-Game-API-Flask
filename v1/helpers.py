@@ -1092,6 +1092,15 @@ class Poller:
             modes.update(sub.all_gamemodes)
         return modes
 
+    @classmethod
+    def gameStarted(cls, game):
+        """
+        This will be called once game invitation is accepted for this gametype.
+        Default implementation does nothing,
+        but subclass may want to save some information about current game state
+        in the passed game object.
+        """
+        pass
     def games(self, gametype, gamemode=None):
         ret = Game.query.filter_by(
             gametype = gametype,
