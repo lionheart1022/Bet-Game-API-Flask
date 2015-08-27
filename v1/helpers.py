@@ -367,18 +367,18 @@ class Steam(LimitedApi):
     DELAY = timedelta(seconds=1)
     STEAM_ID_64_BASE = 76561197960265728
 
-    @staticmethod
+    @classmethod
     def id_to_32(cls, val):
         if val > cls.STEAM_ID_64_BASE:
             val -= cls.STEAM_ID_64_BASE
         return val
-    @staticmethod
+    @classmethod
     def id_to_64(cls, val):
         if val < cls.STEAM_ID_64_BASE:
             val += cls.STEAM_ID_64_BASE
         return val
 
-    @staticmethod
+    @classmethod
     def parse_id(cls, val):
         # convert it to int if applicable
         try:
