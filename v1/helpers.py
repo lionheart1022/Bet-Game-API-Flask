@@ -14,6 +14,7 @@ from collections import OrderedDict, namedtuple
 from types import SimpleNamespace
 import os
 from html.parser import HTMLParser
+from dateutil.parser import parse as date_parse
 import eventlet
 import jwt
 import hashlib, uuid
@@ -1563,7 +1564,7 @@ class TibiaPoller(Poller):
                     self.deaths.append(
                         (self.date, self.msg, self.players)
                     )
-                self.date = data
+                self.date = date_parse(data.replace('\xA0', ' '))
                 self.msg = ''
                 self.players = []
             elif self.date:

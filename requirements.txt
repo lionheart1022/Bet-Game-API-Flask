@@ -15,3 +15,5 @@ aniso8601
 apns-clerk
 
 pillow
+
+python_dateutil
