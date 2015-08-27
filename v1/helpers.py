@@ -285,6 +285,7 @@ class LimitedApi:
         resp['_code'] = ret.status_code
 
         return resp
+    @classmethod
     def request(cls, *args, **kwargs):
         now = datetime.utcnow()
         last = getattr(cls, '_last', None)
