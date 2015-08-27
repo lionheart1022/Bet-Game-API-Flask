@@ -128,6 +128,10 @@ class PlayerResource(restful.Resource):
 
             parser = RequestParser()
             parser.add_argument('filter')
+            parser.add_argument('filt_op',
+                                choices=['startswith', 'contains'],
+                                default='startswith',
+                                )
             #parser.add_argument('sort', ..)
             #parser.add_argument('names_only', type=boolean_field)
             parser.add_argument('page', type=int, default=1)
@@ -138,7 +142,7 @@ class PlayerResource(restful.Resource):
                 abort('[results_per_page]: max is 50')
 
             if args.filter:
-                query = Player.search(args.filter+'%')
+                query = Player.search(args.filter, args.filt_op)
             else:
                 query = Player.query
 

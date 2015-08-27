@@ -157,7 +157,8 @@ By default, it returns all players registered, but output can be filtered.
 
 *Arguments*:
 
-* `filter` - text with which any of player identities should start for that player to be included.
+* `filter` - text against which any of player identities should match for that player to be included.
+* `filt_op` - operation for filter matching, choices are `startswith` and `contains`, default is `startswith`.
 * `results_per_page` defaults to 10, max is 50
 * `page` - which page to return, defaults to 1
 
