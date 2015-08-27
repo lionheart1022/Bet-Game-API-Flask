@@ -149,7 +149,7 @@ class Game(db.Model):
 
     gametype = db.Column(db.String(64), nullable=False)
     gamemode = db.Column(db.String(64), nullable=False)
-    metadata = db.Column(db.Text) # for poller to use
+    meta = db.Column(db.Text) # for poller to use
 
     bet = db.Column(db.Float, nullable=False)
     create_date = db.Column(db.DateTime, default=datetime.utcnow)

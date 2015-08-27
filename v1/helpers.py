@@ -1545,7 +1545,7 @@ class CSGOPoller(Poller):
     @classmethod
     def gamestarted(cls, game):
         # store "<crea_total>:<oppo_total>" to know when match was played
-        meta = ':'.join(map(
+        game.meta = ':'.join(map(
             lambda p: str(cls.fetch_match(player).total_matches_played),
             (game.gamertag_creator, game.gamertag_opponent)
         ))
@@ -1554,7 +1554,7 @@ class CSGOPoller(Poller):
     def pollGame(self, game):
         crea = SimpleNamespace(tag=game.gamertag_creator)
         oppo = SimpleNamespace(tag=game.gamertag_opponent)
-        crea.initial, oppo.initial = map(int, game.metadata.split(':'))
+        crea.initial, oppo.initial = map(int, game.meta.split(':'))
         for user in crea, oppo:
             if user.tag not in self.matches:
                 self.matches[user.tag] = self.fetch_match(user.tag)
