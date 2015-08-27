@@ -1504,6 +1504,17 @@ class StarCraftPoller(Poller):
                                   'opponent')
                     return self.gameDone(game, winner, mc['date'])
 
+class TibiaPoller(Poller):
+    gametypes = {
+        'tibia': 'Tibia',
+    }
+    identity = 'tibia_character',
+    identity_name = 'Tibia Character name'
+    def identity_check(val):
+        pass
+    def pollGame(self, game):
+        pass
+
 class DummyPoller(Poller):
     """
     This poller covers all game types not supported yet.
