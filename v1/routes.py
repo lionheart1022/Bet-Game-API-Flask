@@ -33,19 +33,20 @@ class PlayerResource(restful.Resource):
         parser = RequestParser()
         partial = parser.partial = RequestParser()
         login = parser.login = RequestParser()
-        for name, type, required in [
+        fieldlist = [
             ('_force', gamertag_force_field, False),
             ('nickname', None, True),
             ('email', email, True),
             ('password', encrypt_password, True),
             ('facebook_token', federatedRenewFacebook, False), # should be last to avoid extra queries
             ('bio', None, False),
-
-            ('ea_gamertag', gamertag_field, False),
-            ('riot_summonerName', Riot.summoner_check, False),
-            ('steam_id', Steam.parse_id, False),
-            ('starcraft_uid', StarCraft.check_uid, False),
-        ]:
+        ]
+        for poller in Poller.allPollers():
+            if poller.identity:
+                fieldlist.append(
+                    (poller.identity, poller.identity_check, False)
+                )
+        for name, type, required in fieldlist:
             if hasattr(Player, name):
                 type = string_field(getattr(Player, name), ftype=type)
             parser.add_argument(
@@ -184,7 +185,7 @@ class PlayerResource(restful.Resource):
                 setattr(player, key, val)
         if 'userpic' in request.files:
             UserpicResource.upload(request.files['userpic'], player)
-        # TODO: validate fb token and nick
+        # TODO: validate fb token?
         db.session.add(player)
         db.session.commit()
 
