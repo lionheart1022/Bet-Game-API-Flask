@@ -474,7 +474,7 @@ def stream_done(stream, winner, timestamp):
     Runs on master node only.
     Marks given stream as done, and notifies clients etc.
     """
-    from v1.helpers import Poller
+    from v1.polling import Poller
     from v1.models import Game
 
     for gid in itertools.chain(
