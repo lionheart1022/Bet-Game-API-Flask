@@ -1534,7 +1534,10 @@ For this game betting is based on match outcome.
         ])
     @classmethod
     def gamestarted(cls, game):
-        pass
+        meta = ':'.join(map(
+            lambda p: str(cls.fetch_stats(player)['total_matches_played']),
+            (game.gamertag_creator, game.gamertag_opponent)
+        ))
     def prepare(self):
         self.matches = {}
     def pollGame(self, game):
