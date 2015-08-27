@@ -1505,6 +1505,7 @@ For this game betting is based on match outcome.
         'wins', 't_wins', 'ct_wins',
         'max_players', 'kills', 'deaths',
         'mvps', 'damage', 'rounds',
+        'total_matches_played',
     ])): # there are some other attributes but they are of no use for us
         __slots__ = () # to avoid memory wasting
         def __eq__(self, other):
@@ -1529,7 +1530,7 @@ For this game betting is based on match outcome.
     def fetch_match(cls, userid):
         stats = cls.fetch_stats(userid)
         return cls.Match(*[
-            stats['last_match_'+stat]
+            stats[stat if stat.startswith('total') else 'last_match_'+stat]
             for stat in cls.Match._fields
         ])
     @classmethod
