@@ -996,7 +996,7 @@ def push_state(state, user):
     notify_users(game, nomail=True)
 
     return jsonify(
-        success=True,
+        pushed=True,
         game = marshal(game, GameResource.fields)
     )
 
