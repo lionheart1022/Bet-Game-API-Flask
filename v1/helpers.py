@@ -13,6 +13,7 @@ import math
 from collections import OrderedDict, namedtuple
 from types import SimpleNamespace
 import os
+from html.parser import HTMLParser
 import eventlet
 import jwt
 import hashlib, uuid
@@ -1510,8 +1511,81 @@ class TibiaPoller(Poller):
     }
     identity = 'tibia_character',
     identity_name = 'Tibia Character name'
+
+    class Parser(HTMLParser):
+        def __call__(self, page):
+            self.tags = []
+            self.char_404 = False
+            self.deaths_found = False
+            self.deaths = []
+            try:
+                self.feed(page)
+                self.close()
+            except StopIteration:
+                pass
+            if self.char_404:
+                return False
+            return self.deaths
+        @property
+        def tag(self):
+            return self.tags[-1] if self.tags else None
+        def handle_starttag(self, tag, attrs):
+            self.tags.append(tag)
+            self.attrs = dict(attrs)
+            log.debug('tag: {} {}'.format(self.tag, self.attrs))
+        def handle_data(self, data):
+            log.debug('data: {}'.format(data))
+            if self.tag == 'b':
+                if data == 'Could not find character':
+                    self.char_404 = True
+                    raise StopIteration
+                if data == 'Character Deaths':
+                    self.deaths_found = True
+                    self.date = None
+                    self.msg = None
+                    self.players = None
+                return
+            if not self.deaths_found:
+                return
+            # here deaths_found == True
+            if(self.tag == 'td'
+               and self.attrs.get('width') == '25%'
+               and self.attrs.get('valign') == 'top'):
+                # date
+                if self.msg:
+                    self.deaths.append(
+                        (self.date, self.msg, self.players)
+                    )
+                self.date = data
+                self.msg = ''
+                self.players = []
+            elif self.date:
+                self.msg += data
+                if self.tag == 'a':
+                    self.players.append(data)
+        def handle_endtag(self, tag):
+            log.debug('endtag: {}'.format(tag))
+            self.tags.pop()
+            if self.deaths_found and tag == 'table':
+                self.deaths.append(
+                    (self.date, self.msg, self.players)
+                )
+                raise StopIteration
+    @classmethod
+    def fetch(cls, playername):
+        """
+        Returns either False (if player not found)
+        or ...
+        """
+        page = requests.get('http://www.tibia.com/community/', params=dict(
+            subtopic = 'characters',
+            name = playername,
+        )).text
+        parser = cls.Parser(convert_charrefs=True)
+        return parser(page)
+
     def identity_check(val):
-        pass
+        return val
     def pollGame(self, game):
         pass
 
