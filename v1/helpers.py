@@ -1515,6 +1515,7 @@ class TibiaPoller(Poller):
     class Parser(HTMLParser):
         def __call__(self, page):
             self.tags = []
+            self.name = None
             self.char_404 = False
             self.deaths_found = False
             self.deaths = []
@@ -1524,8 +1525,8 @@ class TibiaPoller(Poller):
             except StopIteration:
                 pass
             if self.char_404:
-                return False
-            return self.deaths
+                return None, None
+            return self.name, self.deaths
         @property
         def tag(self):
             return self.tags[-1] if self.tags else None
@@ -1535,6 +1536,12 @@ class TibiaPoller(Poller):
             log.debug('tag: {} {}'.format(self.tag, self.attrs))
         def handle_data(self, data):
             log.debug('data: {}'.format(data))
+            if self.name is None and self.tag == 'td' and data == 'Name:':
+                self.name = ''
+                return
+            if self.name == '' and self.tag == 'td':
+                self.name = data
+                return
             if self.tag == 'b':
                 if data == 'Could not find character':
                     self.char_404 = True
@@ -1574,8 +1581,8 @@ class TibiaPoller(Poller):
     @classmethod
     def fetch(cls, playername):
         """
-        Returns either False (if player not found)
-        or ...
+        If player found, returns tuple of normalized name and list of deaths.
+        If player not found, returns (None, None).
         """
         page = requests.get('http://www.tibia.com/community/', params=dict(
             subtopic = 'characters',
