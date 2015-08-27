@@ -1314,7 +1314,7 @@ class RiotPoller(Poller):
     identity_check = Riot.summoner_check
     sameregion = True
     description = """
-For this game betting is based on match outcome.
+        For this game betting is based on match outcome.
     """
 
     def prepare(self):
@@ -1408,7 +1408,10 @@ class Dota2Poller(Poller):
     identity_name = 'STEAM ID (numeric or URL)'
     identity_check = Steam.parse_id
     description = """
-For this game betting is based on match outcome.
+        For this game betting is based on match outcome.
+        If both players played for the same fraction (radiant/dire),
+        game is considered draw.
+        Else winner is the player whose team won.
     """
 
     def prepare(self):
@@ -1500,7 +1503,9 @@ class CSGOPoller(Poller):
     identity_name = 'STEAM ID (numeric or URL)'
     identity_check = Steam.parse_id
     description = """
-For this game betting is based on match outcome.
+        For this game betting is based on match outcome.
+        If both players played in the same team, game is considered draw.
+        Else winner is the player whose team won.
     """
     # We cannot determine time of last match,
     # so we have to poll current state of both players on game creation.
@@ -1584,7 +1589,7 @@ class StarCraftPoller(Poller):
     identity_check = StarCraft.check_uid
     sameregion = True
     description = """
-For this game betting is based on match outcome.
+        For this game betting is based on match outcome.
     """
 
     def prepare(self):
@@ -1628,18 +1633,19 @@ class TibiaPoller(Poller, LimitedApi):
     }
     identity = 'tibia_character'
     identity_name = 'Tibia Character name'
-    description = """For Tibia, you bet on PvP battle outcome.
-After you and your friend make & accept bet on your Tibia character names,
-system will monitor if one of that characters dies.
-The one who died first from the hand of another character
-is considered looser,
-even if the killer was not the only cause of death
-(e.g. cooperated with monster or other player).
+    description = """
+        For Tibia, you bet on PvP battle outcome.
+        After you and your friend make & accept bet on your Tibia character names,
+        system will monitor if one of that characters dies.
+        The one who died first from the hand of another character
+        is considered looser,
+        even if the killer was not the only cause of death
+        (e.g. cooperated with monster or other player).
 
-If both characters killed each other in the same second (e.g. with poison),
-game result will be considered draw.
+        If both characters killed each other in the same second (e.g. with poison),
+        game result will be considered draw.
 
-Important: both characters should reside in the same world.
+        Important: both characters should reside in the same world.
     """
 
     class Parser(HTMLParser):
