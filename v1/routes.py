@@ -1057,3 +1057,9 @@ def push_state(state, user):
         game = marshal(game, GameResource.fields)
     )
 
+@app.route('/debug/echo')
+def debug_echo():
+    return '<{}>\n{}\n'.format(
+        repr(request.get_data()),
+        repr(request.form),
+    )
