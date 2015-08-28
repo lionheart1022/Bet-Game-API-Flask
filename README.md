@@ -511,6 +511,7 @@ Resources
 	"tivia_character": null,
 	"devices": [ list of Device resources ],
 	"balance": { Balance resource },
+	"transactions: [ list of Transaction resources ],
 	"gamecount": 3, // how many game invitations are there with this player, including declined and ongoing ones
 	"winrate": 0.4, // 0..1 - percentage of games won; can be `null` if there are no finished games!
 }
@@ -522,6 +523,18 @@ Resources
 	"full": 135.2, // how many coins are there
 	"locked": 10, // locked coins are ones placed on the table for some active games
 	"available": 125.2, // how many coins can you freely use or withdraw - this is full minus locked
+}
+```
+
+### Transaction resource
+```json
+{
+	"id": 123, // internal identifier, e.g. for tech support usage
+	"date": "some datetime", // when this transaction happened
+	"type": "withdraw", // one of "deposit", "withdraw", "won", "lost",
+	"sum": -100, // amount in coins (either positive or negative, depending on type)
+	"game_id": 135, // for win or lost only - related game id
+	"comment": "Converted to 100 USD" // for deposit/withdraw operations
 }
 ```
 
