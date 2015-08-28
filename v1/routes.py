@@ -521,7 +521,7 @@ def balance_withdraw(user):
     db.session.add(Transaction(
         player = user,
         type = 'withdraw',
-        sum = coins,
+        sum = -coins,
         comment = 'Converted to {} {}'.format(amount, args.currency),
     ))
     user.balance -= args.coins
