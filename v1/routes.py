@@ -186,6 +186,9 @@ class PlayerResource(restful.Resource):
     def post(self, id=None):
         if id:
             raise MethodNotAllowed
+
+        log.debug('NEW USER: '+repr(request.get_data()))
+
         args_login = self.parser.login.parse_args() # check before others
         args = self.parser.parse_args()
 
