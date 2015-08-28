@@ -9,6 +9,7 @@ from werkzeug.exceptions import HTTPException
 import urllib.parse
 import jwt
 import hashlib, uuid
+from urllib.parse import quote
 import requests
 from functools import wraps
 import binascii
@@ -393,7 +394,7 @@ def gamertag_field(nick):
         raise ValueError('Unknown gamertag: '+nick)
 
     url = 'https://www.easports.com/fifa/api/'\
-        'fifa15-xboxone/match-history/fut/{}'.format(nick)
+        'fifa15-xboxone/match-history/fut/{}'.format(quote(nick))
     try:
         ret = requests.get(url).json()
         if ret.get('code') == 404:
