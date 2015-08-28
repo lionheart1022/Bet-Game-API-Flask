@@ -75,14 +75,6 @@ class PlayerResource(restful.Resource):
             email = fields.String,
             facebook_connected = fields.Boolean(attribute='facebook_token'),
             balance = fields.Raw, # because it is already JSON
-            transactions = fields.List(fields.Nested(dict(
-                id = fields.Integer,
-                date = fields.DateTime,
-                type = fields.String,
-                sum = fields.Float,
-                game_id = fields.Integer,
-                comment = fields.String,
-            ))),
             bio = fields.String,
             has_userpic = fields.Boolean(attribute='userpic'),
             devices = fields.List(fields.Nested(dict(
@@ -103,7 +95,6 @@ class PlayerResource(restful.Resource):
     def fields_public(cls):
         copy = cls.fields_self.copy()
         del copy['balance']
-        del copy['transactions']
         del copy['devices']
         return copy
 
@@ -413,6 +404,35 @@ class UserpicResource(restful.Resource):
 def balance_get(user):
     return jsonify(
         balance = user.balance_obj,
+    )
+@app.route('/balance/history', methods=['GET'])
+@require_auth
+def balance_history(user):
+    parser = RequestParser()
+    parser.add_argument('page', type=int, default=1)
+    parser.add_argument('results_per_page', type=int, default=10)
+    args = parser.parse_args()
+
+    if args.results_per_page > 50:
+        abort('[results_per_page]: max is 50')
+
+    query = user.transactions
+    total_count = query.count()
+    query = query.paginate(args.page, args.results_per_page,
+                           error_out=False).items
+
+    return jsonify(
+        transactions = fields.List(fields.Nested(dict(
+            id = fields.Integer,
+            date = fields.DateTime,
+            type = fields.String,
+            sum = fields.Float,
+            game_id = fields.Integer,
+            comment = fields.String,
+        ))).format(query),
+        num_results = total_count,
+        total_pages = math.ceil(total_count/args.results_per_page),
+        page = args.page,
     )
 @app.route('/balance/deposit', methods=['POST'])
 @require_auth
