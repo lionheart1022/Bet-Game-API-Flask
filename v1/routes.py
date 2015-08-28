@@ -75,6 +75,13 @@ class PlayerResource(restful.Resource):
             email = fields.String,
             facebook_connected = fields.Boolean(attribute='facebook_token'),
             balance = fields.Raw, # because it is already JSON
+            transactions = fields.List(fields.Nested(dict(
+                date = fields.DateTime,
+                type = fields.String,
+                sum = fields.Float,
+                game = fields.Nested(GameResource.fields), # FIXME recursion
+                comment = fields.String,
+            ))),
             bio = fields.String,
             has_userpic = fields.Boolean(attribute='userpic'),
             devices = fields.List(fields.Nested(dict(
@@ -95,6 +102,7 @@ class PlayerResource(restful.Resource):
     def fields_public(cls):
         copy = cls.fields_self.copy()
         del copy['balance']
+        del copy['transactions']
         del copy['devices']
         return copy
 
