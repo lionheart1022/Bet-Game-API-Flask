@@ -140,11 +140,25 @@ class Poller:
 
         # move funds...
         if winner == 'creator':
-            game.creator.balance += game.bet
-            game.opponent.balance -= game.bet
+            winner = game.creator
+            looser = game.opponent
         elif winner == 'opponent':
-            game.opponent.balance += game.bet
-            game.creator.balance -= game.bet
+            winner = game.opponent
+            looser = game.creator
+        db.session.add(Transaction(
+            player = winner,
+            type = 'won',
+            sum = game.bet,
+            game = game,
+        ))
+        db.session.add(Transaction(
+            player = looser,
+            type = 'lost',
+            sum = -game.bet,
+            game = game,
+        ))
+        winner.balance += game.bet
+        looser.balance -= game.bet
         # and unlock bets
         # withdrawing them finally from accounts
         game.creator.locked -= game.bet
