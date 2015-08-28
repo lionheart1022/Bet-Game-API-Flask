@@ -396,25 +396,28 @@ def gamertag_field(nick):
     url = 'https://www.easports.com/fifa/api/'\
         'fifa15-xboxone/match-history/fut/{}'.format(quote(nick))
     try:
-        ret = requests.get(url).json()
-        if ret.get('code') == 404:
+        ret = requests.get(url)
+        if ret.status_code == 404:
             # don't cache not-registered nicks as they can appear in future
             #gamertag_cache[nick.lower()] = None
             raise ValueError(
                 'Gamertag {} seems to be unknown '
                 'for FIFA game servers'.format(nick))
-        data = ret['data']
+        data = ret.json()['data']
         # normalized gamertag (with correct capitalizing)
-        # no data so cannot know correct capitalizing; return as is
+        # if no data then cannot know correct capitalizing; return as is
         goodnick = data[0]['self']['user_info'][0] if data else nick
         gamertag_cache[nick.lower()] = goodnick
         return goodnick
     except ValueError:
+        log.warning('json error: '+str(ret))
         if getattr(g, 'gamertag_force', False):
             return nick
         raise
     except Exception as e: # json failure or missing key
         log.error('Failed to validate gamertag '+nick, exc_info=True)
+        if 'ret' in locals():
+            log.error(ret)
         log.error('Allowing it...')
         #raise ValueError('Couldn\'t validate this gamertag: {}'.format(nick))
         return nick
