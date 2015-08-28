@@ -518,6 +518,12 @@ def balance_withdraw(user):
         abort('[paypal_email] should be specified unless you are running dry-run')
 
     # first withdraw coins...
+    db.session.add(Transaction(
+        player = user,
+        type = 'withdraw',
+        sum = coins,
+        comment = 'Converted to {} {}'.format(amount, args.currency),
+    ))
     user.balance -= args.coins
     db.session.commit()
 
