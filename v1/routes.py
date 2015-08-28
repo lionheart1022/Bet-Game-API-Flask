@@ -76,6 +76,7 @@ class PlayerResource(restful.Resource):
             facebook_connected = fields.Boolean(attribute='facebook_token'),
             balance = fields.Raw, # because it is already JSON
             transactions = fields.List(fields.Nested(dict(
+                id = fields.Integer,
                 date = fields.DateTime,
                 type = fields.String,
                 sum = fields.Float,
