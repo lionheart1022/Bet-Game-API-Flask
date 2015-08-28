@@ -271,6 +271,21 @@ Result:
 ```
 
 
+### GET /balance/history
+Get transactions history for current player.
+
+This is a paginated query, just like `GET /games`.
+
+Result:
+```json
+{
+	"transactions": [ list of Transaction resources ],
+	"page": 1 // current page
+	"total_pages": 9,
+	"num_results": 83, // total count
+}
+```
+
 ### POST /balance/deposit
 Buy internal coins for real money.
 You should use [https://github.com/paypal/PayPal-iOS-SDK](PayPal SDK for iOS) or similar.
@@ -511,7 +526,6 @@ Resources
 	"tivia_character": null,
 	"devices": [ list of Device resources ],
 	"balance": { Balance resource },
-	"transactions: [ list of Transaction resources ],
 	"gamecount": 3, // how many game invitations are there with this player, including declined and ongoing ones
 	"winrate": 0.4, // 0..1 - percentage of games won; can be `null` if there are no finished games!
 }
