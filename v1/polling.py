@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import math
 from collections import namedtuple
 from html.parser import HTMLParser
+from urllib.parse import quote
 
 import requests
 from dateutil.parser import parse as date_parse
@@ -221,7 +222,7 @@ class FifaPoller(Poller, LimitedApi):
     def fetch(cls, gametype, gamemode, nick):
         url = 'https://www.easports.com/fifa/api/'\
             '{}/match-history/{}/{}'.format(
-                gametype, gamemode, nick)
+                gametype, gamemode, quote(nick))
         ret = None
         try:
             ret = cls.request_json('GET', url)
