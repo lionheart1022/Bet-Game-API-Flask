@@ -129,7 +129,10 @@ class Player(db.Model):
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     player_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
-    player = db.relationship(Player, backref='transactions')
+    player = db.relationship(Player,
+                             backref=db.backref('transactions',
+                                                lazy='dynamic') # return query, not list
+                             )
     date = db.Column(db.DateTime, default=datetime.utcnow)
     type = db.Column(db.Enum('deposit', 'withdraw', 'won', 'lost', 'other'), nullable=False)
     sum = db.Column(db.Float, nullable=False)
