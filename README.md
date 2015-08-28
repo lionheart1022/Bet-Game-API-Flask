@@ -531,12 +531,16 @@ Resources
 {
 	"id": 123, // internal identifier, e.g. for tech support usage
 	"date": "some datetime", // when this transaction happened
-	"type": "withdraw", // one of "deposit", "withdraw", "won", "lost",
+	"type": "withdraw", // one of "deposit", "withdraw", "won", "lost", "other"
 	"sum": -100, // amount in coins (either positive or negative, depending on type)
 	"game_id": 135, // for win or lost only - related game id
 	"comment": "Converted to 100 USD" // for deposit/withdraw operations
 }
 ```
+Comment: `other` transaction type may happen when transaction was made for technical reasons.
+One of examples is when user initiates a payout which fails for some reason.
+In such situation there will be one transaction of `withdraw` type and another
+(with same amount but positive) of `other` type with corresponding description.
 
 ### Limited Player resource
 Returned if you want to get info about other players.
