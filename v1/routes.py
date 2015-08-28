@@ -79,7 +79,7 @@ class PlayerResource(restful.Resource):
                 date = fields.DateTime,
                 type = fields.String,
                 sum = fields.Float,
-                game = fields.Nested(GameResource.fields), # FIXME recursion
+#                game = fields.Nested(GameResource.fields), # FIXME recursion
                 comment = fields.String,
             ))),
             bio = fields.String,
