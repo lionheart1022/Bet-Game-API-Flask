@@ -125,6 +125,19 @@ class Player(db.Model):
             ])
         )
 
+
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
+    player = db.relationship(Player, backref='transactions')
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    type = db.Column(db.Enum('deposit', 'withdraw', 'win', 'lost'), nullable=False)
+    sum = db.Column(db.Float, nullable=False)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'), nullable=True)
+    game = db.relationship('Game', backref=db.backref('transaction', uselist=False))
+    comment = db.Column(db.Text)
+
+
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     player_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
