@@ -522,7 +522,10 @@ def balance_withdraw(user):
         player = user,
         type = 'withdraw',
         sum = -coins,
-        comment = 'Converted to {} {}'.format(amount, args.currency),
+        comment = 'Converted to {} {}'.format(
+            amount,
+            args.currency,
+        ),
     ))
     user.balance -= args.coins
     db.session.commit()
@@ -536,7 +539,7 @@ def balance_withdraw(user):
         ), dict(
             sender_batch_header = dict(
 #                sender_batch_id = None,
-                email_subject = 'You have a payout',
+                email_subject = 'Payout from BetGame',
                 recipient_type = 'EMAIL',
             ),
             items = [
@@ -561,6 +564,7 @@ def balance_withdraw(user):
                            transaction_id=trinfo.get('payout_item_id'),
                            balance = user.balance_obj,
                            )
+        # TODO: add transaction id to our Transaction object
         log.debug(str(ret))
         log.warning('Payout failed to {}, {} coins, stat {}'.format(
             args.paypal_email, args.coins, stat))
@@ -578,13 +582,20 @@ def balance_withdraw(user):
               dry_run=False,
               )
     except Exception as e:
-        if isinstance(e, HTTPException):
-            raise
         # restore balance
         user.balance += args.coins
+        db.session.add(Transaction(
+            player = user,
+            type = 'withdraw',
+            sum = coins,
+            comment = 'Withdraw operation aborted due to error',
+        ))
         db.session.commit()
 
         log.error('Exception while performing payout', exc_info=True)
+
+        if isinstance(e, HTTPException):
+            raise
 
         abort('Couldn\'t complete payout', 500,
               success=False, dry_run=False)

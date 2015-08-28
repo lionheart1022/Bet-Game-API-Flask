@@ -131,7 +131,7 @@ class Transaction(db.Model):
     player_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
     player = db.relationship(Player, backref='transactions')
     date = db.Column(db.DateTime, default=datetime.utcnow)
-    type = db.Column(db.Enum('deposit', 'withdraw', 'won', 'lost'), nullable=False)
+    type = db.Column(db.Enum('deposit', 'withdraw', 'won', 'lost', 'other'), nullable=False)
     sum = db.Column(db.Float, nullable=False)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'), nullable=True)
     game = db.relationship('Game', backref=db.backref('transaction', uselist=False))
