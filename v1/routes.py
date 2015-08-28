@@ -465,6 +465,12 @@ def balance_deposit(user):
         # now payment should be verified
         log.info('Payment approved, adding coins')
 
+        db.session.add(Transaction(
+            player = user,
+            type = 'deposit',
+            sum = coins,
+            comment = 'Converted from {} {}'.format(args.total, args.currency),
+        ))
         user.balance += coins
         db.session.commit()
     return jsonify(
