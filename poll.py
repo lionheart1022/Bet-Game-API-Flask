@@ -6,4 +6,4 @@ if __name__ == '__main__':
     # for db access to work
     main.live().app_context().push()
 
-    v1.helpers.poll_all()
+    v1.polling.poll_all()
