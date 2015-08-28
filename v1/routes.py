@@ -79,13 +79,7 @@ class PlayerResource(restful.Resource):
                 date = fields.DateTime,
                 type = fields.String,
                 sum = fields.Float,
-                game = fields.Nested(
-                    # don't include player resources here to avoid too much
-                    # recursion
-                    GameResource.fields_without(
-                        'creator', 'opponent',
-                    ),
-                ),
+                game_id = fields.Integer,
                 comment = fields.String,
             ))),
             bio = fields.String,
@@ -736,12 +730,6 @@ class GameResource(restful.Resource):
             'winner': fields.String,
             'finish_date': fields.DateTime,
         }
-    @classmethod
-    def fields_without(cls, *parts):
-        fields = cls.fields.copy()
-        for part in parts:
-            del fields[part]
-        return fields
     @require_auth
     def get(self, user, id=None):
         if id:
