@@ -222,13 +222,16 @@ class FifaPoller(Poller, LimitedApi):
         url = 'https://www.easports.com/fifa/api/'\
             '{}/match-history/{}/{}'.format(
                 gametype, gamemode, nick)
+        ret = None
         try:
-            return cls.request_json('GET', url)['data']
+            ret = cls.request_json('GET', url)
+            return ret['data']
         except Exception as e:
             log.error('Failed to fetch match info '
                       'for player {}, gt {} gm {}'.format(
                           nick, gametype, gamemode),
                       exc_info=True)
+            log.error(str(ret))
             return []
 
     def pollGame(self, game, who=None, matches=None):
