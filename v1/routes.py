@@ -225,7 +225,7 @@ class PlayerResource(restful.Resource):
             if val and hasattr(user, key):
                 setattr(user, key, val)
         if 'userpic' in request.files:
-            UserpicResource.upload(request.files['userpic'], player)
+            UserpicResource.upload(request.files['userpic'], user)
 
         db.session.commit()
 
