@@ -378,7 +378,7 @@ class UserpicResource(restful.Resource):
             abort('[userpic]: file too large!')
 
     @require_auth(allow_nonfilled=True)
-    def put(self, id):
+    def put(self, id, user):
         player = Player.find(id)
         if not player:
             raise NotFound
