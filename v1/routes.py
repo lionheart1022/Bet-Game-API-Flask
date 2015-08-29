@@ -364,7 +364,7 @@ class UserpicResource(restful.Resource):
         if not player:
             raise NotFound
 
-        f = cls.file_for(player)
+        f = self.file_for(player)
         if not os.path.exists(f):
             return (None, 204) # HTTP code 204 NO CONTENT
         return current_app.send_static_file(f)
