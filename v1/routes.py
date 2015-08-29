@@ -6,13 +6,14 @@ from sqlalchemy.sql.expression import func
 from werkzeug.exceptions import HTTPException
 from werkzeug.exceptions import BadRequest, MethodNotAllowed, Forbidden, NotImplemented, NotFound
 
-import requests
+import os
+from io import BytesIO
 from datetime import datetime, timedelta
 import math
 from functools import reduce
 import itertools
+import requests
 from PIL import Image
-from io import BytesIO
 
 import config
 from .models import *
@@ -352,30 +353,30 @@ class PlayerResource(restful.Resource):
 # Userpic
 @api.resource('/players/<id>/userpic')
 class UserpicResource(restful.Resource):
+    PICDIR = os.path.dirname(__file__)+'/../userpics/'
+    @classmethod
+    def file_for(cls, player):
+        return os.path.join(cls.PICDIR, player.nickname.lower())
+
     @require_auth
     def get(self, user, id):
         player = Player.find(id)
         if not player:
             raise NotFound
 
-        if not player.userpic:
+        f = cls.file_for(player)
+        if not os.path.exists(f):
             return (None, 204) # HTTP code 204 NO CONTENT
-
-        img = BytesIO()
-        img.write(player.userpic) # bytes object
-        img.seek(0)
-        return send_file(img, mimetype='image/png')
+        return current_app.send_static_file(f)
 
     @classmethod
     def upload(cls, f, player):
         if not f.filename.lower().endswith('.png'):
             abort('[userpic]: only PNG files allowed')
 
-        # FIXME: this consumes memory
         # FIXME: limit size!
-        player.userpic = f.read()
-        if len(player.userpic) > 4096*1024:
-            abort('[userpic]: file too large!')
+
+        f.save(cls.file_for(player))
 
     @require_auth(allow_nonfilled=True)
     def put(self, id, user):
@@ -387,15 +388,13 @@ class UserpicResource(restful.Resource):
 
         had_upic = bool(player.userpic)
 
-        f = request.files['userpic']
+        f = request.files.get('userpic')
         if not f:
             abort('[userpic]: please provide file!')
 
         self.upload(f, player)
 
-        db.session.commit() # save
-
-        return jsonify(success=True)
+        return dict(success=True)
 
 
 # Balance
