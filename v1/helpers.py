@@ -422,18 +422,6 @@ def gamertag_field(nick):
         #raise ValueError('Couldn\'t validate this gamertag: {}'.format(nick))
         return nick
 
-def twitch_field(val):
-    pos = val.find('twitch.tv/')
-    if pos >= 0:
-        val = val[pos+10:]
-    # now validate id over twitch
-    from .apis import Twitch
-    ret = Twitch.call('channels/{}'.format(val), 'v3')
-    if ret['_code'] == 404:
-        raise ValueError('No such channel')
-    log.info('Twitch channel: current game is '+ret.get('game'))
-    return val
-
 def encrypt_password(val):
     """
     Check password for weakness, and convert it to its hash.
