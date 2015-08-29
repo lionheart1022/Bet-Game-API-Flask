@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import or_
 from sqlalchemy.sql.expression import func
 from flask import g
+import os
 
 from .main import db
 
@@ -13,7 +14,6 @@ class Player(db.Model):
     facebook_token = db.Column(db.String(128))
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
     bio = db.Column(db.Text)
-    userpic = db.Column(db.LargeBinary)
 
     ea_gamertag = db.Column(db.String(64), unique=True)
     riot_summonerName = db.Column(db.String(64), unique=True)
@@ -66,6 +66,9 @@ class Player(db.Model):
             return None
         return wins / count
 
+    def has_userpic(self):
+        from .routes import UserpicResource
+        return os.path.exists(UserpicResource.file_for(self))
 
     _identities = [
         'nickname',
