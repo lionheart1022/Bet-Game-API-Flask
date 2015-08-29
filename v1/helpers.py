@@ -427,6 +427,7 @@ def twitch_field(val):
     if pos >= 0:
         val = val[pos+10:]
     # now validate id over twitch
+    from .apis import Twitch
     ret = Twitch.call('channels/{}'.format(val), 'v3')
     if ret['_code'] == 404:
         raise ValueError('No such channel')
