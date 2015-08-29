@@ -356,7 +356,7 @@ class UserpicResource(restful.Resource):
     PICDIR = os.path.dirname(__file__)+'/../userpics/'
     @classmethod
     def file_for(cls, player):
-        return os.path.join(cls.PICDIR, player.nickname.lower())
+        return os.path.join(cls.PICDIR, str(player.id)+'.png')
 
     @require_auth
     def get(self, user, id):
