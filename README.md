@@ -193,6 +193,8 @@ Accepts `userpic` parameter containing a file to be uploaded.
 File has to be in PNG format.
 Upon success, returns `{"success": true}`.
 
+Also available as `POST /players/me/userpic`.
+
 ### PATCH /players/<id>
 Update player's data.
 Accepts any of not-login-related arguments of `POST /players`.

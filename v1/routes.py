@@ -396,6 +396,8 @@ class UserpicResource(restful.Resource):
 
         return dict(success=True)
 
+    def post(self, *args, **kwargs):
+        return self.put(*args, **kwargs)
 
 # Balance
 @app.route('/balance', methods=['GET'])
