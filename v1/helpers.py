@@ -643,6 +643,7 @@ def notify_users(game, nomail=False):
             log.info('push sending done for {}'.format(msg))
         except:
             log.error('Failed to connect to APNs', exc_info=True)
+            return False
         else:
             for token, reason in ret.failed.items():
                 log.warning('Device {} failed by {}, removing'.format(token,reason))
@@ -656,7 +657,8 @@ def notify_users(game, nomail=False):
 
             if ret.needs_retry():
                 log.info('needs retry.. so will retry')
-                send_push(ret.retry)
+                return send_push(ret.retry)
+            return True
 
     from .apis import mailsend
     def send_mail(game):
@@ -671,7 +673,7 @@ def notify_users(game, nomail=False):
                 log.error('Internal error: incorrect game winner '+game.winner
                           +' for state '+game.state)
                 return
-            mailsend(
+            return mailsend(
                 winner, 'win',
                 date = game.finish_date.strftime('%d.%m.%Y %H:%M:%S UTC'),
                 bet = game.bet,
