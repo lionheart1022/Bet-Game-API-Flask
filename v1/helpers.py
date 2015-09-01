@@ -632,8 +632,10 @@ def notify_users(game, nomail=False):
     log.debug('msg: '+str(message))
 
     def send_push(msg):
+        log.debug('srv..')
         srv = apns_clerk.APNs(conn)
         try:
+            log.debug('sending..')
             ret = srv.send(message)
             log.info('push sending done for {}'.format(msg))
         except:
