@@ -670,8 +670,9 @@ def notify_users(game, nomail=False):
 
 
     if message: # if had any receivers
-        send_push(message)
+        result = send_push(message)
     # and send email if applicable
     if not nomail:
-        send_mail(game)
+        result = result and send_mail(game)
+    return result
 

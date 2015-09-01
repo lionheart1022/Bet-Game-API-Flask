@@ -1072,10 +1072,10 @@ def push_state(state, user):
         if hasattr(game, k):
             setattr(game, k, v)
 
-    notify_users(game, nomail=True)
+    result = notify_users(game, nomail=True)
 
     return jsonify(
-        pushed=True,
+        pushed=result,
         game = marshal(game, GameResource.fields)
     )
 
