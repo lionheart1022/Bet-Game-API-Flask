@@ -640,6 +640,7 @@ def notify_users(game, nomail=False):
             for token, reason in ret.failed.items():
                 log.warning('Device {} failed by {}, removing'.format(token,reason))
                 db.session.delete(Device.query.filter_by(push_token=token).first())
+                db.session.commit()
 
             for code, error in ret.errors:
                 log.warning('Error {}: {}'.format(code, error))
