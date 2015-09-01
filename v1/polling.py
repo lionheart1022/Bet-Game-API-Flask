@@ -209,7 +209,7 @@ class FifaPoller(Poller, LimitedApi):
         'coop': 'Co-op',
     }
     identity = 'ea_gamertag'
-    identity_name = 'EA Games GamerTag'
+    identity_name = 'XBox GamerTag'
     identity_check = gamertag_field
     usemodes = True
     twitch = 1
