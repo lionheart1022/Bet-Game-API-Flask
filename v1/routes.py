@@ -386,8 +386,6 @@ class UserpicResource(restful.Resource):
         if player != user:
             raise Forbidden
 
-        had_upic = bool(player.userpic)
-
         f = request.files.get('userpic')
         if not f:
             abort('[userpic]: please provide file!')
