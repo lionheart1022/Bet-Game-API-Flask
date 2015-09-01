@@ -629,6 +629,8 @@ def notify_users(game, nomail=False):
             conn = apns_session.get_connection('push_sandbox',
                                                 cert_file='apns.pem')
 
+    log.debug('msg: '+str(message))
+
     def send_push(msg):
         srv = apns_clerk.APNs(conn)
         try:
@@ -669,6 +671,7 @@ def notify_users(game, nomail=False):
             )
 
 
+    result = True
     if message: # if had any receivers
         result = send_push(message)
     # and send email if applicable
