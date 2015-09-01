@@ -634,8 +634,8 @@ def notify_users(game, nomail=False):
 
     log.debug('msg: '+str(message))
 
-    def send_push(msg):
-        log.debug('srv..')
+    def send_push(msg, tries=0):
+        log.debug('send_push: try {}'.format(tries))
         srv = apns_clerk.APNs(conn)
         try:
             log.debug('sending..')
@@ -657,8 +657,12 @@ def notify_users(game, nomail=False):
                 log.warning('Error {}: {}'.format(code, error))
 
             if ret.needs_retry():
-                log.info('needs retry.. so will retry')
-                return send_push(ret.retry)
+                if tries < 10:
+                    log.info('needs retry.. so will retry')
+                    return send_push(ret.retry, tries+1)
+                else:
+                    log.warning('needs retry.. but max retries exceed')
+                    return False
             return True
 
     from .apis import mailsend
