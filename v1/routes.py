@@ -792,13 +792,35 @@ class GameResource(restful.Resource):
         parser = RequestParser()
         parser.add_argument('page', type=int, default=1)
         parser.add_argument('results_per_page', type=int, default=10)
+        parser.add_argument(
+            'order',
+            choices=sum(
+                [[s, '-'+s]
+                 for s in
+                 ('create_date',
+                  'accept_date',
+                  'gametype',
+                  'creator_id',
+                  'opponent_id',
+                  )], []),
+            required=False,
+        )
         args = parser.parse_args()
         # cap
         if args.results_per_page > 50:
             abort('[results_per_page]: max is 50')
 
         query = user.games
+
         # TODO: filters
+        if args.order:
+            if args.order.startswith('-'):
+                order = getattr(Game, args.order[1:]).desc()
+            else:
+                order = getattr(Game, args.order).asc()
+            query = query.order_by(order)
+
+
         total_count = query.count()
         query = query.paginate(args.page, args.results_per_page,
                                error_out = False).items

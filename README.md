@@ -469,6 +469,11 @@ This request supports pagination:
  * `page`: page to return (defaults to 1)
  * `results_per_page`: how many games to include per page (defaults to 10, max is 50)
 
+Also results can be sorted:
+
+ * `order`: ordering way. Sorts ascending by default; prepend with '-' to sort descending.
+   Allowed fields for sorting: `create_date`, `accept_date`, `gametype`, `creator_id`, `opponent_id`.
+
 Return:
 ```json
 {
