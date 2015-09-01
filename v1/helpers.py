@@ -614,6 +614,7 @@ def notify_users(game, nomail=False):
     from . import routes # for fields list
     message = None
     if receivers:
+        # add "mock" device, because without it srv.send() hangs
         receivers.append('0'*64)
         log.debug('recv: '+str(receivers))
         message = apns_clerk.Message(receivers, alert=msg, badge='increment',
