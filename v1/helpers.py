@@ -649,6 +649,7 @@ def notify_users(game, nomail=False):
                 log.warning('Device {} failed by {}, removing'.format(token,reason))
                 dev = Device.query.filter_by(push_token=token).first()
                 if dev:
+                    log.warning('removing')
                     db.session.delete(dev)
                     db.session.commit()
 
