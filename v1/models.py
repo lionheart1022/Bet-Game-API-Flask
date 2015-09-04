@@ -1,6 +1,7 @@
 from datetime import datetime
 from sqlalchemy import or_
 from sqlalchemy.sql.expression import func
+from sqlalchemy.ext.hybrid import hybrid_property
 from flask import g
 import os
 
@@ -47,7 +48,7 @@ class Player(db.Model):
     @property
     def gamecount(self):
         return fast_count(self.games)
-    @property
+    @hybrid_property
     def winrate(self):
         # FIXME: rewrite in sql?
         count = 0
@@ -65,6 +66,22 @@ class Player(db.Model):
             # no finished games, no data
             return None
         return wins / count
+    @winrate.expression
+    def winrate(cls):
+        return fast_count(Game.query.filter(
+            or_(
+                Game.creator_id == cls.id &
+                Game.winner == 'creator',
+                Game.opponent_id == cls.id &
+                Game.winner == 'opponent',
+            )
+        )) + fast_count(Game.query.filter(
+            (
+                Game.creator_id == cls.id |
+                Game.opponent_id == cls.id
+            ) &
+            Game.winner == 'draw',
+        ))/2
 
     def has_userpic(self):
         from .routes import UserpicResource
