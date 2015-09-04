@@ -116,7 +116,7 @@ class Player(db.Model):
         Filt should be suitable for SQL LIKE statement.
         E.g. "word%" will search anything starting with word.
         """
-        if len(filt) < 2:
+        if len(filt) < 1:
             return []
         return cls.query.filter(
             or_(*[

@@ -151,9 +151,10 @@ class PlayerResource(restful.Resource):
 
             # TODO: sort by win rate desc if requested
 
-            total_count = query.count()
-            query = query.paginate(args.page, args.results_per_page,
-                                   error_out = False).items
+            if query:
+                total_count = query.count()
+                query = query.paginate(args.page, args.results_per_page,
+                                    error_out = False).items
 
             return jsonify(
                 players = fields.List(
