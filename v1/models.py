@@ -68,20 +68,28 @@ class Player(db.Model):
         return wins / count
     @winrate.expression
     def winrate(cls):
-        return fast_count(Game.query.filter(
+        count = fast_count(Game.query.filter(
+            Game.creator_id == cls.id |
+            Game.opponent_id == cls.id
+        ))
+        if not count:
+            return None
+        won = fast_count(Game.query.filter(
             or_(
                 Game.creator_id == cls.id &
                 Game.winner == 'creator',
                 Game.opponent_id == cls.id &
                 Game.winner == 'opponent',
             )
-        )) + fast_count(Game.query.filter(
+        ))
+        draw = fast_count(Game.query.filter(
             (
                 Game.creator_id == cls.id |
                 Game.opponent_id == cls.id
             ) &
             Game.winner == 'draw',
-        ))/2
+        ))
+        return (won + draw/2) / count
 
     def has_userpic(self):
         from .routes import UserpicResource
