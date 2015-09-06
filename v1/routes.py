@@ -384,7 +384,7 @@ class PlayerResource(restful.Resource):
 
         return jsonify(opponents = marshal(
             user.recent_opponents,
-            Player.fields_public,
+            PlayerResource.fields_public,
         ))
 
 # Userpic
