@@ -152,7 +152,7 @@ class Fixer:
 
         return rate
 
-def mailsend(user, mtype, **kwargs):
+def mailsend(user, mtype, sender=None, **kwargs):
     subjects = dict(
         greeting = 'Welcome to BetGame',
         recover = 'BetGame password recovery',
@@ -182,7 +182,7 @@ def mailsend(user, mtype, **kwargs):
         'https://api.mailgun.net/v3/{}/messages'.format(config.MAIL_DOMAIN),
         auth=('api',config.MAILGUN_KEY),
         params={
-            'from': config.MAIL_SENDER,
+            'from': sender or config.MAIL_SENDER,
             'to': '{} <{}>'.format(user.nickname, user.email),
             'subject': subjects[mtype],
             'text': load(mtype, 'txt', kwargs),
