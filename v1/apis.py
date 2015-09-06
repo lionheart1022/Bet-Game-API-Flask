@@ -471,5 +471,5 @@ class Twitch:
         ret = cls.call('channels/{}'.format(val), 'v3')
         if ret['_code'] == 404:
             raise ValueError('No such channel "{}"'.format(val))
-        log.info('Twitch channel: current game is '+ret.get('game'))
+        log.info('Twitch channel: current game is {}'.format(ret.get('game')))
         return val
