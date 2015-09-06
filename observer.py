@@ -142,7 +142,7 @@ def init_app(logfile=None):
     # and remove stale records
     with app.test_request_context():
         for stream in Stream.query:
-            log.info('restarting stream '+stream.handle)
+            log.info('restarting stream {}/{}'.format(stream.handle, stream.gametype))
             if stream.state in ('waiting', 'watching'):
                 add_stream(stream)
             elif stream.state in ('found', 'failed'):
@@ -161,13 +161,14 @@ class Stream(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     # Twitch stream handle
-    handle = db.Column(db.String(64), nullable=False, unique=True)
+    handle = db.Column(db.String(64), nullable=False)
 
-    # Which child handles this stream? None if self
+    gametype = db.Column(db.String(64), default=None)
+
+    # Which child watches this stream? None if self
     child = db.Column(db.String(64), default=None)
 
-    # Gametype and other metadata goes below
-    gametype = db.Column(db.String(64), default=None)
+    # other metadata goes below
 
     # this is an ID of the primary Game object for this stream.
     # We don't use foreign key because we may reside on separate server
@@ -185,9 +186,16 @@ class Stream(db.Model):
     creator = db.Column(db.String(128))
     opponent = db.Column(db.String(128))
 
+    __table_args__ = (
+        db.UniqueConstraint('handle', 'gametype', name='_handle_gametype_uc'),
+    )
+
     @classmethod
-    def find(cls, id):
-        return cls.query.filter_by(handle=id).first()
+    def find(cls, id, gametype=None):
+        q = cls.query.filter_by(handle=id)
+        if gametype:
+            q = q.filter_by(gametype=gametype)
+        return q.first()
 
 
 # Main logic
@@ -219,7 +227,7 @@ class Handler:
     def start(self):
         log.info('spawning handler')
         self.thread = eventlet.spawn(self.watch_tc)
-        pool[self.handle] = self
+        pool[self.handle, self.gametype] = self
 
     def abort(self):
         self.thread.kill()
@@ -232,9 +240,36 @@ class Handler:
             self.sub.terminate()
             eventlet.spawn_after(3, self.sub.kill)
 
+    def check_current_game(self):
+        '''Check if the game currently playing on the stream
+        matches one requested for this handler,
+        and if the stream is online at all'''
+        from v1.polling import Poller
+        from v1.apis import Twitch
+
+        poller = Poller.findPoller(self.stream.gametype)
+        tgtype = poller.twitch_gametypes.get(self.stream.gametype)
+        if not tgtype:
+            raise ValueError('Invalid poller?? no gt for '+self.stream.gametype)
+        cinfo = Twitch.channel(self.stream.handle)
+        if cinfo['game'] != tgtype:
+            log.info('Stream {}: expected game {}, got {} - will wait'.format(
+                self.stream.handle, tgtype, cinfo['game']))
+            return False
+
+        # TODO: check if it is online
+
+        return True
+    def wait_for_correct_game(self):
+        log.info('Waiting for correct game')
+        while not self.check_current_game():
+            eventlet.sleep(30) # check every 30 seconds
+        log.info('Correct game detected')
+
     def watch_tc(self):
         log.info('watch_tc started')
         try:
+            self.wait_for_correct_game()
             result = self.watch()
             waits = 0
             while result == 'offline':
@@ -252,9 +287,13 @@ class Handler:
                             .format(self.stream.handle))
                 self.stream.state = 'waiting'
                 db.session.commit()
+
                 # wait & retry
                 eventlet.sleep(WAIT_DELAY)
+                # check if currently plaing game is (still) correct
+                self.wait_for_correct_game()
                 result = self.watch()
+
                 waits += 1
             return result
         except Exception: # will not catch GreenletExit
@@ -270,7 +309,7 @@ class Handler:
         finally:
             # mark that this stream has stopped
             # stream may be already deleted from db, so use saved handle
-            del pool[self.handle]
+            del pool[self.handle, self.gametype]
 
     def watch(self):
         # start subprocess and watch its output
@@ -463,9 +502,9 @@ def abort_stream(stream):
     """
     If stream is running, abort it. Else do nothing.
     """
-    if stream.handle not in pool:
+    if (stream.handle, stream.gametype) not in pool:
         return False
-    pool[stream.handle].abort()
+    pool[stream.handle, stream.gametype].abort()
     # will remove itself
     return True
 
@@ -519,7 +558,7 @@ def stream_done(stream, winner, timestamp):
     # But we are still handling PATCH request, so it will hang.
     # So launch it as a green thread immediately after we finish
     eventlet.spawn(requests.delete,
-                   '{}/streams/{}'.format(SELF_URL, stream.handle))
+                   '{}/streams/{}/{}'.format(SELF_URL, stream.handle, stream.gametype))
 
     return True
 
@@ -532,18 +571,18 @@ def current_load():
 
 
 # now define our endpoints
-def child_url(cname, sid=''):
+def child_url(cname, sid=None, gametype=None):
     if cname in CHILDREN:
         return '{host}/streams/{sid}'.format(
             host = CHILDREN[cname],
-            sid = sid,
+            sid = '{}/{}'.format(sid, gametype) if sid else '',
         )
     return None
 
 @api.resource(
     '/streams',
     '/streams/',
-    '/streams/<id>',
+    '/streams/<id>/<gametype>',
 )
 class StreamResource(restful.Resource):
     fields = dict(
@@ -556,7 +595,7 @@ class StreamResource(restful.Resource):
         opponent = fields.String,
     )
 
-    def get(self, id=None):
+    def get(self, id=None, gametype=None):
         """
         Returns details (current state) for certain stream.
         """
@@ -569,17 +608,17 @@ class StreamResource(restful.Resource):
 
         log.info('Stream queried with id '+id)
 
-        stream = Stream.find(id)
+        stream = Stream.find(id, gametype)
         if not stream:
             raise NotFound
 
         if stream.child:
             # forward request
-            return requests.get(child_url(stream.child, stream.handle)).json()
+            return requests.get(child_url(stream.child, stream.handle, stream.gametype)).json()
 
         return marshal(stream, self.fields)
 
-    def put(self, id=None):
+    def put(self, id=None, gametype=None):
         """
         Returns 409 if stream with this handle exists with different parameters.
         Returns 507 if no slots are available.
@@ -587,13 +626,12 @@ class StreamResource(restful.Resource):
         Will return 201 code if new stream was added
         or 200 code if game was added to existing stream.
         """
-        if not id:
+        if not id or not gametype:
             raise MethodNotAllowed
 
-        log.info('Stream put with id '+id)
+        log.info('Stream put with id {}, gt {}'.format(id, gametype))
 
         parser = RequestParser(bundle_errors=True)
-        parser.add_argument('gametype', required=True)
         parser.add_argument('game_id', type=int, required=True)
         parser.add_argument('creator', required=True)
         parser.add_argument('opponent', required=True)
@@ -604,14 +642,11 @@ class StreamResource(restful.Resource):
             # FIXME: handle dup ID in supplementaries?
             abort('This game ID is already watched in some another stream')
 
-        stream = Stream.find(id)
+        stream = Stream.find(id, gametype)
         if stream:
             # stream already exists; add this game to it as a supplementary game
             new = False
 
-            if args.gametype != stream.gametype:
-                # FIXME: add somehow to queue? And gametype against twitch?
-                abort('Duplicate stream ID with different gametype', 409)
             if args.creator.lower() == stream.creator.lower():
                 if args.opponent.lower() != stream.opponent.lower():
                     abort('Duplicate stream ID with wrong opponent nickname', 409)
@@ -636,6 +671,7 @@ class StreamResource(restful.Resource):
 
             stream = Stream()
             stream.handle = id
+            stream.gametype = gametype
             for k, v in args.items():
                 setattr(stream, k, v)
 
@@ -644,7 +680,7 @@ class StreamResource(restful.Resource):
         for child, host in CHILDREN.items():
             # try to delegate this stream to that child
             # FIXME: implement some load balancing
-            result = requests.put('{}/streams/{}'.format(host, id),
+            result = requests.put('{}/streams/{}/{}'.format(host, id, gametype),
                                   data = args)
             if result.status_code == 200: # accepted?
                 ret = result.json()
@@ -674,17 +710,17 @@ class StreamResource(restful.Resource):
             return ret
         return marshal(stream, self.fields), 201 if new else 200
 
-    def patch(self, id=None):
+    def patch(self, id=None, gametype=None):
         """
         Used to propagate stream result (or status update) from child to parent.
         """
-        if not id:
+        if not id or not gametype:
             raise MethodNotAllowed
 
-        log.info('Stream patched with id '+id)
+        log.info('Stream patched with id {}, gt {}'.format(id, gametype))
 
         # this is called from child to parent
-        stream = Stream.find(id)
+        stream = Stream.find(id, gametype)
         if not stream:
             raise NotFound
 
@@ -695,26 +731,26 @@ class StreamResource(restful.Resource):
 
         if PARENT:
             # send this request upstream
-            return requests.patch('{}/streams/{}'.format(*PARENT),
+            return requests.patch('{}/streams/{}/{}'.format(PARENT[1], id, gametype),
                                   data = args).json()
         else:
             stream_done(stream, args.winner, args.timestamp)
 
         return jsonify(success = True)
 
-    def delete(self, id=None):
+    def delete(self, id=None, gametype=None):
         """
         Deletes all records for given stream.
         Also aborts watching if stream is still watched.
         """
-        if not id:
+        if not id or not gametype:
             raise MethodNotAllowed
-        log.info('Stream delete for id '+id)
-        stream = Stream.find(id)
+        log.info('Stream delete for id {}, gt {}'.format(id, gametype))
+        stream = Stream.find(id, gametype)
         if not stream:
             raise NotFound
         if stream.child:
-            ret = requests.delete(child_url(stream.child, stream.handle))
+            ret = requests.delete(child_url(stream.child, id, stream.gametype))
             if ret.status_code != 200:
                 abort('Couldn\'t delete stream', ret.status_code, details=ret)
         else: # watching ourself:

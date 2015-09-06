@@ -472,12 +472,16 @@ class Twitch:
         return jret
 
     @classmethod
+    def channel(cls, handle):
+        return cls.call('channels/{}'.format(handle), 'v3')
+
+    @classmethod
     def check_handle(cls, val):
         pos = val.find('twitch.tv/')
         if pos >= 0:
             val = val[pos+10:]
         # now validate id over twitch
-        ret = cls.call('channels/{}'.format(val), 'v3')
+        ret = cls.channel(val)
         if ret['_code'] == 404:
             raise ValueError('No such channel "{}"'.format(val))
         log.info('Twitch channel: current game is {}'.format(ret.get('game')))

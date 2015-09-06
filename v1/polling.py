@@ -22,6 +22,7 @@ class Poller:
     # region is stored as slash delimited prefix of gamertag.
     twitch = 0 # do we support twitch for this gametype?
     # 0 - not supported, 1 - optional, 2 - mandatory
+    twitch_gametypes = {}
     identity = None
     # human-readable description of how to play this game.
     # Might be dictionary if description should vary
@@ -213,6 +214,11 @@ class FifaPoller(Poller, LimitedApi):
     identity_check = gamertag_field
     usemodes = True
     twitch = 1
+    twitch_gametypes = {
+        'fifa14-xboxone': 'FIFA 14',
+        'fifa15-xboxone': 'FIFA 15',
+        'fifa16-xboxone': 'FIFA 16',
+    }
     minutes = 30 # poll at most each 30 minutes
 
     def prepare(self):
