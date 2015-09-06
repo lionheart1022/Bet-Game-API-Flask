@@ -153,7 +153,7 @@ class Fixer:
 
         return rate
 
-def mailsend(user, mtype, sender=None, delayed=None **kwargs):
+def mailsend(user, mtype, sender=None, delayed=None, **kwargs):
     subjects = dict(
         greeting = 'Welcome to BetGame',
         recover = 'BetGame password recovery',
