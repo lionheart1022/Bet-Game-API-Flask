@@ -193,6 +193,10 @@ for other players will only return *Limited Player resource*.
 Returns given player's userpic with `image/png` MIME type.
 If given user has no userpic, will return HTTP code `204 NO CONTENT`.
 
+### GET /players/<id>/recent_opponents
+Returns list of recent opponents of current player.
+Only can be called for self.
+
 ### PUT /players/<id>/userpic
 This is an alternate way to specify userpic.
 Accepts `userpic` parameter containing a file to be uploaded.
