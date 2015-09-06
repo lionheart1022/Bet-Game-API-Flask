@@ -239,9 +239,32 @@ class Handler:
             self.sub.terminate()
             eventlet.spawn_after(3, self.sub.kill)
 
+    def check_current_game(self):
+        '''Check if the game currently playing on the stream
+        matches one requested for this handler,
+        and if the stream is online at all'''
+        from v1.polling import Poller
+        from v1.apis import Twitch
+
+        poller = Poller.findPoller(self.stream.gametype)
+        tgtype = poller.twitch_gametypes.get(self.stream.gametype)
+        if not tgtype:
+            raise ValueError('Invalid poller?? no gt for '+self.stream.gametype)
+        cinfo = Twitch.channel(self.stream.handle)
+        if cinfo['game'] != tgtype:
+            log.info('Stream {}: expected game {}, got {} - will wait'.format(
+                self.stream.handle, tgtype, cinfo['game']))
+            return False
+
+        # TODO: check if it is online
+
+        return True
+
     def watch_tc(self):
         log.info('watch_tc started')
         try:
+            while not self.check_current_game():
+                eventlet.sleep(30) # check every 30 seconds
             result = self.watch()
             waits = 0
             while result == 'offline':
