@@ -209,10 +209,13 @@ class PlayerResource(restful.Resource):
         db.session.add(player)
         db.session.commit()
 
-        mailsend(player, 'greeting')
-        # we don't check result as it is not critical if this email is not sent
+        self.greet(player)
 
         return self.login_do(player, args_login, created=True)
+
+    def greet(self, user):
+        mailsend(player, 'greeting')
+        # we don't check result as it is not critical if this email is not sent
 
     @require_auth(allow_nonfilled=True)
     def patch(self, user, id=None):
@@ -237,9 +240,13 @@ class PlayerResource(restful.Resource):
                     if not check_password(args.old_password, user.password):
                         abort('Old password doesn\'t match')
 
+        hadmail = bool(user.email)
+
         for key, val in args.items():
             if val and hasattr(user, key):
                 setattr(user, key, val)
+                if not hadmail and key == 'email':
+                    self.greet(user)
         if 'userpic' in request.files:
             UserpicResource.upload(request.files['userpic'], user)
 
