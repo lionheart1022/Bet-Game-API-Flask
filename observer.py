@@ -706,19 +706,19 @@ class StreamResource(restful.Resource):
 
         return jsonify(success = True)
 
-    def delete(self, id=None):
+    def delete(self, id=None, gametype=None):
         """
         Deletes all records for given stream.
         Also aborts watching if stream is still watched.
         """
-        if not id:
+        if not id or not gametype:
             raise MethodNotAllowed
-        log.info('Stream delete for id '+id)
-        stream = Stream.find(id)
+        log.info('Stream delete for id {}, gt {}'.format(id, gametype))
+        stream = Stream.find(id, gametype)
         if not stream:
             raise NotFound
         if stream.child:
-            ret = requests.delete(child_url(stream.child, stream.handle))
+            ret = requests.delete(child_url(stream.child, id, stream.gametype))
             if ret.status_code != 200:
                 abort('Couldn\'t delete stream', ret.status_code, details=ret)
         else: # watching ourself:
