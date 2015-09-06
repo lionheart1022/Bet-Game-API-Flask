@@ -40,7 +40,7 @@ class Player(db.Model):
     @property
     def complete(self):
         return self.nickname != None
-    @property
+    @hybrid_property
     def games(self):
         return Game.query.filter(
             (Game.creator_id == self.id) | # OR
@@ -68,6 +68,7 @@ class Player(db.Model):
         return wins / count
     @winrate.expression
     def winrate(cls):
+        # FIXME
         count = Game.query.filter(
             (Game.creator_id) == cls.id |
             (Game.opponent_id) == cls.id
@@ -91,6 +92,13 @@ class Player(db.Model):
             Game.winner == 'draw',
         ).with_entities(func.count(Game.id))
         return (won + draw/2) / count
+
+    @hybrid_property
+    def lastbet(self):
+        return self.games.order_by(Game.create_date.desc()).first().create_date
+    @lastbet.expression
+    def lastbet(cls):
+        return cls.games.order_by(Game.create_date.desc()).limit(1).with_entities(Game.create_date)
 
     def has_userpic(self):
         from .routes import UserpicResource
