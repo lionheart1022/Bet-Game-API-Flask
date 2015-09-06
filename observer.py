@@ -190,8 +190,11 @@ class Stream(db.Model):
     )
 
     @classmethod
-    def find(cls, id):
-        return cls.query.filter_by(handle=id).first()
+    def find(cls, id, gametype=None):
+        q = cls.query.filter_by(handle=id)
+        if gametype:
+            q = q.filter_by(gametype=gametype)
+        return q.first()
 
 
 # Main logic
@@ -536,18 +539,18 @@ def current_load():
 
 
 # now define our endpoints
-def child_url(cname, sid=''):
+def child_url(cname, sid=None, gametype=None):
     if cname in CHILDREN:
         return '{host}/streams/{sid}'.format(
             host = CHILDREN[cname],
-            sid = sid,
+            sid = '{}/{}'.format(sid, gametype) if sid else '',
         )
     return None
 
 @api.resource(
     '/streams',
     '/streams/',
-    '/streams/<id>',
+    '/streams/<id>/<gametype>',
 )
 class StreamResource(restful.Resource):
     fields = dict(
@@ -560,7 +563,7 @@ class StreamResource(restful.Resource):
         opponent = fields.String,
     )
 
-    def get(self, id=None):
+    def get(self, id=None, gametype=None):
         """
         Returns details (current state) for certain stream.
         """
@@ -573,13 +576,13 @@ class StreamResource(restful.Resource):
 
         log.info('Stream queried with id '+id)
 
-        stream = Stream.find(id)
+        stream = Stream.find(id, gametype)
         if not stream:
             raise NotFound
 
         if stream.child:
             # forward request
-            return requests.get(child_url(stream.child, stream.handle)).json()
+            return requests.get(child_url(stream.child, stream.handle, stream.gametype)).json()
 
         return marshal(stream, self.fields)
 
