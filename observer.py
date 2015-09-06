@@ -678,17 +678,17 @@ class StreamResource(restful.Resource):
             return ret
         return marshal(stream, self.fields), 201 if new else 200
 
-    def patch(self, id=None):
+    def patch(self, id=None, gametype=None):
         """
         Used to propagate stream result (or status update) from child to parent.
         """
-        if not id:
+        if not id or not gametype:
             raise MethodNotAllowed
 
-        log.info('Stream patched with id '+id)
+        log.info('Stream patched with id {}, gt {}'.format(id, gametype))
 
         # this is called from child to parent
-        stream = Stream.find(id)
+        stream = Stream.find(id, gametype)
         if not stream:
             raise NotFound
 
@@ -699,7 +699,7 @@ class StreamResource(restful.Resource):
 
         if PARENT:
             # send this request upstream
-            return requests.patch('{}/streams/{}'.format(*PARENT),
+            return requests.patch('{}/streams/{}/{}'.format(PARENT[1], id, gametype),
                                   data = args).json()
         else:
             stream_done(stream, args.winner, args.timestamp)
