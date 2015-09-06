@@ -4,6 +4,7 @@ import os
 import time
 from datetime import datetime, timedelta
 from collections import OrderedDict, namedtuple
+import email
 import requests
 
 import config
@@ -152,7 +153,7 @@ class Fixer:
 
         return rate
 
-def mailsend(user, mtype, sender=None, **kwargs):
+def mailsend(user, mtype, sender=None, delayed=None **kwargs):
     subjects = dict(
         greeting = 'Welcome to BetGame',
         recover = 'BetGame password recovery',
@@ -178,16 +179,21 @@ def mailsend(user, mtype, sender=None, **kwargs):
             ), base=True)
         return txt
 
+    params = {
+        'from': sender or config.MAIL_SENDER,
+        'to': '{} <{}>'.format(user.nickname, user.email),
+        'subject': subjects[mtype],
+        'text': load(mtype, 'txt', kwargs),
+        'html': load(mtype, 'html', kwargs),
+    }
+    if delayed:
+        params['o:deliverytime'] = email.utils.format_datetime(
+            datetime.utcnow() + delayed
+        )
     ret = requests.post(
         'https://api.mailgun.net/v3/{}/messages'.format(config.MAIL_DOMAIN),
         auth=('api',config.MAILGUN_KEY),
-        params={
-            'from': sender or config.MAIL_SENDER,
-            'to': '{} <{}>'.format(user.nickname, user.email),
-            'subject': subjects[mtype],
-            'text': load(mtype, 'txt', kwargs),
-            'html': load(mtype, 'html', kwargs),
-        },
+        params=params,
     )
     try:
         jret = ret.json()
