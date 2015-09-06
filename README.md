@@ -564,6 +564,7 @@ Resources
 	"date": "some datetime", // when this transaction happened
 	"type": "withdraw", // one of "deposit", "withdraw", "won", "lost", "other"
 	"sum": -100, // amount in coins (either positive or negative, depending on type)
+	"balance": 90, // resulting balance in coins *after* this transaction
 	"game_id": 135, // for win or lost only - related game id
 	"comment": "Converted to 100 USD" // for deposit/withdraw operations
 }
