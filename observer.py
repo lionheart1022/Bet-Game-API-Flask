@@ -226,7 +226,7 @@ class Handler:
     def start(self):
         log.info('spawning handler')
         self.thread = eventlet.spawn(self.watch_tc)
-        pool[self.handle] = self
+        pool[self.handle, self.gametype] = self
 
     def abort(self):
         self.thread.kill()
@@ -277,7 +277,7 @@ class Handler:
         finally:
             # mark that this stream has stopped
             # stream may be already deleted from db, so use saved handle
-            del pool[self.handle]
+            del pool[self.handle, self.gametype]
 
     def watch(self):
         # start subprocess and watch its output
@@ -470,9 +470,9 @@ def abort_stream(stream):
     """
     If stream is running, abort it. Else do nothing.
     """
-    if stream.handle not in pool:
+    if (stream.handle, stream.gametype) not in pool:
         return False
-    pool[stream.handle].abort()
+    pool[stream.handle, stream.gametype].abort()
     # will remove itself
     return True
 
