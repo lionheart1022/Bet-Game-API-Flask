@@ -586,7 +586,7 @@ class StreamResource(restful.Resource):
 
         return marshal(stream, self.fields)
 
-    def put(self, id=None):
+    def put(self, id=None, gametype=None):
         """
         Returns 409 if stream with this handle exists with different parameters.
         Returns 507 if no slots are available.
@@ -594,13 +594,12 @@ class StreamResource(restful.Resource):
         Will return 201 code if new stream was added
         or 200 code if game was added to existing stream.
         """
-        if not id:
+        if not id or not gametype:
             raise MethodNotAllowed
 
-        log.info('Stream put with id '+id)
+        log.info('Stream put with id {}, gt {}'.format(id, gametype))
 
         parser = RequestParser(bundle_errors=True)
-        parser.add_argument('gametype', required=True)
         parser.add_argument('game_id', type=int, required=True)
         parser.add_argument('creator', required=True)
         parser.add_argument('opponent', required=True)
@@ -611,14 +610,11 @@ class StreamResource(restful.Resource):
             # FIXME: handle dup ID in supplementaries?
             abort('This game ID is already watched in some another stream')
 
-        stream = Stream.find(id)
+        stream = Stream.find(id, gametype)
         if stream:
             # stream already exists; add this game to it as a supplementary game
             new = False
 
-            if args.gametype != stream.gametype:
-                # FIXME: add somehow to queue? And gametype against twitch?
-                abort('Duplicate stream ID with different gametype', 409)
             if args.creator.lower() == stream.creator.lower():
                 if args.opponent.lower() != stream.opponent.lower():
                     abort('Duplicate stream ID with wrong opponent nickname', 409)
@@ -643,6 +639,7 @@ class StreamResource(restful.Resource):
 
             stream = Stream()
             stream.handle = id
+            stream.gametype = gametype
             for k, v in args.items():
                 setattr(stream, k, v)
 
@@ -651,7 +648,7 @@ class StreamResource(restful.Resource):
         for child, host in CHILDREN.items():
             # try to delegate this stream to that child
             # FIXME: implement some load balancing
-            result = requests.put('{}/streams/{}'.format(host, id),
+            result = requests.put('{}/streams/{}/{}'.format(host, id, gametype),
                                   data = args)
             if result.status_code == 200: # accepted?
                 ret = result.json()
