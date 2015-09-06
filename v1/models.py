@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import or_, case
 from sqlalchemy.sql.expression import func
-from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from flask import g
 import os
 
@@ -108,6 +108,20 @@ class Player(db.Model):
     @popularity.expression
     def popularity(self):
         return self.games.filter(Game.state == 'accepted').with_entities(func.count('*'))
+
+    @hybrid_property
+    def recent_opponents(self):
+        # last 5 sent and 5 received
+        sent = (Game.query.filter(Game.creator_id == self.id)
+                .order_by(Game.create_date.desc())
+                .limit(5))
+        recv = (Game.query.filter(Game.opponent_id == self.id)
+                .order_by(Game.create_date.desc())
+                .limit(5))
+        return Player.query.filter(or_(
+            Player.id.in_(sent.with_entities(Game.opponent_id)),
+            Player.id.in_(recv.with_entities(Game.creator_id)),
+        ))
 
     def has_userpic(self):
         from .routes import UserpicResource
