@@ -1010,15 +1010,15 @@ class GameResource(restful.Resource):
                 abort('Failed to initialize poller, please contact support!', 500)
 
         # Now, before we save state change, start twitch stream if required
-        # so that we can abort if it failed
+        # so that we can abort request if it failed
         if game.twitch_handle and args.state == 'accepted':
             ret = requests.put(
-                '{}/streams/{}'.format(
+                '{}/streams/{}/{}'.format(
                     config.OBSERVER_URL,
                     game.twitch_handle,
+                    game.gametype,
                 ),
                 data = dict(
-                    gametype = game.gametype,
                     game_id = game.id,
                     creator = game.gamertag_creator,
                     opponent = game.gamertag_opponent,
