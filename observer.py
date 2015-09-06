@@ -161,7 +161,7 @@ class Stream(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     # Twitch stream handle
-    handle = db.Column(db.String(64), nullable=False, unique=True)
+    handle = db.Column(db.String(64), nullable=False)
 
     # Which child handles this stream? None if self
     child = db.Column(db.String(64), default=None)
@@ -184,6 +184,10 @@ class Stream(db.Model):
 
     creator = db.Column(db.String(128))
     opponent = db.Column(db.String(128))
+
+    __table_args__ = (
+        db.UniqueConstraint('handle', 'gametype', name='_handle_gametype_uc'),
+    )
 
     @classmethod
     def find(cls, id):
