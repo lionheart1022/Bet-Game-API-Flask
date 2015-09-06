@@ -382,7 +382,10 @@ class PlayerResource(restful.Resource):
         if Player.find(id) != user:
             raise Forbidden
 
-        return jsonify(opponents = user.recent_opponents)
+        return jsonify(opponents = marshal(
+            user.recent_opponents,
+            Player.fields_public,
+        )
 
 # Userpic
 @api.resource('/players/<id>/userpic')
