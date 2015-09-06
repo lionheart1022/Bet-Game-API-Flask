@@ -376,6 +376,13 @@ class PlayerResource(restful.Resource):
         db.session.commit()
         return jsonify(success=True)
 
+    @app.route('/players/<id>/recent_opponents')
+    @require_auth
+    def recent_opponents(user, id):
+        if Player.find(id) != user:
+            raise Forbidden
+
+        return jsonify(opponents = user.recent_opponents)
 
 # Userpic
 @api.resource('/players/<id>/userpic')
