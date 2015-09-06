@@ -68,27 +68,28 @@ class Player(db.Model):
         return wins / count
     @winrate.expression
     def winrate(cls):
-        count = fast_count(Game.query.filter(
-            Game.creator_id == cls.id |
-            Game.opponent_id == cls.id
-        ))
-        if not count:
-            return None
-        won = fast_count(Game.query.filter(
-            or_(
-                Game.creator_id == cls.id &
-                Game.winner == 'creator',
-                Game.opponent_id == cls.id &
-                Game.winner == 'opponent',
-            )
-        ))
-        draw = fast_count(Game.query.filter(
+        count = Game.query.filter(
+            (Game.creator_id) == cls.id |
+            (Game.opponent_id) == cls.id
+        ).with_entities(func.count(Game.id))
+        #if count == 0:
+        #    return None
+        won = Game.query.filter(
             (
-                Game.creator_id == cls.id |
-                Game.opponent_id == cls.id
+                (Game.creator_id == cls.id) &
+                (Game.winner == 'creator')
+            ) | (
+                (Game.opponent_id == cls.id) &
+                (Game.winner == 'opponent')
+            )
+        ).with_entities(func.count(Game.id))
+        draw = Game.query.filter(
+            (
+                (Game.creator_id == cls.id) |
+                (Game.opponent_id == cls.id)
             ) &
             Game.winner == 'draw',
-        ))
+        ).with_entities(func.count(Game.id))
         return (won + draw/2) / count
 
     def has_userpic(self):
@@ -217,9 +218,10 @@ class Beta(db.Model):
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+def fast_count_noexec(query):
+    return query.statement.with_only_columns([func.count()]).order_by(None)
 def fast_count(query):
     """
     Get count of queried items avoiding using subquery (like query.count() does)
     """
-    count_query = query.statement.with_only_columns([func.count()]).order_by(None)
-    return query.session.execute(count_query).scalar()
+    return query.session.execute(fast_count_noexec(query)).scalar()
