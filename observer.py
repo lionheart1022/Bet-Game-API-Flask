@@ -259,12 +259,16 @@ class Handler:
         # TODO: check if it is online
 
         return True
+    def wait_for_correct_game(self):
+        log.info('Waiting for correct game')
+        while not self.check_current_game():
+            eventlet.sleep(30) # check every 30 seconds
+        log.info('Correct game detected')
 
     def watch_tc(self):
         log.info('watch_tc started')
         try:
-            while not self.check_current_game():
-                eventlet.sleep(30) # check every 30 seconds
+            self.wait_for_correct_game()
             result = self.watch()
             waits = 0
             while result == 'offline':
@@ -282,9 +286,13 @@ class Handler:
                             .format(self.stream.handle))
                 self.stream.state = 'waiting'
                 db.session.commit()
+
                 # wait & retry
                 eventlet.sleep(WAIT_DELAY)
+                # check if currently plaing game is (still) correct
+                self.wait_for_correct_game()
                 result = self.watch()
+
                 waits += 1
             return result
         except Exception: # will not catch GreenletExit
