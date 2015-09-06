@@ -193,7 +193,7 @@ def mailsend(user, mtype, sender=None, delayed=None, **kwargs):
     ret = requests.post(
         'https://api.mailgun.net/v3/{}/messages'.format(config.MAIL_DOMAIN),
         auth=('api',config.MAILGUN_KEY),
-        params=params,
+        data=params,
     )
     try:
         jret = ret.json()
