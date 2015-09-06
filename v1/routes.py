@@ -368,8 +368,8 @@ class PlayerResource(restful.Resource):
             dev = Device.query.get(g.device_id)
             if dev.push_token:
                 abort('This device already have push token specified')
+            dev.push_token = args.push_token
 
-        dev.push_token = args.push_token
         # update last login as it may be another device object
         # than one that was used for actual login
         dev.last_login = datetime.utcnow()
