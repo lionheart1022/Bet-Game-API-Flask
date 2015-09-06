@@ -216,6 +216,10 @@ class PlayerResource(restful.Resource):
     def greet(self, user):
         mailsend(player, 'greeting')
         # we don't check result as it is not critical if this email is not sent
+        mailsend(player, 'greet_personal',
+                 sender='Doug from BetGame <doug@betgame.co.uk>',
+                 delayed = timedelta(days=1),
+                 )
 
     @require_auth(allow_nonfilled=True)
     def patch(self, user, id=None):

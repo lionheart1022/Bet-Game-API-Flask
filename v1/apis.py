@@ -153,9 +153,10 @@ class Fixer:
 
         return rate
 
-def mailsend(user, mtype, sender=None, delayed=None, **kwargs):
+def mailsend(user, mtype, sender=None, delayed=None, usebase=True, **kwargs):
     subjects = dict(
         greeting = 'Welcome to BetGame',
+        greet_personal = 'Hey {}'.format(user.name or 'BetGame user'),
         recover = 'BetGame password recovery',
         win = 'BetGame win notification',
     )
@@ -183,8 +184,8 @@ def mailsend(user, mtype, sender=None, delayed=None, **kwargs):
         'from': sender or config.MAIL_SENDER,
         'to': '{} <{}>'.format(user.nickname, user.email),
         'subject': subjects[mtype],
-        'text': load(mtype, 'txt', kwargs),
-        'html': load(mtype, 'html', kwargs),
+        'text': load(mtype, 'txt', kwargs, not usebase),
+        'html': load(mtype, 'html', kwargs, not usebase),
     }
     if delayed:
         params['o:deliverytime'] = email.utils.format_datetime(
