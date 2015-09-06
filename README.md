@@ -160,6 +160,9 @@ By default, it returns all players registered, but output can be filtered.
 * `filter` - text against which any of player identities should match for that player to be included.
 * `filt_op` - operation for filter matching, choices are `startswith` and `contains`, default is `startswith`.
   Matching is always case-insensitive.
+* `order` - sorting order, optional. By default players returned are sorted by id, in ascending order.
+  For now the only supported sorting order is `lastbet` (i.e. order by time of last bet made/received by the player).
+  Prepend with `-` for descending order.
 * `results_per_page` defaults to 10, max is 50
 * `page` - which page to return, defaults to 1
 

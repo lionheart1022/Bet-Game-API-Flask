@@ -135,7 +135,15 @@ class PlayerResource(restful.Resource):
                                 choices=['startswith', 'contains'],
                                 default='startswith',
                                 )
-            #parser.add_argument('sort', ..)
+            parser.add_argument(
+                'order',
+                choices=sum(
+                    [[s, '-'+s]
+                     for s in
+                     ('lastbet',
+                      )], []),
+                required=False,
+            )
             #parser.add_argument('names_only', type=boolean_field)
             parser.add_argument('page', type=int, default=1)
             parser.add_argument('results_per_page', type=int, default=10)
@@ -149,6 +157,12 @@ class PlayerResource(restful.Resource):
             else:
                 query = Player.query
 
+            if args.order:
+                if args.order.srartswith('-'):
+                    order = getattr(Player, args.order[1:]).desc()
+                else:
+                    order = getattr(Player, args.order).asc()
+                query = query.order_by(order)
             # TODO: sort by win rate desc if requested
 
             if query:
