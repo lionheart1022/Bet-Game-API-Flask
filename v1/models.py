@@ -102,6 +102,13 @@ class Player(db.Model):
     def lastbet(cls):
         return cls.games.order_by(Game.create_date.desc()).limit(1).with_entities(Game.create_date)
 
+    @hybrid_property
+    def popularity(self):
+        return fast_count(self.games.filter(Game.state == 'accepted'))
+    @popularity.expression
+    def popularity(self):
+        return self.games.filter(Game.state == 'accepted').with_entities(func.count('*'))
+
     def has_userpic(self):
         from .routes import UserpicResource
         return os.path.exists(UserpicResource.file_for(self))
