@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import or_
+from sqlalchemy import or_, case
 from sqlalchemy.sql.expression import func
 from sqlalchemy.ext.hybrid import hybrid_property
 from flask import g
@@ -68,13 +68,11 @@ class Player(db.Model):
         return wins / count
     @winrate.expression
     def winrate(cls):
-        # FIXME
-        count = Game.query.filter(
+        subgames = Game.query.filter(
             (Game.creator_id) == cls.id |
             (Game.opponent_id) == cls.id
-        ).with_entities(func.count(Game.id))
-        #if count == 0:
-        #    return None
+        )
+        count = subgames.with_entities(func.count(Game.id).label('cnt'))
         won = Game.query.filter(
             (
                 (Game.creator_id == cls.id) &
@@ -83,15 +81,19 @@ class Player(db.Model):
                 (Game.opponent_id == cls.id) &
                 (Game.winner == 'opponent')
             )
-        ).with_entities(func.count(Game.id))
+        ).with_entities(func.count(Game.id).label('cnt'))
         draw = Game.query.filter(
             (
                 (Game.creator_id == cls.id) |
                 (Game.opponent_id == cls.id)
             ) &
             Game.winner == 'draw',
-        ).with_entities(func.count(Game.id))
-        return (won + draw/2) / count
+        ).with_entities((func.count(Game.id) / 2).label('cnt'))
+        return case([
+            (count == 0, None), # if count == 0 then NULL else (calc)
+        ], else_ = (
+            won.subquery() + draw.subquery()) / count.subquery()
+        )
 
     @hybrid_property
     def lastbet(self):
