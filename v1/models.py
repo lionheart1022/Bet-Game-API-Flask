@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import or_, case
+from sqlalchemy import or_, case, select
 from sqlalchemy.sql.expression import func
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from flask import g
@@ -112,15 +112,18 @@ class Player(db.Model):
     @hybrid_property
     def recent_opponents(self):
         # last 5 sent and 5 received
-        sent = (Game.query.filter(Game.creator_id == self.id)
-                .order_by(Game.create_date.desc())
-                .limit(5))
-        recv = (Game.query.filter(Game.opponent_id == self.id)
-                .order_by(Game.create_date.desc())
-                .limit(5))
+        sent, recv = [
+            Game.query.filter(field == self.id)
+            .order_by(Game.create_date.desc())
+            .limit(5).with_entities(other).subquery()
+            for field, other in [
+                (Game.creator_id, Game.opponent_id),
+                (Game.opponent_id, Game.creator_id),
+            ]
+        ]
         return Player.query.filter(or_(
-            Player.id.in_(sent.with_entities(Game.opponent_id)),
-            Player.id.in_(recv.with_entities(Game.creator_id)),
+            Player.id.in_(db.session.query(sent.c.opponent_id)),
+            Player.id.in_(db.session.query(recv.c.creator_id)),
         ))
 
     def has_userpic(self):
