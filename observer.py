@@ -142,7 +142,7 @@ def init_app(logfile=None):
     # and remove stale records
     with app.test_request_context():
         for stream in Stream.query:
-            log.info('restarting stream '+stream.handle)
+            log.info('restarting stream {}/{}'.format(stream.handle, stream.gametype))
             if stream.state in ('waiting', 'watching'):
                 add_stream(stream)
             elif stream.state in ('found', 'failed'):
@@ -163,11 +163,12 @@ class Stream(db.Model):
     # Twitch stream handle
     handle = db.Column(db.String(64), nullable=False)
 
-    # Which child handles this stream? None if self
+    gametype = db.Column(db.String(64), default=None)
+
+    # Which child watches this stream? None if self
     child = db.Column(db.String(64), default=None)
 
-    # Gametype and other metadata goes below
-    gametype = db.Column(db.String(64), default=None)
+    # other metadata goes below
 
     # this is an ID of the primary Game object for this stream.
     # We don't use foreign key because we may reside on separate server
@@ -557,7 +558,7 @@ def stream_done(stream, winner, timestamp):
     # But we are still handling PATCH request, so it will hang.
     # So launch it as a green thread immediately after we finish
     eventlet.spawn(requests.delete,
-                   '{}/streams/{}'.format(SELF_URL, stream.handle))
+                   '{}/streams/{}/{}'.format(SELF_URL, stream.handle, stream.gametype))
 
     return True
 
