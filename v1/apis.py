@@ -204,6 +204,8 @@ def mailsend(user, mtype, sender=None, delayed=None, **kwargs):
             log.error('mail sending failed: '+jret['message'])
             return False
     except Exception:
+        log.exception('Failed to send {} mail to {}'.format(mtype, user))
+        log.error('{} {}'.format(ret.status_code, ret.text))
         return False
 
 class LimitedApi:
