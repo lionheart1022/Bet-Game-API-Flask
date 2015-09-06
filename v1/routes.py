@@ -462,6 +462,7 @@ def balance_history(user):
             date = fields.DateTime,
             type = fields.String,
             sum = fields.Float,
+            balance = fields.Float,
             game_id = fields.Integer,
             comment = fields.String,
         ))).format(query),
@@ -523,13 +524,14 @@ def balance_deposit(user):
         # now payment should be verified
         log.info('Payment approved, adding coins')
 
+        user.balance += coins
         db.session.add(Transaction(
             player = user,
             type = 'deposit',
             sum = coins,
+            balance = user.balance,
             comment = 'Converted from {} {}'.format(args.total, args.currency),
         ))
-        user.balance += coins
         db.session.commit()
     return jsonify(
         success=True,
@@ -576,16 +578,17 @@ def balance_withdraw(user):
         abort('[paypal_email] should be specified unless you are running dry-run')
 
     # first withdraw coins...
+    user.balance -= args.coins
     db.session.add(Transaction(
         player = user,
         type = 'withdraw',
         sum = -coins,
+        balance = user.balance,
         comment = 'Converted to {} {}'.format(
             amount,
             args.currency,
         ),
     ))
-    user.balance -= args.coins
     db.session.commit()
 
     # ... and only then do actual transaction;
@@ -646,6 +649,7 @@ def balance_withdraw(user):
             player = user,
             type = 'withdraw',
             sum = coins,
+            balance = user.balance,
             comment = 'Withdraw operation aborted due to error',
         ))
         db.session.commit()
