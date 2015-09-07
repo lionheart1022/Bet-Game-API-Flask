@@ -143,6 +143,7 @@ class PlayerResource(restful.Resource):
                      for s in
                      ('lastbet',
                       'popularity',
+                      'winrate',
                       )], []),
                 required=False,
             )
