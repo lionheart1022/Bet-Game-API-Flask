@@ -159,7 +159,7 @@ class PlayerResource(restful.Resource):
                 query = Player.query
 
             if args.order:
-                if args.order.srartswith('-'):
+                if args.order.startswith('-'):
                     order = getattr(Player, args.order[1:]).desc()
                 else:
                     order = getattr(Player, args.order).asc()
