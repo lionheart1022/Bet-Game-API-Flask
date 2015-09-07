@@ -92,7 +92,7 @@ class PlayerResource(restful.Resource):
             # some stats
             gamecount = fields.Integer, # FIXME: optimize query somehow?
             winrate = fields.Float,
-            popularity = fields.Integer,
+            #popularity = fields.Integer,
         )
     @classproperty
     def fields_public(cls):
