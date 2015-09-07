@@ -126,8 +126,8 @@ class Player(db.Model):
     def popularity(self):
         return fast_count(self.games.filter(Game.state == 'accepted'))
     @popularity.expression
-    def popularity(self):
-        return self.games.filter(Game.state == 'accepted').with_entities(func.count('*'))
+    def popularity(cls):
+        return cls.games.filter(Game.state == 'accepted').with_entities(func.count('*'))
 
     @hybrid_property
     def recent_opponents(self):
