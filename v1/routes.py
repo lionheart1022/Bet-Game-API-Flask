@@ -2,7 +2,6 @@ from flask import request, jsonify, current_app, g, send_file
 from flask.ext import restful
 from flask.ext.restful import fields, marshal
 from sqlalchemy.sql.expression import func
-from sqlalchemy import desc
 
 from werkzeug.exceptions import HTTPException
 from werkzeug.exceptions import BadRequest, MethodNotAllowed, Forbidden, NotImplemented, NotFound
@@ -162,9 +161,9 @@ class PlayerResource(restful.Resource):
 
             if args.order:
                 if args.order.startswith('-'):
-                    order = desc(getattr(Player, args.order[1:]))
+                    order = getattr(Player, args.order[1:]).desc()
                 else:
-                    order = getattr(Player, args.order)
+                    order = getattr(Player, args.order).asc()
                 query = query.order_by(order)
             # TODO: sort by win rate desc if requested
 
@@ -857,9 +856,9 @@ class GameResource(restful.Resource):
         # TODO: filters
         if args.order:
             if args.order.startswith('-'):
-                order = desc(getattr(Game, args.order[1:]))
+                order = getattr(Game, args.order[1:]).desc()
             else:
-                order = getattr(Game, args.order)
+                order = getattr(Game, args.order).asc()
             query = query.order_by(order)
 
 
