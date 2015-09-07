@@ -68,31 +68,42 @@ class Player(db.Model):
         return wins / count
     @winrate.expression
     def winrate(cls):
-        subgames = Game.query.filter(
-            (Game.creator_id) == cls.id |
-            (Game.opponent_id) == cls.id
+        count = (
+            db.select([func.count(Game.id)])
+            .where(cls.id.in_([
+                Game.creator_id,
+                Game.opponent_id,
+            ]))
+            .label('cnt')
         )
-        count = subgames.with_entities(func.count(Game.id).label('cnt'))
-        won = Game.query.filter(
-            (
-                (Game.creator_id == cls.id) &
-                (Game.winner == 'creator')
-            ) | (
-                (Game.opponent_id == cls.id) &
-                (Game.winner == 'opponent')
+        won = (
+            db.select([func.count(Game.id)])
+            .where(
+                (
+                    (Game.creator_id == cls.id) &
+                    (Game.winner == 'creator')
+                ) | (
+                    (Game.opponent_id == cls.id) &
+                    (Game.winner == 'opponent')
+                )
             )
-        ).with_entities(func.count(Game.id).label('cnt'))
-        draw = Game.query.filter(
-            (
-                (Game.creator_id == cls.id) |
-                (Game.opponent_id == cls.id)
-            ) &
-            Game.winner == 'draw',
-        ).with_entities((func.count(Game.id) / 2).label('cnt'))
+            .label('won')
+        )
+        draw = (
+            db.select([func.count(Game.id) / 2])
+            .where(
+                (
+                    (Game.creator_id == cls.id) |
+                    (Game.opponent_id == cls.id)
+                ) &
+                Game.winner == 'draw',
+            )
+            .label('draw')
+        )
         return case([
             (count == 0, None), # if count == 0 then NULL else (calc)
-        ], else_ = (
-            won.subquery() + draw.subquery()) / count.subquery()
+        ], else_ =
+            (won + draw) / count
         )
 
     @hybrid_property
