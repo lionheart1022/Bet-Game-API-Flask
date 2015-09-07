@@ -111,7 +111,16 @@ class Player(db.Model):
         return self.games.order_by(Game.create_date.desc()).first().create_date
     @lastbet.expression
     def lastbet(cls):
-        return cls.games.order_by(Game.create_date.desc()).limit(1).with_entities(Game.create_date)
+        return (
+            db.select([Game.create_date])
+            .where(cls.id.in_([
+                Game.creator_id,
+                Game.opponent_id,
+            ]))
+            .order_by(Game.create_date.desc())
+            .limit(1)
+            .label('lastbet')
+        )
 
     @hybrid_property
     def popularity(self):
