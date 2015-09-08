@@ -95,6 +95,7 @@ $(function() {
 	$('#login_form').submit(function(e) {
 		e.preventDefault();
 
+		$('#login_submit').remove();
 		var form = $('#login_form'),
 			data = {
 				id: form.find('#name').val(),
@@ -118,7 +119,7 @@ $(function() {
 			</div>
 			<input type="text" id="name" placeholder="Your email or userid"/>
 			<input type="password" id="password" placeholder="Password?"/>
-			<input type="submit" value="OK"/>
+			<input id="login_submit" type="submit" value="OK"/>
 			<div id="message" style="color: red;"></div>
 		</form>
 		<a id="export" target="_blank" download="beta-testers.csv" style="display: none;">Export to CSV</a>
