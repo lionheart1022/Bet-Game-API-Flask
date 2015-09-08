@@ -102,7 +102,7 @@ $(function() {
 		$(this).parents('td').find('input').each(function() {
 			val.push($(this).attr('name'));
 		});
-		API.call('PATCH', 'beta/'+uid, {
+		API.call('PATCH', 'betatesters/'+uid, {
 			key: val.join(','),
 		}, function(ret) {
 			console.info('success');
