@@ -1124,7 +1124,8 @@ class BetaResource(restful.Resource):
             ),
         )
 
-    def patch(self, id=None):
+    @require_auth
+    def patch(self, user, id=None):
         if not id:
             raise MethodNotAllowed
 
