@@ -33,6 +33,24 @@ $(function() {
 						$('<td/>', {text: String(v)}).appendTo(row);
 					}
 				});
+				$.each({
+					'medium': ['email', 'skype', 'xbox'],
+					'flags': ['contacted', 'got_reply'],
+				}, function(key, vals) {
+					var td = $('<td/>');
+					$.each(vals, function(k, prop) {
+						$('<label/>')
+							.data('key', key)
+							.append($('<input/>', {
+								'type': 'checkbox',
+								'data-key': key,
+								'name': prop,
+								'class': 'flagtoggle',
+							}))
+							.append(prop)
+							.appendTo(row);
+					});
+				});
 				$('#users').append(row);
 
 				csv += $.map([
@@ -108,6 +126,7 @@ $(function() {
 				<th>Platforms</th>
 				<th>Consoles</th>
 				<th>Create date</th>
+				<th>Flags</th>
 			</tr>
 		</table>
 		<table id="gamestats" style="display: none;" border="1">
