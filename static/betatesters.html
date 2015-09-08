@@ -53,7 +53,7 @@ $(function() {
 						});
 						$('<td/>').append(child).appendTo(row);
 					} else {
-						if(v !== 0 && (!v || !v.length))
+						if(v !== 0 && (!v || (typeof v == 'object' && !v.length)))
 							v = '(none)';
 						$('<td/>', {text: String(v)}).appendTo(row);
 					}
