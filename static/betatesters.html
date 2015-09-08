@@ -28,7 +28,7 @@ $(function() {
 				], function(i, k) {
 					var v = tester[k];
 					if(flagvals[k]) {
-						vals = $.unique($.merge([], v, flagvals[k]));
+						vals = $.unique($.merge($.merge([], v), flagvals[k]));
 						var td = $('<td/>');
 						$.each(vals, function(k, prop) {
 							var cbox = $('<input/>', {
