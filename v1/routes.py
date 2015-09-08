@@ -1061,7 +1061,7 @@ class GameResource(restful.Resource):
 # Beta testers
 @api.resource(
     '/betatesters',
-    '/betatesters/<id>',
+    '/betatesters/<int:id>',
 )
 class BetaResource(restful.Resource):
     @classproperty
