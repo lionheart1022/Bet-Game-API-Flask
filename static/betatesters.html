@@ -12,6 +12,10 @@ $(function() {
 			$('#login_form').slideUp();
 			var games = {};
 			var csv = '';
+			var flagvals = {
+				'medium': ['email', 'skype', 'xbox'],
+				'flags': ['contacted', 'got_reply'],
+			};
 			$.each(ret.betatesters, function(i, tester) {
 				// prepare statistics
 				$.each(tester.gametypes, function(i, game) {
@@ -23,7 +27,25 @@ $(function() {
 						'medium', 'flags',
 				], function(i, k) {
 					var v = tester[k];
-					if(Array.isArray(v) && v.length && v[0]) {
+					if(flagvals[k]) {
+						vals = $.unique($.merge([], v, flagvals[k]));
+						var td = $('<td/>');
+						$.each(vals, function(k, prop) {
+							var cbox = $('<input/>', {
+								'type': 'checkbox',
+								'data-key': k,
+								'name': prop,
+								'class': 'flagtoggle',
+							});
+							if($.inArray(prop, v))
+								cbox.attr('checked', 1);
+							$('<label/>')
+								.append(cbox)
+								.append(prop)
+								.appendTo(td);
+						});
+						td.appendTo(row);
+					} else if(Array.isArray(v) && v.length && v[0]) {
 						var child = $('<ul/>');
 						$.each(v, function(i, point) {
 							$('<li/>', {text: point}).appendTo(child);
@@ -34,25 +56,6 @@ $(function() {
 							v = '(none)';
 						$('<td/>', {text: String(v)}).appendTo(row);
 					}
-				});
-				$.each({
-					'medium': ['email', 'skype', 'xbox'],
-					'flags': ['contacted', 'got_reply'],
-				}, function(key, vals) {
-					var td = $('<td/>');
-					$.each(vals, function(k, prop) {
-						$('<label/>')
-							.data('key', key)
-							.append($('<input/>', {
-								'type': 'checkbox',
-								'data-key': key,
-								'name': prop,
-								'class': 'flagtoggle',
-							}))
-							.append(prop)
-							.appendTo(td);
-					});
-					td.appendTo(row);
 				});
 				$('#users').append(row);
 
