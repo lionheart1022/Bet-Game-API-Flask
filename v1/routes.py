@@ -1130,7 +1130,7 @@ class BetaResource(restful.Resource):
         if not id:
             raise MethodNotAllowed
 
-        beta = Beta.get(id)
+        beta = Beta.query.get(id)
         if not beta:
             raise NotFound
 
