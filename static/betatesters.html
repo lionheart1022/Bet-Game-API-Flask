@@ -93,7 +93,7 @@ $(function() {
 			$('#message').text(JSON.stringify(err));
 		});
 	}
-	$('#users').on('click', 'input.flagtoggle', function(e) {
+	$('#users').on('change', 'input.flagtoggle', function(e) {
 		var uid = $(this).data('uid'),
 			key = $(this).data('key'),
 			val = [],
