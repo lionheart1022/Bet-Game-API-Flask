@@ -11,6 +11,7 @@ $(function() {
 		API.call('GET', 'betatesters', {}, function(ret) {
 			$('#login_form').slideUp();
 			var games = {};
+			var csv = '';
 			$.each(ret.betatesters, function(i, tester) {
 				// prepare statistics
 				$.each(tester.gametypes, function(i, game) {
@@ -33,9 +34,18 @@ $(function() {
 					}
 				});
 				$('#users').append(row);
+
+				csv += $.map([
+						'name', '', 'email', '', '',
+						'From Web form', ''
+				], function(key) {
+					if(key === '')
+						return key;
+					return tester[key];
+				}).join(',') + '\n';
 			});
 			$('#users').slideDown();
-			$('#export').slideDown();
+			$('#export').attr('href', 'data:attachment/csv,'+csv).slideDown();
 
 			// now handle statistics
 			var sortable = [];
@@ -71,19 +81,6 @@ $(function() {
 			form.find('#message').text(JSON.stringify(err));
 		});
 	});
-	$('#export').click(function(e) {
-		e.preventDefault();
-
-		// gen csv...
-		var csv = 'hello';
-		var a = $('<a/>', {
-			'style': 'display: none',
-			'href': 'data:attachment/csv,'+csv,
-			'target': '_blank',
-			'download': 'beta-testers.csv',
-		});
-		a.appendTo($('body')).click().remove();
-	});
 });
 		</script>
 	</head>
@@ -98,7 +95,7 @@ $(function() {
 			<input type="submit" value="OK"/>
 			<div id="message" style="color: red;"></div>
 		</form>
-		<a href="#" id="export" style="display: none;">Export to CSV</a>
+		<a id="export" target="_blank" download="beta-testers.csv" style="display: none;">Export to CSV</a>
 		<table id="users" style="display: none;" border="1">
 			<tr>
 				<th>ID</th>
