@@ -1060,13 +1060,14 @@ class GameResource(restful.Resource):
 
 # Beta testers
 @api.resource(
-    '/betatesters'
+    '/betatesters',
+    '/betatesters/<id>',
 )
 class BetaResource(restful.Resource):
     @classproperty
     def fields(cls):
         return dict(
-            id = fields.String,
+            id = fields.Integer,
             email = fields.String,
             name = fields.String,
             gametypes = CommaListField,
@@ -1076,7 +1077,9 @@ class BetaResource(restful.Resource):
             medium = CommaListField,
             flags = CommaListField,
         )
-    def get(self):
+    def get(self, id=None):
+        if id:
+            raise MethodNotAllowed
         user = check_auth()
         if user.id not in config.ADMIN_IDS:
             raise Forbidden
@@ -1087,7 +1090,9 @@ class BetaResource(restful.Resource):
             ),
         )
 
-    def post(self):
+    def post(self, id=None):
+        if id:
+            raise MethodNotAllowed
         def nonempty(val):
             if not val:
                 raise ValueError('Should not be empty')
@@ -1119,6 +1124,26 @@ class BetaResource(restful.Resource):
             ),
         )
 
+    def patch(self, id=None):
+        if not id:
+            raise MethodNotAllowed
+
+        beta = Beta.get(id)
+        if not beta:
+            raise NotFound
+
+        parser = RequestParser()
+        parser.add_argument('medium', default='')
+        parser.add_argument('flags', default='')
+        args = parser.parse_args()
+
+        for k,v in args.items():
+            if hasattr(beta, k):
+                setattr(beta, k, v)
+
+        db.session.commit()
+
+        return dict(success = True)
 
 # Debugging-related endpoints
 @app.route('/debug/push_state/<state>', methods=['POST'])
