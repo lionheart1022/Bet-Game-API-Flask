@@ -44,10 +44,10 @@ $(function() {
 					if(typeof tester[key] === 'undefined')
 						return key;
 					return tester[key];
-				}).join(',') + '%0A';
+				}).join(',') + '\n';
 			});
 			$('#users').slideDown();
-			$('#export').attr('href', 'data:attachment/csv,'+csv).slideDown();
+			$('#export').attr('href', 'data:attachment/csv,'+encodeURIComponent(csv)).slideDown();
 
 			// now handle statistics
 			var sortable = [];
