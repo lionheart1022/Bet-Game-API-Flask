@@ -41,8 +41,10 @@ $(function() {
 				], function(key) {
 					if(key === '')
 						return key;
+					if(typeof tester[key] === 'undefined')
+						return key;
 					return tester[key];
-				}).join(',') + '\n';
+				}).join(',') + '%0A';
 			});
 			$('#users').slideDown();
 			$('#export').attr('href', 'data:attachment/csv,'+csv).slideDown();
