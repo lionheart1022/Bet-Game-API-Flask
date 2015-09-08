@@ -1073,6 +1073,8 @@ class BetaResource(restful.Resource):
             platforms = CommaListField,
             console = CommaListField,
             create_date = fields.DateTime,
+            medium = CommaListField,
+            flags = CommaListField,
         )
     def get(self):
         user = check_auth()
