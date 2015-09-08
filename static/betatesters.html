@@ -37,7 +37,7 @@ $(function() {
 								'name': prop,
 								'class': 'flagtoggle',
 							});
-							if($.inArray(prop, v))
+							if(v.indexOf(prop) >= 0)
 								cbox.attr('checked', 1);
 							$('<label/>')
 								.append(cbox)
