@@ -94,8 +94,8 @@ $(function() {
 		});
 	}
 	$('#users').on('change', 'input.flagtoggle', function(e) {
-		alert(e);
-		var uid = $(this).data('uid'),
+		var cb = this,
+			uid = $(this).data('uid'),
 			key = $(this).data('key'),
 			val = [],
 			state = this.checked;
@@ -107,6 +107,8 @@ $(function() {
 			key: val.join(','),
 		}, function(ret) {
 			console.info('success');
+		}, function(err) {
+			cb.checked = !cb.checked;
 		});
 	});
 	$('#login_form').submit(function(e) {
