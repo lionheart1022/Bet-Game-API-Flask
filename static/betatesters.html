@@ -94,6 +94,7 @@ $(function() {
 		});
 	}
 	$('#users').on('change', 'input.flagtoggle', function(e) {
+		alert(e);
 		var uid = $(this).data('uid'),
 			key = $(this).data('key'),
 			val = [],
