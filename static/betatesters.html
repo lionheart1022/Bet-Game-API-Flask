@@ -53,7 +53,7 @@ $(function() {
 						});
 						$('<td/>').append(child).appendTo(row);
 					} else {
-						if(!v || !v.length)
+						if(v !== 0 && (!v || !v.length))
 							v = '(none)';
 						$('<td/>', {text: String(v)}).appendTo(row);
 					}
@@ -99,8 +99,7 @@ $(function() {
 			key = $(this).data('key'),
 			val = [],
 			state = this.checked;
-		$(this).parents('td').find('input').each(function(elem) {
-			console.log(elem);
+		$(this).parents('td').find('input').each(function() {
 			val.push($(this).attr('name'));
 		});
 		API.call('PATCH', 'beta/'+uid, {
