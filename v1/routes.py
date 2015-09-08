@@ -1077,7 +1077,8 @@ class BetaResource(restful.Resource):
             medium = CommaListField,
             flags = CommaListField,
         )
-    def get(self, id=None):
+    @require_auth
+    def get(self, user, id=None):
         if id:
             raise MethodNotAllowed
         user = check_auth()
