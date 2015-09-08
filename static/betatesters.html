@@ -33,6 +33,7 @@ $(function() {
 						$.each(vals, function(k, prop) {
 							var cbox = $('<input/>', {
 								'type': 'checkbox',
+								'data-uid': tester['id'],
 								'data-key': k,
 								'name': prop,
 								'class': 'flagtoggle',
@@ -92,6 +93,21 @@ $(function() {
 			$('#message').text(JSON.stringify(err));
 		});
 	}
+	$('#users').on('click', 'input.flagtoggle', function(e) {
+		var uid = $(this).data('uid'),
+			key = $(this).data('key'),
+			val = [],
+			state = this.checked;
+		$(this).parents('td').find('input').each(function(elem) {
+			console.log(elem);
+			val.push($(this).attr('name');
+		});
+		API.call('PATCH', 'beta/'+uid, {
+			key: val.join(','),
+		}, function(ret) {
+			console.info('success');
+		});
+	});
 	$('#login_form').submit(function(e) {
 		e.preventDefault();
 
