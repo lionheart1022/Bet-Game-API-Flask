@@ -217,9 +217,9 @@ class PlayerResource(restful.Resource):
         return self.login_do(player, args_login, created=True)
 
     def greet(self, user):
-        mailsend(player, 'greeting')
+        mailsend(user, 'greeting')
         # we don't check result as it is not critical if this email is not sent
-        mailsend(player, 'greet_personal',
+        mailsend(user, 'greet_personal',
                  sender='Doug from BetGame <doug@betgame.co.uk>',
                  delayed = timedelta(days=1),
                  )
