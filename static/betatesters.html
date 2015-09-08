@@ -101,7 +101,7 @@ $(function() {
 			state = this.checked;
 		$(this).parents('td').find('input').each(function(elem) {
 			console.log(elem);
-			val.push($(this).attr('name');
+			val.push($(this).attr('name'));
 		});
 		API.call('PATCH', 'beta/'+uid, {
 			key: val.join(','),
