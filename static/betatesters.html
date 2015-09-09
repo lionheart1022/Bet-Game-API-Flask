@@ -43,7 +43,10 @@ $(function() {
 				$.each(ret.betatesters, function(i, tester) {
 					// append all encountered values to the end,
 					// and then remove duplicates
-					flagvals[key] = $.unique(flagvals[key].concat(tester[key]));
+					$.each(tester[key], function(i, prop) {
+						if(flagvals[key].indexOf(prop) == -1)
+							flagvals[key].push(prop);
+					});
 				});
 				flagvals[key].sort(); // sort it in place
 			});
