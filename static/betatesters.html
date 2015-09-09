@@ -18,9 +18,17 @@ $(function() {
 			var games = {};
 			var csv = '';
 			var flagvals = {
-				'medium': ['email', 'skype', 'xbox'],
-				'flags': ['contacted', 'got_reply'],
+				'medium': [],
+				'flags': [],
 			};
+			$.each(flagvals, function(_, key) {
+				$.each(ret.betatesters, function(i, tester) {
+					// append all encountered values to the end,
+					// and then remove duplicates
+					flagvals[key] = $.unique(flagvals[key].concat(tester[key]));
+				});
+				flagvals[key].sort(); // sort it in place
+			});
 			$.each(ret.betatesters, function(i, tester) {
 				// prepare statistics
 				$.each(tester.gametypes, function(i, game) {
@@ -118,7 +126,7 @@ $(function() {
 	$('#login_form').submit(function(e) {
 		e.preventDefault();
 
-		$('#login_submit').remove();
+		$('#login_submit').fadeOut();
 		var form = $('#login_form'),
 			data = {
 				id: form.find('#name').val(),
