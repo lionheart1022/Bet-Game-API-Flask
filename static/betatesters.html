@@ -39,13 +39,13 @@ $(function() {
 				'medium': [],
 				'flags': [],
 			};
-			$.each(flagvals, function(_, key) {
+			$.each(flagvals, function(key, vals) {
 				$.each(ret.betatesters, function(i, tester) {
 					// append all encountered values to the end,
 					// and then remove duplicates
 					$.each(tester[key], function(i, prop) {
-						if(flagvals[key].indexOf(prop) == -1)
-							flagvals[key].push(prop);
+						if(vals.indexOf(prop) == -1)
+							vals.push(prop);
 					});
 				});
 				flagvals[key].sort(); // sort it in place
