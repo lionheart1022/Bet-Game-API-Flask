@@ -1075,7 +1075,7 @@ class BetaResource(restful.Resource):
             console = CommaListField,
             create_date = fields.DateTime,
             medium = CommaListField,
-            flags = CommaListField,
+            flags = JsonField,
         )
     @require_auth
     def get(self, user, id=None):

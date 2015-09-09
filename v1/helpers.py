@@ -10,6 +10,7 @@ import urllib.parse
 import jwt
 import hashlib, uuid
 from urllib.parse import quote
+import json
 import requests
 from functools import wraps
 import binascii
@@ -577,6 +578,13 @@ class CommaListField(restful.fields.Raw):
         if not val: # empty string?
             return []
         return val.split(',')
+class JsonField(restful.fields.Raw):
+    def format(self, val):
+        try:
+            return json.loads(val)
+        except ValueError:
+            log.warning('Bad json field data')
+            return val
 
 
 # Notification
