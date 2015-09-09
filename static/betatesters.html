@@ -151,15 +151,17 @@ $(function() {
 	$('#users').on('change', 'input.flagtoggle', function(e) {
 		var cb = this,
 			uid = $(this).parents('tr').data('uid'),
-			key = $(this).data('key'),
-			val = [],
-			state = this.checked;
-		$(this).parents('td').find('input:checked').each(function() {
-			val.push($(this).attr('name'));
+			state = this.checked,
+			data = {};
+		$(this).parents('tr').find('input:checked').each(function() {
+			var column = $(this).data('key');
+			if(data.indexOf(column) == -1)
+				data[column] = [];
+			data[column].push($(this).attr('name'));
 		});
-		var data = {};
-		data[key] = val.join(',');
-		API.call('PATCH', 'betatesters/'+uid, data, function(ret) {
+		API.call('PATCH', 'betatesters/'+uid, {
+			flags: JSON.stringify(data);
+		}, function(ret) {
 			console.info('success');
 		}, function(err) {
 			cb.checked = !cb.checked;
