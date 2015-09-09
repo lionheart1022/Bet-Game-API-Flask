@@ -102,17 +102,17 @@ $(function() {
 						$('<td/>', {text: String(v)}).appendTo(row);
 					}
 				});
-				// and add custom columns, if json is valid
-				if(typeof tester.flags !== 'string') {
-					$.each(tester.flags, function(col, vals) {
-						var td = $('<td/>').addClass(col);
-						$.each(flagvals[col], function(_, prop) {
-							add_checkbox(td, col, prop,
-									tester.flags[col].indexOf(prop) != -1);
-						});
-						td.appendTo(row);
+				// and add custom columns
+				$.each(tester.flags, function(col, vals) {
+					var td = $('<td/>').addClass(col);
+					$.each(flagvals[col], function(_, prop) {
+						var checked = false;
+						if(typeof tester.flags !== 'string')
+							checked = tester.flags[col].indexOf(prop) != -1;
+						add_checkbox(td, col, prop, checked);
 					});
-				}
+					td.appendTo(row);
+				});
 				$('#users tbody').append(row);
 
 				csv += $.map([
