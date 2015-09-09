@@ -172,14 +172,22 @@ $(function() {
 			form.find('#message').text(JSON.stringify(err));
 		});
 	});
+	$('#add_column').click(function(e) {
+		e.preventDefault();
+		$('#flag_form .flag').hide();
+		$('#flag_form .column').show();
+		$('#flag_form').slideDown();
+		$('#flag_form input.column').val('').focus();
+	});
 	$('a.add').click(function(e) {
 		e.preventDefault();
 
+		$('#flag_form .column').hide();
+		$('#flag_form .flag').show();
 		var column = $(this).data('column');
-		$('#flag_form .column').val(column);
-		$('#flag_form .column').text(column);
+		$('#flag_form .column').val(column).text(column);
 		$('#flag_form').slideDown();
-		$('#flag_form .flag').val('').focus();
+		$('#flag_form input.flag').val('').focus();
 	});
 	$('#flag_form').submit(function(e) {
 		e.preventDefault();
@@ -191,8 +199,8 @@ $(function() {
 		});
 		$('#flag_form input.flag').val('');
 	});
-	$('#flag_form .cancel').click(function() {
-		$('#flag_form').slideUp();
+	$('.cancel').click(function() {
+		$(this).parents('form').slideUp();
 	});
 
 	if(localStorage.token) {
@@ -215,9 +223,15 @@ $(function() {
 			<div id="message" style="color: red;"></div>
 		</form>
 		<form id="flag_form" class="hide" action="">
-			<input type="hidden" class="column"/>
-			Adding flag for column «<strong class="column"></strong>».
+			<div class="flag">
+				<input type="hidden" class="column"/>
+				Adding flag for column «<strong class="column">?</strong>».
+			</div>
+			<div class="column">
+				Adding new column.
+			</div>
 			<br/>
+			<input type="text" class="column" placeholder="New column name"/>
 			<input type="text" class="flag" placeholder="New flag name"/>
 			<input type="submit" value="Add"/>
 			<input type="button" class="cancel" value="Done"/>
@@ -228,6 +242,7 @@ $(function() {
 		<div class="loaded">
 			<a id="export" target="_blank" download="beta-testers.csv" style="display: none;">Export to CSV</a>
 			<a href="#gamestats">Go to game stats</a>
+			<a href="#" id="add_column">[add column]</a>
 			<table id="users" border="1">
 				<tr>
 					<th>ID</th>
@@ -237,8 +252,6 @@ $(function() {
 					<th>Platforms</th>
 					<th>Consoles</th>
 					<th>Create date</th>
-					<th>Medium <a href="#" class="add" data-column="medium">[add]</a></th>
-					<th>Flags <a href="#" class="add" data-column="flags">[add]</a></th>
 				</tr>
 			</table>
 			<table id="gamestats" border="1">
