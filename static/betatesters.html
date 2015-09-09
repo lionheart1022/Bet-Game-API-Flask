@@ -107,7 +107,8 @@ $(function() {
 					var td = $('<td/>').addClass(col);
 					$.each(vals, function(_, prop) {
 						var checked = false;
-						if(typeof tester.flags !== 'string')
+						if(typeof tester.flags !== 'string' &&
+								tester.flags[col])
 							checked = tester.flags[col].indexOf(prop) != -1;
 						add_checkbox(td, col, prop, checked);
 					});
