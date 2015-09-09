@@ -167,6 +167,7 @@ $(function() {
 			console.log(this, column, name);
 			add_checkbox($(this), column, name);
 		});
+		$('#flag_form input.flag').val('');
 	});
 	$('#flag_form .cancel').click(function() {
 		$('#flag_form').slideUp();
