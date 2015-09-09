@@ -150,10 +150,6 @@ $(function() {
 			form.find('#message').text(JSON.stringify(err));
 		});
 	});
-	if(localStorage.cred) {
-		API.token = localStorage.token;
-		showUsers();
-	}
 	$('a.add').click(function(e) {
 		e.preventDefault();
 
@@ -176,6 +172,11 @@ $(function() {
 	$('#flag_form .cancel').click(function() {
 		$('#flag_form').slideUp();
 	});
+
+	if(localStorage.token) {
+		API.token = localStorage.token;
+		showUsers();
+	}
 });
 		</script>
 	</head>
