@@ -108,7 +108,7 @@ $(function() {
 					$.each(vals, function(_, prop) {
 						var checked = false;
 						if(typeof tester.flags !== 'string' &&
-								tester.flags[col])
+								typeof tester.flags[col] !== 'undefined')
 							checked = tester.flags[col].indexOf(prop) != -1;
 						add_checkbox(td, col, prop, checked);
 					});
