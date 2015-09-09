@@ -1074,7 +1074,6 @@ class BetaResource(restful.Resource):
             platforms = CommaListField,
             console = CommaListField,
             create_date = fields.DateTime,
-            medium = CommaListField,
             flags = JsonField,
         )
     @require_auth
@@ -1135,7 +1134,6 @@ class BetaResource(restful.Resource):
             raise NotFound
 
         parser = RequestParser()
-        parser.add_argument('medium')
         parser.add_argument('flags')
         args = parser.parse_args()
 

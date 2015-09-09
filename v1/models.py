@@ -276,7 +276,6 @@ class Beta(db.Model):
     ]
     console = db.Column(db.String(128))
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
-    medium = db.Column(db.String(128))
     flags = db.Column(db.Text) # probably json
 
 
