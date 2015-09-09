@@ -61,7 +61,11 @@ $(function() {
 				], function(i, k) {
 					var v = tester[k];
 					if(flagvals[k]) {
-						vals = $.unique($.merge($.merge([], v), flagvals[k]));
+						vals = [];
+						$.each(flagvals[k].concat(v), function(i, prop) {
+							if(vals.indexOf(prop) == -1)
+								vals.push(prop);
+						});
 						var td = $('<td/>').addClass(k);
 						$.each(vals, function(k, prop) {
 							add_checkbox(td, k, prop, v.indexOf(prop) >= 0);
@@ -164,7 +168,6 @@ $(function() {
 		var column = $('#flag_form input.column').val(),
 			name = $('#flag_form input.flag').val();
 		$('td.'+column).each(function() {
-			console.log(this, column, name);
 			add_checkbox($(this), column, name);
 		});
 		$('#flag_form input.flag').val('');
