@@ -124,9 +124,9 @@ $(function() {
 		$(this).parents('td').find('input').each(function() {
 			val.push($(this).attr('name'));
 		});
-		API.call('PATCH', 'betatesters/'+uid, {
-			key: val.join(','),
-		}, function(ret) {
+		var data = {};
+		data[key] = val.join(',');
+		API.call('PATCH', 'betatesters/'+uid, data, function(ret) {
 			console.info('success');
 		}, function(err) {
 			cb.checked = !cb.checked;
