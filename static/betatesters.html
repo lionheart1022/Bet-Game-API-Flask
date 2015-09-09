@@ -192,11 +192,10 @@ $(function() {
 	$('#users').on('click', 'a.add', function(e) {
 		e.preventDefault();
 
-		$('#flag_form .column').hide();
+		$('#flag_form .column:not(div)').hide();
 		$('#flag_form .flag').show();
 		var column = $(this).data('column');
-		$('#flag_form .column').val(column);
-		$('#flag_form .column').text(column);
+		$('#flag_form .column').val(column).text(column);
 		$('#flag_form').slideDown();
 		$('#flag_form input.flag').val('').focus();
 	});
