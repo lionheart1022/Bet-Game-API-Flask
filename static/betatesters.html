@@ -61,13 +61,8 @@ $(function() {
 				], function(i, k) {
 					var v = tester[k];
 					if(flagvals[k]) {
-						vals = [];
-						$.each(flagvals[k].concat(v), function(i, prop) {
-							if(vals.indexOf(prop) == -1)
-								vals.push(prop);
-						});
 						var td = $('<td/>').addClass(k);
-						$.each(vals, function(k, prop) {
+						$.each(flagvals[k], function(_, prop) {
 							add_checkbox(td, k, prop, v.indexOf(prop) >= 0);
 						});
 						td.appendTo(row);
