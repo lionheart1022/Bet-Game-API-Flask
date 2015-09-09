@@ -18,7 +18,6 @@ $(function() {
 	function add_checkbox(dest, column, prop) {
 		var cbox = $('<input/>', {
 			'type': 'checkbox',
-			'data-uid': tester['id'],
 			'data-key': column,
 			'name': prop,
 			'class': 'flagtoggle',
@@ -56,7 +55,7 @@ $(function() {
 					games[game] = (games[game] || 0) + 1;
 				});
 
-				var row = $('<tr/>');
+				var row = $('<tr/>').data('uid', tester.id);
 				$.each(['id', 'email', 'name', 'gametypes', 'platforms', 'console', 'create_date',
 						'medium', 'flags',
 				], function(i, k) {
@@ -118,7 +117,7 @@ $(function() {
 	}
 	$('#users').on('change', 'input.flagtoggle', function(e) {
 		var cb = this,
-			uid = $(this).data('uid'),
+			uid = $(this).parents('tr').data('uid'),
 			key = $(this).data('key'),
 			val = [],
 			state = this.checked;
