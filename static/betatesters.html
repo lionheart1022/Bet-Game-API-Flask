@@ -19,7 +19,7 @@ $(function() {
 	function add_column(name) {
 		flagvals[name] = [];
 		$('<th/>')
-			.append(name)
+			.append(name+' ')
 			.append($('<a/>', {
 				href: '#',
 				class: 'add',
@@ -189,7 +189,7 @@ $(function() {
 		$('#flag_form').slideDown();
 		$('#flag_form input.column').val('').focus();
 	});
-	$('a.add').click(function(e) {
+	$('#users').on('click', 'a.add', function(e) {
 		e.preventDefault();
 
 		$('#flag_form .column').hide();
