@@ -1145,7 +1145,7 @@ class BetaResource(restful.Resource):
 
         db.session.commit()
 
-        return dict(success = True)
+        return marshal(beta, self.fields)
 
 # Debugging-related endpoints
 @app.route('/debug/push_state/<state>', methods=['POST'])
