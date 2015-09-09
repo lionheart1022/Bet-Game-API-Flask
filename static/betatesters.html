@@ -137,12 +137,18 @@ $(function() {
 				password: form.find('#password').val(),
 			};
 		API.call('POST', 'players/_/login', data, function(ret) {
+			localStorage.token = ret.token;
 			API.token = ret.token;
 			showUsers();
 		}, function(err) {
 			form.find('#message').text(JSON.stringify(err));
 		});
 	});
+	if(localStorage.cred) {
+		$('#login_submit').fadeOut();
+		API.token = localStorage.token;
+		showUsers();
+	}
 	$('a.add').click(function(e) {
 		e.preventDefault();
 
