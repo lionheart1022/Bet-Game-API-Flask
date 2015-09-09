@@ -103,9 +103,9 @@ $(function() {
 					}
 				});
 				// and add custom columns
-				$.each(tester.flags, function(col, vals) {
+				$.each(flagvals, function(col, vals) {
 					var td = $('<td/>').addClass(col);
-					$.each(flagvals[col], function(_, prop) {
+					$.each(vals, function(_, prop) {
 						var checked = false;
 						if(typeof tester.flags !== 'string')
 							checked = tester.flags[col].indexOf(prop) != -1;
