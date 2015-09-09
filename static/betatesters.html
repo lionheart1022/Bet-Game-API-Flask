@@ -17,6 +17,7 @@ label {
 $(function() {
 	var flagvals = {};
 	function add_column(name) {
+		flagvals[name] = [];
 		$('#users tr').each(function() {
 			var row = $(this);
 			if(row.is(':first')) {
