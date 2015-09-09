@@ -121,7 +121,7 @@ $(function() {
 			key = $(this).data('key'),
 			val = [],
 			state = this.checked;
-		$(this).parents('td').find('input').each(function() {
+		$(this).parents('td').find('input:checked').each(function() {
 			val.push($(this).attr('name'));
 		});
 		var data = {};
