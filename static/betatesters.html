@@ -58,21 +58,23 @@ $(function() {
 			$('#login_form').slideUp();
 			var games = {};
 			var csv = '';
-			var flagvals = {
-				'medium': [],
-				'flags': [],
-			};
-			$.each(flagvals, function(key, vals) {
-				$.each(ret.betatesters, function(i, tester) {
-					// append all encountered values to the end,
-					// and then remove duplicates
-					$.each(tester[key], function(i, prop) {
-						if(vals.indexOf(prop) == -1)
-							vals.push(prop);
+
+			// first populate flagvals with all possible flag options
+			$.each(ret.betatesters, function(i, tester) {
+				var flags = tester.flags;
+				$.each(flags, function(column, props) {
+					if(!flagvals[column])
+						flagvals[column] = [];
+					$.each(props, function(i, prop) {
+						if(flagvals[column].indexOf(prop) == -1)
+							flagvals[column].push(prop);
 					});
 				});
-				flagvals[key].sort(); // sort it in place
 			});
+			$.each(flagvals, function(key, vals) {
+				vals.sort(); // sort it in place
+			});
+
 			$.each(ret.betatesters, function(i, tester) {
 				// prepare statistics
 				$.each(tester.gametypes, function(i, game) {
