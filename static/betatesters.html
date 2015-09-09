@@ -7,6 +7,9 @@
 label {
 	display: block;
 }
+.loaded {
+	display: none;
+}
 		</style>
 		<script src="/scripts/jquery-1.11.3.min.js"></script>
 		<script src="/scripts/common.js"></script>
@@ -84,6 +87,7 @@ $(function() {
 					return tester[key];
 				}).join(',') + '\n';
 			});
+			$('.loaded').slideDown();
 			$('#users').slideDown();
 			$('#export').attr('href', 'data:attachment/csv,'+encodeURIComponent(csv)).slideDown();
 
@@ -153,27 +157,29 @@ $(function() {
 			<input id="login_submit" type="submit" value="OK"/>
 			<div id="message" style="color: red;"></div>
 		</form>
-		<a id="export" target="_blank" download="beta-testers.csv" style="display: none;">Export to CSV</a>
-		<a href="#gamestats">Go to game stats</a>
-		<table id="users" style="display: none;" border="1">
-			<tr>
-				<th>ID</th>
-				<th>E-mail</th>
-				<th>Name</th>
-				<th>Game types</th>
-				<th>Platforms</th>
-				<th>Consoles</th>
-				<th>Create date</th>
-				<th>Medium</th>
-				<th>Flags</th>
-			</tr>
-		</table>
-		<table id="gamestats" style="display: none;" border="1">
-			<tr>
-				<th>Game</th>
-				<th>Count</th>
-			</tr>
-		</table>
+		<div class="loaded">
+			<a id="export" target="_blank" download="beta-testers.csv" style="display: none;">Export to CSV</a>
+			<a href="#gamestats">Go to game stats</a>
+			<table id="users" border="1">
+				<tr>
+					<th>ID</th>
+					<th>E-mail</th>
+					<th>Name</th>
+					<th>Game types</th>
+					<th>Platforms</th>
+					<th>Consoles</th>
+					<th>Create date</th>
+					<th>Medium <a href="#" class="add medium">[add]</a></th>
+					<th>Flags <a href="#" class="add flags">[add]</a></th>
+				</tr>
+			</table>
+			<table id="gamestats" border="1">
+				<tr>
+					<th>Game</th>
+					<th>Count</th>
+				</tr>
+			</table>
+		</div>
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
