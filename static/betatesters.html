@@ -206,17 +206,20 @@ $(function() {
 		e.preventDefault();
 		
 		var form = $('#flag_form');
-		if(form.find('div.column').is(':visible')) {
-			var column = form.find('input[type=hidden].column').val(),
+		if(form.find('input.flag').val()) {
+			var column = form.find('input.column').val(),
 				name = form.find('input.flag').val();
 			$('td.'+column).each(function() {
 				add_checkbox($(this), column, name);
 			});
 			form.find('input.flag').val('');
-		} else {
-			var name = form.find('input[type=text].column').val();
+		} else if(form.find('input.column').val()
+				&& form.find('input.column').is(':visible')) {
+			var name = form.find('input.column').val();
 			add_column(name);
 			form.find('input.column').val('');
+		} else {
+			console.info('nothing entered');
 		}
 	});
 	$('.cancel').click(function() {
@@ -244,7 +247,6 @@ $(function() {
 		</form>
 		<form id="flag_form" class="hide" action="">
 			<div class="flag">
-				<input type="hidden" class="column"/>
 				Adding flag for column «<strong class="column">?</strong>».
 			</div>
 			<div class="column">
