@@ -167,7 +167,6 @@ $(function() {
 			console.log(this, column, name);
 			add_checkbox($(this), column, name);
 		});
-		$('#flag_form').slideUp();
 	});
 	$('#flag_form .cancel').click(function() {
 		$('#flag_form').slideUp();
@@ -198,7 +197,7 @@ $(function() {
 			<br/>
 			<input type="text" class="flag" placeholder="New flag name"/>
 			<input type="submit" value="Add"/>
-			<input type="button" class="cancel" value="Cancel"/>
+			<input type="button" class="cancel" value="Done"/>
 			<br/>
 			<em>To remove flag, uncheck it everywhere (you can use search&replace) and refresh page.</em>
 			<b>Please note that the flag will not be saved unless you check it for at least one user!</b>
