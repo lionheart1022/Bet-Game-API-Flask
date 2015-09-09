@@ -171,6 +171,7 @@ $(function() {
 		$('td[data-column='+column+']').each(function() {
 			add_checkbox($(this), column, name);
 		});
+		$('#flag_form').slideUp();
 	});
 	$('#flag_form .cancel').click(function() {
 		$('#flag_form').slideUp();
@@ -192,9 +193,11 @@ $(function() {
 		<form id="flag_form" class="hide" action="">
 			<input type="hidden" class="column"/>
 			Adding flag for column «<span class="column"></span>».
+			<br/>
 			<input type="text" class="flag" placeholder="New flag name"/>
 			<input type="submit" value="Add"/>
 			<input type="button" class="cancel" value="Cancel"/>
+			<br/>
 			<em>To remove flag, uncheck it everywhere (you can use search&replace) and refresh page.</em>
 		</form>
 		<div class="loaded">
