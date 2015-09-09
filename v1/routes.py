@@ -1135,12 +1135,12 @@ class BetaResource(restful.Resource):
             raise NotFound
 
         parser = RequestParser()
-        parser.add_argument('medium', default='')
-        parser.add_argument('flags', default='')
+        parser.add_argument('medium')
+        parser.add_argument('flags')
         args = parser.parse_args()
 
         for k,v in args.items():
-            if hasattr(beta, k):
+            if v is not None and hasattr(beta, k):
                 setattr(beta, k, v)
 
         db.session.commit()
