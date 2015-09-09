@@ -155,7 +155,7 @@ $(function() {
 			data = {};
 		$(this).parents('tr').find('input:checked').each(function() {
 			var column = $(this).data('key');
-			if(data.indexOf(column) == -1)
+			if(!data[column])
 				data[column] = [];
 			data[column].push($(this).attr('name'));
 		});
