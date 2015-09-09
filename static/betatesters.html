@@ -192,7 +192,7 @@ $(function() {
 	$('#users').on('click', 'a.add', function(e) {
 		e.preventDefault();
 
-		$('#flag_form .column:not(div)').hide();
+		$('#flag_form .column:not(.show)').hide();
 		$('#flag_form .flag').show();
 		var column = $(this).data('column');
 		$('#flag_form .column').val(column).text(column);
@@ -244,7 +244,7 @@ $(function() {
 		</form>
 		<form id="flag_form" class="hide" action="">
 			<div class="flag">
-				Adding flag for column «<strong class="column">?</strong>».
+				Adding flag for column «<strong class="column show">?</strong>».
 			</div>
 			<div class="column">
 				Adding new column.
