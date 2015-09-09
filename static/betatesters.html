@@ -18,26 +18,22 @@ $(function() {
 	var flagvals = {};
 	function add_column(name) {
 		flagvals[name] = [];
-		$('#users tr').each(function() {
+		$('<th/>')
+			.append(name)
+			.append($('<a/>', {
+				href: '#',
+				class: 'add',
+				'data-column': name,
+				text: '[add]',
+			}))
+			.appendTo($('#users thead tr'))
+		$('#users tbody tr').each(function() {
 			var row = $(this);
-			if(row.is(':first')) {
-				// th
-				$('<th/>')
-					.append(name)
-					.append($('<a/>', {
-						href: '#',
-						class: 'add',
-						'data-column': name,
-						text: '[add]',
-					}))
-					.appendTo(row);
-			} else {
-				var td = $('<td/>').addClass(name);
-				$.each(flagvals[name], function(_, prop) {
-					add_checkbox(td, name, prop);//, v.indexOf(prop) >= 0);
-				});
-				td.appendTo(row);
-			}
+			var td = $('<td/>').addClass(name);
+			$.each(flagvals[name], function(_, prop) {
+				add_checkbox(td, name, prop);//, v.indexOf(prop) >= 0);
+			});
+			td.appendTo(row);
 		});
 	}
 	function add_checkbox(dest, column, prop, checked) {
@@ -116,7 +112,7 @@ $(function() {
 						td.appendTo(row);
 					});
 				}
-				$('#users').append(row);
+				$('#users tbody').append(row);
 
 				csv += $.map([
 						'name', '', 'email', '', '',
@@ -267,15 +263,19 @@ $(function() {
 			<a href="#gamestats">Go to game stats</a>
 			<a href="#" id="add_column">[add column]</a>
 			<table id="users" border="1">
-				<tr>
-					<th>ID</th>
-					<th>E-mail</th>
-					<th>Name</th>
-					<th>Game types</th>
-					<th>Platforms</th>
-					<th>Consoles</th>
-					<th>Create date</th>
-				</tr>
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>E-mail</th>
+						<th>Name</th>
+						<th>Game types</th>
+						<th>Platforms</th>
+						<th>Consoles</th>
+						<th>Create date</th>
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
 			</table>
 			<table id="gamestats" border="1">
 				<tr>
