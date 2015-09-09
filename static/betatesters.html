@@ -165,6 +165,7 @@ $(function() {
 		var column = $('#flag_form input.column').val(),
 			name = $('#flag_form input.flag').val();
 		$('td[data-column='+column+']').each(function() {
+			console.log(this, column, name);
 			add_checkbox($(this), column, name);
 		});
 		$('#flag_form').slideUp();
