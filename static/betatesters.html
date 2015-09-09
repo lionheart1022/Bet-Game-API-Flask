@@ -7,7 +7,7 @@
 label {
 	display: block;
 }
-.loaded {
+.loaded, .hide {
 	display: none;
 }
 		</style>
@@ -143,6 +143,23 @@ $(function() {
 			form.find('#message').text(JSON.stringify(err));
 		});
 	});
+	$('a.add').click(function(e) {
+		e.preventDefault();
+
+		var column = $(this).data('column');
+		$('#flag_form .column').val(column);
+		$('#flag_form .column').text(column);
+		$('#flag_form').slideDown();
+		$('#flag_form .flag').val('').focus();
+	});
+	$('#flag_form').submit(function(e) {
+		e.preventDefault();
+		
+		// TODO
+	});
+	$('#flag_form .cancel').click(function() {
+		$('#flag_form').slideUp();
+	});
 });
 		</script>
 	</head>
@@ -157,6 +174,13 @@ $(function() {
 			<input id="login_submit" type="submit" value="OK"/>
 			<div id="message" style="color: red;"></div>
 		</form>
+		<form id="flag_form" class="hide" action="">
+			<input type="hidden" class="column"/>
+			Adding flag for column «<span class="column"></span>».
+			<input type="text" class="flag" placeholder="New flag name"/>
+			<input type="submit" value="Add"/>
+			<input type="button" class="cancel" value="Cancel"/>
+		</form>
 		<div class="loaded">
 			<a id="export" target="_blank" download="beta-testers.csv" style="display: none;">Export to CSV</a>
 			<a href="#gamestats">Go to game stats</a>
@@ -169,8 +193,8 @@ $(function() {
 					<th>Platforms</th>
 					<th>Consoles</th>
 					<th>Create date</th>
-					<th>Medium <a href="#" class="add medium">[add]</a></th>
-					<th>Flags <a href="#" class="add flags">[add]</a></th>
+					<th>Medium <a href="#" class="add" data-column="medium">[add]</a></th>
+					<th>Flags <a href="#" class="add" data-column="flags">[add]</a></th>
 				</tr>
 			</table>
 			<table id="gamestats" border="1">
