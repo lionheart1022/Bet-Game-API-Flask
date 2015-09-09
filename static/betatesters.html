@@ -62,6 +62,10 @@ $(function() {
 			// first populate flagvals with all possible flag options
 			$.each(ret.betatesters, function(i, tester) {
 				var flags = tester.flags;
+				if(typeof flags == 'string') {
+					// incorrect json, ignore it
+					return;
+				}
 				$.each(flags, function(column, props) {
 					if(!flagvals[column])
 						flagvals[column] = [];
