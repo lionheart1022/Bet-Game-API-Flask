@@ -155,6 +155,7 @@ $(function() {
 			uid = $(this).parents('tr').data('uid'),
 			state = this.checked,
 			data = {};
+		$(this).prop('disabled', true);
 		$(this).parents('tr').find('input:checked').each(function() {
 			var column = $(this).data('key');
 			if(!data[column])
@@ -165,8 +166,10 @@ $(function() {
 			flags: JSON.stringify(data),
 		}, function(ret) {
 			console.info('success');
+			$(this).prop('disabled', false);
 		}, function(err) {
 			cb.checked = !cb.checked;
+			$(this).prop('disabled', false);
 		});
 	});
 	$('#login_form').submit(function(e) {
