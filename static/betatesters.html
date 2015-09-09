@@ -15,6 +15,30 @@ label {
 		<script src="/scripts/common.js"></script>
 		<script>
 $(function() {
+	var flagvals = {};
+	function add_column(name) {
+		$('#users tr').each(function() {
+			var row = $(this);
+			if(row.is(':first')) {
+				// th
+				$('<th/>')
+					.append(name)
+					.append($('<a/>', {
+						href: '#',
+						class: 'add',
+						data-column: name,
+						content: '[add]',
+					})
+					.appendTo(row);
+			} else {
+				var td = $('<td/>').addClass(name);
+				$.each(flagvals[name], function(_, prop) {
+					add_checkbox(td, name, prop);//, v.indexOf(prop) >= 0);
+				});
+				td.appendTo(row);
+			}
+		});
+	}
 	function add_checkbox(dest, column, prop, checked) {
 		var cbox = $('<input/>', {
 			'type': 'checkbox',
