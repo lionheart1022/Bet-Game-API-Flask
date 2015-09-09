@@ -60,7 +60,7 @@ $(function() {
 					var v = tester[k];
 					if(flagvals[k]) {
 						vals = $.unique($.merge($.merge([], v), flagvals[k]));
-						var td = $('<td/>');
+						var td = $('<td/>').data('column', k);
 						$.each(vals, function(k, prop) {
 							add_checkbox(td, k, prop);
 						});
@@ -163,7 +163,11 @@ $(function() {
 	$('#flag_form').submit(function(e) {
 		e.preventDefault();
 		
-		// TODO
+		var column = $('#flag_form input.column').val(),
+			name = $('#flag_form input.flag').val();
+		$('td[data-column='+column+']').each(function() {
+			add_checkbox($(this), column, name);
+		});
 	});
 	$('#flag_form .cancel').click(function() {
 		$('#flag_form').slideUp();
