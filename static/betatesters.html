@@ -15,14 +15,14 @@ label {
 		<script src="/scripts/common.js"></script>
 		<script>
 $(function() {
-	function add_checkbox(dest, column, prop) {
+	function add_checkbox(dest, column, prop, checked) {
 		var cbox = $('<input/>', {
 			'type': 'checkbox',
 			'data-key': column,
 			'name': prop,
 			'class': 'flagtoggle',
 		});
-		if(v.indexOf(prop) >= 0)
+		if(checked)
 			cbox.attr('checked', 1);
 		$('<label/>')
 			.append(cbox)
@@ -64,7 +64,7 @@ $(function() {
 						vals = $.unique($.merge($.merge([], v), flagvals[k]));
 						var td = $('<td/>').addClass(k);
 						$.each(vals, function(k, prop) {
-							add_checkbox(td, k, prop);
+							add_checkbox(td, k, prop, v.indexOf(prop) >= 0);
 						});
 						td.appendTo(row);
 					} else if(Array.isArray(v) && v.length && v[0]) {
