@@ -160,7 +160,7 @@ $(function() {
 			data[column].push($(this).attr('name'));
 		});
 		API.call('PATCH', 'betatesters/'+uid, {
-			flags: JSON.stringify(data);
+			flags: JSON.stringify(data),
 		}, function(ret) {
 			console.info('success');
 		}, function(err) {
