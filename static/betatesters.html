@@ -145,7 +145,6 @@ $(function() {
 		});
 	});
 	if(localStorage.cred) {
-		$('#login_submit').fadeOut();
 		API.token = localStorage.token;
 		showUsers();
 	}
