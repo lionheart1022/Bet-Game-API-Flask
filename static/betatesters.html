@@ -15,6 +15,21 @@ label {
 		<script src="/scripts/common.js"></script>
 		<script>
 $(function() {
+	function add_checkbox(dest, column, prop) {
+		var cbox = $('<input/>', {
+			'type': 'checkbox',
+			'data-uid': tester['id'],
+			'data-key': column,
+			'name': prop,
+			'class': 'flagtoggle',
+		});
+		if(v.indexOf(prop) >= 0)
+			cbox.attr('checked', 1);
+		$('<label/>')
+			.append(cbox)
+			.append(prop)
+			.appendTo(dest);
+	}
 	function showUsers() {
 		API.call('GET', 'betatesters', {}, function(ret) {
 			$('#login_form').slideUp();
@@ -47,19 +62,7 @@ $(function() {
 						vals = $.unique($.merge($.merge([], v), flagvals[k]));
 						var td = $('<td/>');
 						$.each(vals, function(k, prop) {
-							var cbox = $('<input/>', {
-								'type': 'checkbox',
-								'data-uid': tester['id'],
-								'data-key': k,
-								'name': prop,
-								'class': 'flagtoggle',
-							});
-							if(v.indexOf(prop) >= 0)
-								cbox.attr('checked', 1);
-							$('<label/>')
-								.append(cbox)
-								.append(prop)
-								.appendTo(td);
+							add_checkbox(td, k, prop);
 						});
 						td.appendTo(row);
 					} else if(Array.isArray(v) && v.length && v[0]) {
