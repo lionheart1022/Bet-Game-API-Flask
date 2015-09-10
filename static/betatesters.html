@@ -227,7 +227,8 @@ $(function() {
 		}
 	});
 	$('.cancel').click(function() {
-		$(this).parents('form').slideUp();
+		$(this).parents('form').slideUp()
+			.find('input').blur();
 	});
 
 	if(localStorage.token) {
