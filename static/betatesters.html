@@ -79,12 +79,12 @@ $(function() {
 			function compareNoCase(a,b) {
 				return a.toLowerCase().localeCompare(b.toLowerCase());
 			}
-			// sort vals and add column headers..
-			$.each(flagvals, function(key, vals) {
-				add_column(key); // for now we have only header filled
-				vals.sort(compareNoCase);
-			});
+			// sort columns, vals and add column headers..
 			flagnames.sort(compareNoCase);
+			$.each(flagnames, function(i, key) {
+				add_column(key); // for now we have only header filled
+				flagvals[key].sort(compareNoCase);
+			});
 
 			// now populate table with data
 			$.each(ret.betatesters, function(i, tester) {
