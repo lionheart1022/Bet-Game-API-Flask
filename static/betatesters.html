@@ -15,7 +15,8 @@ label {
 		<script src="/scripts/common.js"></script>
 		<script>
 $(function() {
-	var flagvals = {};
+	var flagnames = [],
+		flagvals = {};
 	function add_column(name) {
 		if(!flagvals[name])
 			flagvals[name] = [];
@@ -65,19 +66,25 @@ $(function() {
 					return;
 				}
 				$.each(flags, function(column, props) {
-					if(!flagvals[column])
+					if(!flagvals[column]) {
 						flagvals[column] = [];
+						flagnames.push(column);
+					}
 					$.each(props, function(i, prop) {
 						if(flagvals[column].indexOf(prop) == -1)
 							flagvals[column].push(prop);
 					});
 				});
 			});
+			function compareNoCase(a,b) {
+				return a.toLowerCase().localeCompare(b.toLowerCase());
+			}
 			// sort vals and add column headers..
 			$.each(flagvals, function(key, vals) {
 				add_column(key); // for now we have only header filled
-				vals.sort(); // sort it in place
+				vals.sort(compareNoCase);
 			});
+			flagnames.sort(compareNoCase);
 
 			// now populate table with data
 			$.each(ret.betatesters, function(i, tester) {
@@ -103,9 +110,9 @@ $(function() {
 					}
 				});
 				// and add custom columns
-				$.each(flagvals, function(col, vals) {
+				$.each(flagnames, function(i, col) {
 					var td = $('<td/>').addClass(col);
-					$.each(vals, function(_, prop) {
+					$.each(flagvals[col], function(_, prop) {
 						var checked = false;
 						if(typeof tester.flags !== 'string' &&
 								typeof tester.flags[col] !== 'undefined')
