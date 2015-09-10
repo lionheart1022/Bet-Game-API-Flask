@@ -209,7 +209,7 @@ $(function() {
 		$('#flag_form .column:not(.show)').hide();
 		$('#flag_form .flag').show();
 		var column = $(this).data('column');
-		$('#flag_form .column').val(column).text(column);
+		$('#flag_form .column').text(column);
 		$('#flag_form').slideDown();
 		$('#flag_form input.flag').val('').focus();
 	});
@@ -218,7 +218,7 @@ $(function() {
 		
 		var form = $('#flag_form');
 		if(form.find('input.flag').val()) {
-			var column = form.find('input.column').val(),
+			var column = form.find('.column.show').text(),
 				name = form.find('input.flag').val();
 			$('td.'+column).each(function() {
 				add_checkbox($(this), column, name);
