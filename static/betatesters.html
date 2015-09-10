@@ -154,8 +154,14 @@ $(function() {
 			});
 			$('#gamestats').slideDown();
 
+			// persist scroll pos: load..
 			if(sessionStorage.scroll)
 				$(document).scrollTop(sessionStorage.scroll);
+			// and saving
+			$(document).scroll(function() {
+				sessionStorage.scroll = $(document).scrollTop();
+			});
+
 		}, function(err) {
 			$('#message').text(JSON.stringify(err));
 		});
@@ -239,11 +245,6 @@ $(function() {
 	$('.cancel').click(function() {
 		$(this).parents('form').slideUp()
 			.find('input').blur();
-	});
-
-	// persist scroll pos...
-	$(document).scroll(function() {
-		sessionStorage.scroll = $(document).scrollTop();
 	});
 
 	if(localStorage.token) {
