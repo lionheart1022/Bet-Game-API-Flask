@@ -155,8 +155,10 @@ $(function() {
 			$('#gamestats').slideDown();
 
 			// persist scroll pos: load..
-			if(sessionStorage.scroll)
+			if(sessionStorage.scroll) {
+				console.log(sessionStorage.scroll);
 				$(document).scrollTop(sessionStorage.scroll);
+			}
 			// and saving
 			$(document).scroll(function() {
 				sessionStorage.scroll = $(document).scrollTop();
