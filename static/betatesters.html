@@ -153,6 +153,9 @@ $(function() {
 				$('#gamestats').append(row);
 			});
 			$('#gamestats').slideDown();
+
+			if(sessionStorage.scroll)
+				$(document).scrollTop() = sessionStorage.scroll;
 		}, function(err) {
 			$('#message').text(JSON.stringify(err));
 		});
@@ -236,6 +239,11 @@ $(function() {
 	$('.cancel').click(function() {
 		$(this).parents('form').slideUp()
 			.find('input').blur();
+	});
+
+	// persist scroll pos...
+	$(document).scroll(function() {
+		sessionStorage.scroll = $(document).scrollTop();
 	});
 
 	if(localStorage.token) {
