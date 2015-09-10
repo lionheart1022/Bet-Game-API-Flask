@@ -157,7 +157,7 @@ $(function() {
 			// persist scroll pos: load..
 			if(sessionStorage.scroll) {
 				console.log(sessionStorage.scroll);
-				$(document).animate({
+				$('html,body').animate({
 					scrollTop: sessionStorage.scroll,
 				}, function() {
 				});
