@@ -138,6 +138,9 @@ $(function() {
 						'id', 'email', 'name', 'gametypes',
 						'platforms', 'console', 'create_date',
 				], function(key) {
+					if(typeof tester[key] == 'object') { // array?
+						return tester[key].join(';')
+					}
 					return tester[key];
 				}).join('\t') + '\n';
 			});
