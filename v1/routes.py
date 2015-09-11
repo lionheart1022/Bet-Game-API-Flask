@@ -10,6 +10,7 @@ import os
 from io import BytesIO
 from datetime import datetime, timedelta
 import math
+import json
 from functools import reduce
 import itertools
 import requests
@@ -1142,6 +1143,28 @@ class BetaResource(restful.Resource):
         for k,v in args.items():
             if v is not None and hasattr(beta, k):
                 setattr(beta, k, v)
+        # and create backup for flags
+        def merge(src, dst):
+            for k,v in src.items():
+                if isinstance(v, dict):
+                    node = dst.setdefault(k, {})
+                    merge(v, node)
+                elif isinstance(v, list):
+                    dst.setdefault(k, [])
+                    dst[k] = list(set(dst[k] + v)) # merge items
+                else:
+                    dst[k] = v
+            return dst
+        try:
+            src = json.loads(beta.flags)
+            try:
+                dst = json.loads(beta.backup)
+            except ValueError:
+                dst = {}
+            merge(src, dst)
+            beta.backup = json.dumps(dst)
+        except ValueError:
+            pass
 
         db.session.commit()
 

@@ -277,6 +277,7 @@ class Beta(db.Model):
     console = db.Column(db.String(128))
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
     flags = db.Column(db.Text) # probably json
+    backup = db.Column(db.Text)
 
 
 def fast_count_noexec(query):
