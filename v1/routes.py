@@ -1143,6 +1143,7 @@ class BetaResource(restful.Resource):
         for k,v in args.items():
             if v is not None and hasattr(beta, k):
                 setattr(beta, k, v)
+        logging.getLogger().info('flags for {}: {}'.format(beta.id, beta.flags))
         # and create backup for flags
         def merge(src, dst):
             for k,v in src.items():
