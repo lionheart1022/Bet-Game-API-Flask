@@ -24,6 +24,12 @@ $(function() {
 			.append(name+' ')
 			.append($('<a/>', {
 				href: '#',
+				class: 'rename',
+				'data-column': name,
+				text: '[rename]',
+			}))
+			.append($('<a/>', {
+				href: '#',
 				class: 'add',
 				'data-column': name,
 				text: '[+flag]',
@@ -239,6 +245,11 @@ $(function() {
 		$('#flag_form .column').text(column);
 		$('#flag_form').slideDown();
 		$('#flag_form input.flag').val('').focus();
+	});
+	$('#users').on('click', 'a.rename', function(e) {
+		e.preventDefault();
+
+		// TODO
 	});
 	$('#flag_form').submit(function(e) {
 		e.preventDefault();
