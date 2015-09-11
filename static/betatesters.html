@@ -53,7 +53,6 @@ $(function() {
 	function add_checkbox(dest, column, prop, checked) {
 		var cbox = $('<input/>', {
 			'type': 'checkbox',
-			'data-key': column,
 			'name': prop,
 			'class': 'flagtoggle',
 		});
@@ -203,7 +202,7 @@ $(function() {
 
 		cb.prop('disabled', true);
 		cb.parents('tr').find('input:checked').each(function() {
-			var column = $(this).data('key');
+			var column = $(this).parents('td').data('column');
 			if(!data[column])
 				data[column] = [];
 			data[column].push($(this).attr('name'));
