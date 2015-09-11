@@ -20,8 +20,13 @@ $(function() {
 	function add_column(name) {
 		if(!flagvals[name])
 			flagvals[name] = [];
-		$('<th/>')
-			.append(name+' ')
+		$('<th/>', {
+			'data-column': name,
+		})
+			.append($('<span/>', {
+				class: 'column-name',
+				text: name,
+			}))
 			.append($('<a/>', {
 				href: '#',
 				class: 'rename',
@@ -190,13 +195,13 @@ $(function() {
 			$('#message').text(JSON.stringify(err));
 		});
 	}
-	$('#users').on('change', 'input.flagtoggle', function(e) {
-		var cb = this,
-			uid = $(this).parents('tr').data('uid'),
-			state = this.checked,
-			data = {};
-		$(cb).prop('disabled', true);
-		$(cb).parents('tr').find('input:checked').each(function() {
+	function checkbox_update(cb, nochange) {
+		var uid = cb.parents('tr').data('uid');
+		var state = cb.prop('checked');
+		var data = {};
+
+		cb.prop('disabled', true);
+		cb.parents('tr').find('input:checked').each(function() {
 			var column = $(this).data('key');
 			if(!data[column])
 				data[column] = [];
@@ -206,11 +211,18 @@ $(function() {
 			flags: JSON.stringify(data),
 		}, function(ret) {
 			console.info('success');
-			$(cb).prop('disabled', false);
+			cb.prop('disabled', false);
 		}, function(err) {
-			cb.checked = !cb.checked;
-			$(cb).prop('disabled', false);
+			if(nochange) {
+				alert('Failed to rename!')
+			} else {
+				cb.prop('checked', !state);
+			}
+			cb.prop('disabled', false);
 		});
+	}
+	$('#users').on('change', 'input.flagtoggle', function(e) {
+		checkbox_update($(this));
 	});
 	$('#login_form').submit(function(e) {
 		e.preventDefault();
@@ -246,15 +258,6 @@ $(function() {
 		$('#flag_form').slideDown();
 		$('#flag_form input.flag').val('').focus();
 	});
-	$('#users').on('click', 'a.rename', function(e) {
-		e.preventDefault();
-
-		var form = $('#rename_form');
-		var column = $(this).data('column');
-		form.find('.column').text(column);
-		form.slideDown();
-		form.find('.name').val(column).focus();
-	});
 	$('#flag_form').submit(function(e) {
 		e.preventDefault();
 		
@@ -274,6 +277,32 @@ $(function() {
 		} else {
 			console.info('nothing entered');
 		}
+	});
+	$('#users').on('click', 'a.rename', function(e) {
+		e.preventDefault();
+
+		var form = $('#rename_form');
+		var column = $(this).data('column');
+		form.find('.column').text(column);
+		form.slideDown();
+		form.find('.name').val(column).focus();
+	});
+	$('#rename_form').submit(function(e) {
+		e.preventDefault();
+
+		var form = $('#rename_form'),
+			oldname = form.find('.column').text(),
+			newname = form.find('.name').val();
+		$('th[data-column="'+oldname+'"]')
+			.attr('data-column', newname)
+			.find('span.column-name')
+				.text(newname);
+		$('td[data-column="'+oldname+'"]')
+			.attr('data-column', newname)
+			.each(function() {
+				checkbox_update($(this).find('input.flagtoggle:first'),
+						true); // nochange=true
+			});
 	});
 	$('.cancel').click(function() {
 		$(this).parents('form').slideUp()
