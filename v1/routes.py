@@ -1158,7 +1158,7 @@ class BetaResource(restful.Resource):
         try:
             src = json.loads(beta.flags)
             try:
-                dst = json.loads(beta.backup)
+                dst = json.loads(beta.backup or '')
             except ValueError:
                 dst = {}
             merge(src, dst)
