@@ -57,6 +57,7 @@ $(function() {
 			$('#login_form').slideUp();
 			var games = {};
 			var csv = '';
+			var csv_full = '';
 
 			// first populate flagvals with all possible flag options
 			$.each(ret.betatesters, function(i, tester) {
@@ -133,10 +134,17 @@ $(function() {
 						return key;
 					return tester[key];
 				}).join(',') + '\n';
+				csv_full += $.map([
+						'id', 'email', 'name', 'gametypes',
+						'platforms', 'console', 'create_date',
+				], function(key) {
+					return tester[key];
+				}).join(',') + '\n';
 			});
 			$('.loaded').slideDown();
 			$('#users').slideDown();
 			$('#export').attr('href', 'data:attachment/csv,'+encodeURIComponent(csv)).slideDown();
+			$('#export_full').attr('href', 'data:attachment/csv,'+encodeURIComponent(csv_full)).slideDown();
 
 			// now handle statistics
 			var sortable = [];
@@ -290,6 +298,7 @@ $(function() {
 		<div class="loaded">
 			| <a href="#gamestats">Go to game stats</a>
 			| <a id="export" target="_blank" download="beta-testers.csv" style="display: none;">Export to CSV</a>
+			| <a id="export_full" target="_blank" download="beta-testers-full.csv" style="display: none;">Export all data to CSV</a>
 			| <a href="#" id="add_column">[+column]</a>
 			|
 			<table id="users" border="1">
