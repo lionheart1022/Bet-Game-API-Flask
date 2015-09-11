@@ -31,7 +31,7 @@ $(function() {
 			.appendTo($('#users thead tr'))
 		$('#users tbody tr').each(function() {
 			var row = $(this);
-			var td = $('<td/>').addClass(name);
+			var td = $('<td/>', {'data-column': name});
 			$.each(flagvals[name], function(_, prop) {
 				add_checkbox(td, name, prop);//, v.indexOf(prop) >= 0);
 			});
@@ -234,7 +234,7 @@ $(function() {
 		if(form.find('input.flag').val()) {
 			var column = form.find('.column.show').text(),
 				name = form.find('input.flag').val();
-			$('td.'+column).each(function() {
+			$('td[data-column='+column+']').each(function() {
 				add_checkbox($(this), column, name);
 			});
 			form.find('input.flag').val('');
