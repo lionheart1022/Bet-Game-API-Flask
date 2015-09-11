@@ -249,7 +249,11 @@ $(function() {
 	$('#users').on('click', 'a.rename', function(e) {
 		e.preventDefault();
 
-		// TODO
+		var form = $('#rename_form');
+		var column = $(this).data('column');
+		form.find('.column').text(column);
+		form.slideDown();
+		form.find('.name').val(column).focus();
 	});
 	$('#flag_form').submit(function(e) {
 		e.preventDefault();
@@ -310,6 +314,15 @@ $(function() {
 			<br/>
 			<em>To remove flag, uncheck it everywhere (you can use search&replace) and refresh page.</em>
 			<b>Please note that the flag will not be saved unless you check it for at least one user!</b>
+		</form>
+		<form id="rename_form" class="hide" action="">
+			<div>
+				Renaming column <span class="column">?</span>:
+			</div>
+			<br/>
+			<input type="text" class="name"/>
+			<input type="submit" value="Rename"/>
+			<input type="button" class="cancel" value="Cancel"/>
 		</form>
 		<div class="loaded">
 			| <a href="#gamestats">Go to game stats</a>
