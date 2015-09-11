@@ -111,7 +111,7 @@ $(function() {
 				});
 				// and add custom columns
 				$.each(flagnames, function(i, col) {
-					var td = $('<td/>').addClass(col);
+					var td = $('<td/>', {'data-column': col});
 					$.each(flagvals[col], function(_, prop) {
 						var checked = false;
 						if(typeof tester.flags !== 'string' &&
