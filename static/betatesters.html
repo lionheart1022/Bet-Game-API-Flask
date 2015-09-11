@@ -141,7 +141,7 @@ $(function() {
 					if(!tester[key])
 						return '';
 					if(typeof tester[key] == 'object') { // array?
-						return tester[key].join(';')
+						return tester[key].join('; ')
 					}
 					return tester[key];
 				}).join('\t') + '\n';
