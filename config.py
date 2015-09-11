@@ -48,5 +48,7 @@ if 'test' in __file__:
 
 # in coins
 WITHDRAW_MINIMUM = 40
+# means comission of 10 %
+WITHDRAW_COEFFICIENT = 0.90
 
 OBSERVER_URL = 'http://localhost:8021'

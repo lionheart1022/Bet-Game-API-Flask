@@ -558,7 +558,9 @@ def balance_withdraw(user):
 
     try:
         amount = dict(
-            value = args.coins * Fixer.latest('USD', args.currency),
+            value = args.coins
+                * Fixer.latest('USD', args.currency)
+                * config.WITHDRAW_COEFFICIENT,
             currency = args.currency,
         )
     except (TypeError, ValueError):
