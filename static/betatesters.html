@@ -12,6 +12,7 @@ label {
 }
 		</style>
 		<script src="/scripts/jquery-1.11.3.min.js"></script>
+		<script src="/scripts/jquery.fixedheadertable.min.js"></script>
 		<script src="/scripts/common.js"></script>
 		<script>
 $(function() {
@@ -207,7 +208,7 @@ $(function() {
 				data[column] = [];
 			data[column].push($(this).attr('name'));
 		});
-		API.call('PATCH', 'betatesters/'+uid, {
+		return API.call('PATCH', 'betatesters/'+uid, {
 			flags: JSON.stringify(data),
 		}, function(ret) {
 			console.info('success');
