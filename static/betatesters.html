@@ -266,6 +266,7 @@ $(function() {
 		$.each(arguments, function(i, func) {
 			var prom = func();
 			prom.then(function() {
+				console.log('then: ', func, todo);
 				todo--;
 				def.notify(todo);
 				if(todo == 0)
