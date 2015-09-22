@@ -338,6 +338,7 @@ $(function() {
 	$('.cancel').click(function() {
 		$(this).parents('form').slideUp()
 			.find('input').blur();
+		$('#users').floatThead('reflow');
 	});
 
 	if(localStorage.token) {
