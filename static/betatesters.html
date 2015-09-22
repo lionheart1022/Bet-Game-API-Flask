@@ -263,6 +263,8 @@ $(function() {
 		$('#flag_form').slideDown();
 		$('html,body').animate({
 			scrollTop: 0,
+		}, function() {
+			$('#users').floatThead('reflow');
 		});
 		$('#flag_form input.column').val('').focus();
 	});
@@ -275,6 +277,8 @@ $(function() {
 		$('#flag_form .column').text(column);
 		$('html,body').animate({
 			scrollTop: 0,
+		}, function() {
+			$('#users').floatThead('reflow');
 		});
 		$('#flag_form').slideDown();
 		$('#flag_form input.flag').val('').focus();
