@@ -261,6 +261,9 @@ $(function() {
 		$('#flag_form .flag').hide();
 		$('#flag_form .column').show();
 		$('#flag_form').slideDown();
+		$('html,body').animate({
+			scrollTop: 0,
+		});
 		$('#flag_form input.column').val('').focus();
 	});
 	$('#users thead').on('click', 'a.add', function(e) {
@@ -270,6 +273,9 @@ $(function() {
 		$('#flag_form .flag').show();
 		var column = $(this).data('column');
 		$('#flag_form .column').text(column);
+		$('html,body').animate({
+			scrollTop: 0,
+		});
 		$('#flag_form').slideDown();
 		$('#flag_form input.flag').val('').focus();
 	});
