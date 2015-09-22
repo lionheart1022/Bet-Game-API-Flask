@@ -257,15 +257,34 @@ $(function() {
 			form.find('#message').text(JSON.stringify(err));
 		});
 	});
-	function showForm(form) {
-		return $('html,body').animate({
-			scrollTop: 0,
-			scrollLeft: 0,
-		}, function() {
-			form.slideDown(function() {
-				$('#users').floatThead('reflow');
+	$.chain = function() {
+		/*
+		   Each argument should be a function which takes no arguments and returns a promise object.
+		*/
+		var def = $.Deferred();
+		var todo = arguments.length;
+		$.each(arguments, function(i, func) {
+			var prom = func();
+			prom.then(function() {
+				todo--;
+				def.notify(todo);
+				if(todo == 0)
+					def.resolve();
 			});
-		}).promise();
+		});
+		return def.promise();
+	};
+	function showForm(form) {
+		return $.chain(function() {
+			return $('html,body').animate({
+				scrollTop: 0,
+				scrollLeft: 0,
+			}).promise();
+		}, function() {
+			return form.slideDown().promise();
+		}, function() {
+			return $('#users').floatThead('reflow').promise();
+		});
 	}
 	$('#add_column').click(function(e) {
 		e.preventDefault();
