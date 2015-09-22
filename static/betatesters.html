@@ -10,17 +10,6 @@ label {
 .loaded, .hide {
 	display: none;
 }
-
-.table-wrapper {
-	position: relative;
-}
-.table-container {
-	overflow-y: auto;
-	height: 100%;
-}
-table {
-
-}
 		</style>
 		<script src="/scripts/jquery-1.11.3.min.js"></script>
 		<script src="/scripts/common.js"></script>
@@ -371,35 +360,27 @@ $(function() {
 			| <a id="export_full" target="_blank" download="beta-testers-full.tsv" style="display: none;">Export all data to TSV</a>
 			| <a href="#" id="add_column">[+column]</a>
 			|
-			<div class="table-wrapper">
-				<div class="table-container">
-					<table id="users" border="1">
-						<thead>
-							<tr>
-								<th>ID</th>
-								<th>E-mail</th>
-								<th>Name</th>
-								<th>Game types</th>
-								<th>Platforms</th>
-								<th>Consoles</th>
-								<th>Create date</th>
-							</tr>
-						</thead>
-						<tbody>
-						</tbody>
-					</table>
-				</div>
-			</div>
-			<div class="table-wrapper">
-				<div class="table-container">
-					<table id="gamestats" border="1">
-						<tr>
-							<th>Game</th>
-							<th>Count</th>
-						</tr>
-					</table>
-				</div>
-			</div>
+			<table id="users" border="1">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>E-mail</th>
+						<th>Name</th>
+						<th>Game types</th>
+						<th>Platforms</th>
+						<th>Consoles</th>
+						<th>Create date</th>
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
+			<table id="gamestats" border="1">
+				<tr>
+					<th>Game</th>
+					<th>Count</th>
+				</tr>
+			</table>
 		</div>
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
