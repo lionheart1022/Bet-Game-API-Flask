@@ -251,7 +251,7 @@ $(function() {
 		$('#flag_form').slideDown();
 		$('#flag_form input.column').val('').focus();
 	});
-	$('#users').on('click', 'a.add', function(e) {
+	$('#users thead').on('click', 'a.add', function(e) {
 		e.preventDefault();
 
 		$('#flag_form .column:not(.show)').hide();
@@ -281,7 +281,7 @@ $(function() {
 			console.info('nothing entered');
 		}
 	});
-	$('#users').on('click', 'a.rename', function(e) {
+	$('#users thead').on('click', 'a.rename', function(e) {
 		e.preventDefault();
 
 		var form = $('#rename_form');
