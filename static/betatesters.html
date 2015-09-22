@@ -256,6 +256,15 @@ $(function() {
 			form.find('#message').text(JSON.stringify(err));
 		});
 	});
+	function showForm(form) {
+		$('html,body').animate({
+			scrollTop: 0,
+		}, function() {
+			form.slideDown(function() {
+				$('#users').floatThead('reflow');
+			});
+		});
+	}
 	$('#add_column').click(function(e) {
 		e.preventDefault();
 		$('#flag_form .flag').hide();
