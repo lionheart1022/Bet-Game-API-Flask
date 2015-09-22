@@ -319,6 +319,9 @@ $(function() {
 						true); // nochange=true
 			});
 		form.slideUp();
+
+		// ..and reflow thead
+		$('#users').floatThead('reflow');
 	});
 	$('.cancel').click(function() {
 		$(this).parents('form').slideUp()
