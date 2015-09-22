@@ -259,6 +259,7 @@ $(function() {
 	function showForm(form) {
 		return $('html,body').animate({
 			scrollTop: 0,
+			scrollLeft: 0,
 		}, function() {
 			form.slideDown(function() {
 				$('#users').floatThead('reflow');
