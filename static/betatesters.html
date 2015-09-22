@@ -159,6 +159,12 @@ $(function() {
 				}).join('\t') + '\n';
 			});
 			$('.loaded').slideDown();
+			// fixed table header...
+			$('#users').fixedHeaderTable({
+				footer: true,
+				cloneHeadToFoot: true,
+				fixedColumn: false,
+			});
 			$('#users').slideDown();
 			$('#export').attr('href', 'data:attachment/csv,'+encodeURIComponent(csv)).slideDown();
 			$('#export_full').attr('href', 'data:attachment/tsv,'+encodeURIComponent(csv_full)).slideDown();
