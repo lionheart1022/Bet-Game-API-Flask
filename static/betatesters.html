@@ -23,6 +23,10 @@ $(function() {
 	var flagnames = [],
 		flagvals = {};
 	function add_column(name) {
+		// unfloat before changing..
+		if($('#users').is(':visible'))
+			$('#users').floatThead('destroy');
+
 		if(!flagvals[name])
 			flagvals[name] = [];
 		$('<th/>', {
@@ -54,6 +58,10 @@ $(function() {
 			});
 			td.appendTo(row);
 		});
+
+		// ..and refloat after it
+		if($('#users').is(':visible'))
+			$('#users').floatThead();
 	}
 	function add_checkbox(dest, column, prop, checked) {
 		var cbox = $('<input/>', {
