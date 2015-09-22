@@ -169,10 +169,13 @@ $(function() {
 					return tester[key];
 				}).join('\t') + '\n';
 			});
-			$('.loaded').slideDown();
-			$('#users').slideDown();
-			// fixed header
-			$('#users').floatThead();
+			$.when(
+				$('.loaded').slideDown(),
+				$('#users').slideDown(),
+			).then(function() {
+				// fixed header
+				$('#users').floatThead();
+			});
 			$('#export').attr('href', 'data:attachment/csv,'+encodeURIComponent(csv)).slideDown();
 			$('#export_full').attr('href', 'data:attachment/tsv,'+encodeURIComponent(csv_full)).slideDown();
 
