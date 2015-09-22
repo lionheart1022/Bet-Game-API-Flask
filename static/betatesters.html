@@ -292,6 +292,7 @@ $(function() {
 		$('#flag_form .flag').hide();
 		$('#flag_form .column').show();
 		showForm($('#flag_form')).then(function() {
+			console.log('done');
 			$('#flag_form input.column').val('').focus();
 		});
 	});
