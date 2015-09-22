@@ -12,6 +12,7 @@ label {
 }
 		</style>
 		<script src="/scripts/jquery-1.11.3.min.js"></script>
+		<script src="/scripts/jquery.floatThead.min.js"></script>
 		<script src="/scripts/common.js"></script>
 		<script>
 $(function() {
@@ -159,6 +160,8 @@ $(function() {
 			});
 			$('.loaded').slideDown();
 			$('#users').slideDown();
+			// fixed header
+			$('#users').floatThead();
 			$('#export').attr('href', 'data:attachment/csv,'+encodeURIComponent(csv)).slideDown();
 			$('#export_full').attr('href', 'data:attachment/tsv,'+encodeURIComponent(csv_full)).slideDown();
 
