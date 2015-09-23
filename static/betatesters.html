@@ -258,21 +258,39 @@ $(function() {
 		});
 	});
 	$.chain = function() {
-		/*
-		   Each argument should be a function which takes no arguments and returns a promise object.
-		*/
 		var def = $.Deferred();
-		var todo = arguments.length;
-		$.each(arguments, function(i, func) {
-			var prom = func();
-			prom.then(function() {
-				console.log('then: ', func, todo);
-				todo--;
-				def.notify(todo);
-				if(todo == 0)
-					def.resolve();
+		var funcs = arguments;
+		var left = arguments.length;
+		function next() {
+			if(left == 0) {
+				def.resolve();
+				return;
+			}
+			var func = funcs[funcs.length - left]; // current func
+			var prom = func().promise(); // for promise will return itself,
+										 // for jquery ojbect will return promise.
+			// these handlers will be launched in order we specify them
+			prom.always(function() {
+				left--;
+			}).done(function(ret) {
+				def.notify({
+					idx: funcs.length-left,
+					left: left,
+					result: ret,
+					success: true,
+				});
+			}).fail(function(ret) {
+				def.notify({
+					idx: funcs.length-left,
+					left: left,
+					result: ret,
+					success: false,
+				});
+			}).always(function() {
+				next();
 			});
-		});
+		}
+		next();
 		return def.promise();
 	};
 	function showForm(form) {
