@@ -407,11 +407,13 @@ $(function() {
 
 		$('th[data-column="'+oldname+'"]')
 			.attr('data-column', newname)
+			.data('column', newname)
 			.find('span.column-name')
 				.text(newname);
 		var failure = false;
 		$('#users td[data-column="'+oldname+'"]')
 			.attr('data-column', newname)
+			.data('column', newname)
 			.each(function() {
 				row_update($(this).parents('tr'), null, null, function(err) {
 					failure = err;
