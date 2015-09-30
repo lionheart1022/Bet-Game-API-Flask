@@ -421,6 +421,8 @@ $(function() {
 		});
 		// prohibit adding boolean flags to column with text field
 		$(this).parents('th').find('a.add').remove();
+		// ...and adding text fields, as one is already added
+		$(this).remove();
 	});
 	$('#users thead').on('click', 'a.rename', function(e) {
 		e.preventDefault();
