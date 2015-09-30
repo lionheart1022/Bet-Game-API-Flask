@@ -136,13 +136,29 @@ $(function() {
 				// and add custom columns
 				$.each(flagnames, function(i, col) {
 					var td = $('<td/>', {'data-column': col});
-					$.each(flagvals[col], function(_, prop) {
-						var checked = false;
-						if(typeof tester.flags !== 'string' &&
-								typeof tester.flags[col] !== 'undefined')
-							checked = tester.flags[col].indexOf(prop) != -1;
-						add_checkbox(td, col, prop, checked);
-					});
+					if(flagvals[col].indexOf('_text') != -1) {
+						var val = '';
+						$.each(tester.flags[col] || [], function(i, str) {
+							// we suppose there is only one value other than '_text'
+							if(str != '_text') {
+								val = str;
+								return false;
+							}
+						});
+						td.append($('<input/>', {
+							type: 'text',
+							value: val,
+							// TODO
+						}));
+					} else {
+						$.each(flagvals[col], function(_, prop) {
+							var checked = false;
+							if(typeof tester.flags !== 'string' &&
+									typeof tester.flags[col] !== 'undefined')
+								checked = tester.flags[col].indexOf(prop) != -1;
+							add_checkbox(td, col, prop, checked);
+						});
+					}
 					td.appendTo(row);
 				});
 				$('#users tbody').append(row);
