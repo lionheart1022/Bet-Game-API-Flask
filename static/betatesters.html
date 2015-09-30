@@ -13,6 +13,14 @@ label {
 .floatThead-table thead {
 	background-color: rgba(255,255,255,.9);
 }
+.spoiler-head {
+	cursor: pointer;
+	text-decoration: underline;
+	color: blue;
+}
+.spoiler-body {
+	display: none;
+}
 		</style>
 		<script src="/scripts/jquery-1.11.3.min.js"></script>
 		<script src="/scripts/jquery.floatThead.min.js"></script>
@@ -36,14 +44,13 @@ $(function() {
 				text: name,
 			}))
 			.append(' ')
-			.append($('<a/>', {
-				href: '#',
-				class: 'spoiler',
+			.append($('<div/>', {
+				class: 'spoiler-head',
 				text: '...',
 			}))
 			.append(
 				$('<div/>', {
-					style: 'display: none',
+					class: 'spoiler-body',
 				})
 				.append($('<a/>', {
 					href: '#',
@@ -437,9 +444,9 @@ $(function() {
 			.find('input').blur();
 		$('#users').floatThead('reflow');
 	});
-	$('body').on('click', '.spoiler', function(e) {
+	$('body').on('click', '.spoiler-head', function(e) {
 		e.preventDefault();
-		$(this).next().slideToggle();
+		$(this).next().slideToggle('fast');
 	});
 
 	if(localStorage.token) {
