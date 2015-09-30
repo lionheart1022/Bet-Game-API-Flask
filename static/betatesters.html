@@ -356,7 +356,7 @@ $(function() {
 	$('#add_column').click(function(e) {
 		e.preventDefault();
 
-		var name = prompt('Enter new column name (will not be saved unless you add some flags to it!):');
+		var name = prompt('Enter new column name\n(will not be saved unless you add some flags to it!):');
 		if(!name)
 			return;
 
@@ -366,7 +366,7 @@ $(function() {
 		e.preventDefault();
 
 		var column = $(this).parents('th').data('column');
-		var name = prompt('Enter new flag name for column '+column+' (will not be saved unless you check it for some user!):');
+		var name = prompt('Enter new flag name for column '+column+'\n(will not be saved unless you check it for some user!):');
 		if(!name) { // empty or cancel
 			return;
 		}
