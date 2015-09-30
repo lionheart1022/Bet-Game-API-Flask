@@ -403,12 +403,31 @@ $(function() {
 	$('#users thead').on('click', 'a.rename', function(e) {
 		e.preventDefault();
 
-		var form = $('#rename_form');
-		var column = $(this).data('column');
-		form.find('.column').text(column);
-		showForm(form).then(function() {
-			form.find('.name').val(column).focus();
-		});
+		var oldname = $(this).data('column');
+		var newname = prompt('Please enter new name:', oldname);
+		if(newname === null) // cancel
+			return;
+
+		$('th[data-column="'+oldname+'"]')
+			.attr('data-column', newname)
+			.find('span.column-name')
+				.text(newname);
+		var failure = false;
+		$('#users td[data-column="'+oldname+'"]')
+			.attr('data-column', newname)
+			.each(function() {
+				row_update($(this).parents('tr'), null, null, function(err) {
+					failure = err;
+				});
+				if(failure)
+					return false; // break loop
+			});
+		if(failure) {
+			alert('Failed to rename some columns, please reload page!');
+		}
+
+		// ..and reflow thead
+		$('#users').floatThead('reflow');
 	});
 	$('#users thead').on('click', 'a.delete', function(e) {
 		e.preventDefault();
@@ -427,27 +446,6 @@ $(function() {
 				return ret;
 			});
 		}
-	});
-	$('#rename_form').submit(function(e) {
-		e.preventDefault();
-
-		var form = $('#rename_form'),
-			oldname = form.find('.column').text(),
-			newname = form.find('.name').val();
-		$('th[data-column="'+oldname+'"]')
-			.attr('data-column', newname)
-			.find('span.column-name')
-				.text(newname);
-		$('td[data-column="'+oldname+'"]')
-			.attr('data-column', newname)
-			.each(function() {
-				checkbox_update($(this).find('input.flagtoggle:first'),
-						true); // nochange=true
-			});
-		form.slideUp();
-
-		// ..and reflow thead
-		$('#users').floatThead('reflow');
 	});
 	$('.cancel').click(function() {
 		$(this).parents('form').slideUp()
@@ -489,15 +487,6 @@ $(function() {
 			<br/>
 			<em>To remove flag, uncheck it everywhere (you can use search&replace) and refresh page.</em>
 			<b>Please note that the flag will not be saved unless you check it for at least one user!</b>
-		</form>
-		<form id="rename_form" class="hide" action="">
-			<div>
-				Renaming column <strong class="column">?</strong>:
-			</div>
-			<br/>
-			<input type="text" class="name"/>
-			<input type="submit" value="Rename"/>
-			<input type="button" class="cancel" value="Cancel"/>
 		</form>
 		<div class="loaded">
 			| <a href="#gamestats">Go to game stats</a>
