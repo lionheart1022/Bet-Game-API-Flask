@@ -75,6 +75,14 @@ $(function() {
 			.append(prop)
 			.appendTo(dest);
 	}
+	function add_textfield(dest, column, val) {
+		$('<input/>', {
+			class: 'textfield',
+			type: 'text',
+			value: val,
+			// TODO
+		}).appendTo(dest);
+	}
 	function showUsers() {
 		API.call('GET', 'betatesters', {}, function(ret) {
 			$('#login_form').slideUp();
@@ -145,11 +153,7 @@ $(function() {
 								return false;
 							}
 						});
-						td.append($('<input/>', {
-							type: 'text',
-							value: val,
-							// TODO
-						}));
+						add_textfield(td, col, val);
 					} else {
 						$.each(flagvals[col], function(_, prop) {
 							var checked = false;
