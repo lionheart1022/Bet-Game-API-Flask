@@ -317,7 +317,9 @@ $(function() {
 	});
 	$('#users').on('change', '.textfield', function(e) {
 		// TODO: on failure restore old text somehow?
-		row_update($(this).parents('tr'), $(this));
+		row_update($(this).parents('tr'), $(this), null, function(err) {
+			alert('Failed to update value! '+err);
+		});
 	});
 	$('#login_form').submit(function(e) {
 		e.preventDefault();
