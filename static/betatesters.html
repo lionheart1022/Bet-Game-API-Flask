@@ -239,6 +239,10 @@ $(function() {
 	}
 	function row_update(row, control, success, failure) {
 		var uid = row.data('uid');
+		if(!uid) {
+			console.warning('Unknown row, no uid!', row, control);
+			return;
+		}
 		var data = {};
 
 		if(control)
