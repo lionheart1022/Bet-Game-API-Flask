@@ -313,6 +313,7 @@ $(function() {
 		row_update(cb.parents('tr'), cb, null, function(err) {
 			// restore state
 			cb.prop('checked', !state);
+			alert('Failed to update value! '+err);
 		});
 	});
 	$('#users').on('change', '.textfield', function(e) {
