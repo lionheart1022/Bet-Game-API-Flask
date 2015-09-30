@@ -231,30 +231,47 @@ $(function() {
 			$('#message').text(JSON.stringify(err));
 		});
 	}
-	function checkbox_update(cb, nochange) {
-		var uid = cb.parents('tr').data('uid');
-		var state = cb.prop('checked');
+	function row_update(row, control, success, failure) {
+		var uid = row.data('uid');
 		var data = {};
 
-		cb.prop('disabled', true);
-		cb.parents('tr').find('input:checked').each(function() {
+		if(control)
+			control.prop('disabled', true);
+		row.find('input:checked').each(function() {
 			var column = $(this).parents('td').data('column');
 			if(!data[column])
 				data[column] = [];
 			data[column].push($(this).attr('name'));
 		});
+		row.find('input.textfield').each(function() {
+			var column = $(this).parents('td').data('column');
+			data[column] = ['_text', $(this).val()];
+		});
 		return API.call('PATCH', 'betatesters/'+uid, {
 			flags: JSON.stringify(data),
 		}, function(ret) {
 			console.info('success');
-			cb.prop('disabled', false);
+			if(control)
+				control.prop('disabled', false);
+			if(success)
+				success(ret);
 		}, function(err) {
+			console.error('failure!', err);
+			if(control)
+				control.prop('disabled', false);
+			if(failure)
+				failure(err);
+		});
+	}
+	function checkbox_update(cb, nochange) {
+		var state = cb.prop('checked');
+
+		return row_update(cb.parents('tr'), cb, null, function(err) {
 			if(nochange) {
 				alert('Failed to rename!')
 			} else {
 				cb.prop('checked', !state);
 			}
-			cb.prop('disabled', false);
 		});
 	}
 	$('#users').on('change', 'input.flagtoggle', function(e) {
