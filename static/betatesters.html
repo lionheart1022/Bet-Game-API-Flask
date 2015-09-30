@@ -276,25 +276,17 @@ $(function() {
 				failure(err);
 		});
 	}
-	function checkbox_update(cb, nochange) {
-		var state = cb.prop('checked');
-
-		return row_update(cb.parents('tr'), cb, null, function(err) {
-			if(nochange) {
-				alert('Failed to rename!')
-			} else {
-				cb.prop('checked', !state);
-			}
-		});
-	}
-	function textfield_update(field) {
-		return row_update(field.parents('tr'), field);
-	}
 	$('#users').on('change', 'input.flagtoggle', function(e) {
-		checkbox_update($(this));
+		var cb = $(this);
+		var state = cb.prop('checked');
+		row_update(cb.parents('tr'), cb, null, function(err) {
+			// restore state
+			cb.prop('checked', !state);
+		});
 	});
 	$('#users').on('change', '.textfield', function(e) {
-		textfield_update($(this));
+		// TODO: on failure restore old text somehow?
+		row_update($(this).parents('tr'), $(this));
 	});
 	$('#login_form').submit(function(e) {
 		e.preventDefault();
