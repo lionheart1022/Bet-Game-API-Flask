@@ -37,6 +37,7 @@ class PlayerResource(restful.Resource):
         partial = parser.partial = RequestParser()
         login = parser.login = RequestParser()
         fieldlist = [
+            # name, type, required
             ('_force', gamertag_force_field, False),
             ('nickname', None, True),
             ('email', email, True),

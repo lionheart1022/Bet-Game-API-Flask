@@ -156,7 +156,7 @@ class Fixer:
 def mailsend(user, mtype, sender=None, delayed=None, usebase=True, **kwargs):
     subjects = dict(
         greeting = 'Welcome to BetGame',
-        greet_personal = 'Hey {}'.format(user.name or 'BetGame user'),
+        greet_personal = 'Hey {}'.format(user.nickname or 'BetGame user'),
         recover = 'BetGame password recovery',
         win = 'BetGame win notification',
     )
