@@ -78,12 +78,11 @@ $(function() {
 			.append(prop)
 			.appendTo(dest);
 	}
-	function add_textfield(dest, column, val) {
-		$('<input/>', {
+	function add_textfield(dest, column, val, multiline) {
+		$(multiline ? '<textarea/>' : '<input/>', {
 			class: 'textfield',
 			type: 'text',
 			value: val,
-			// TODO
 		}).appendTo(dest);
 	}
 	function showUsers() {
@@ -147,7 +146,9 @@ $(function() {
 				// and add custom columns
 				$.each(flagnames, function(i, col) {
 					var td = $('<td/>', {'data-column': col});
-					if(flagvals[col].indexOf('_text') != -1) {
+					var is_text = flagvals[col].indexOf('_text') != -1;
+					var is_multi = flagvals[col].indexOf('_multiline') != -1;
+					if(is_text || is_multi) {
 						var val = '';
 						$.each(tester.flags[col] || [], function(i, str) {
 							// we suppose there is only one value other than '_text'
@@ -156,7 +157,7 @@ $(function() {
 								return false;
 							}
 						});
-						add_textfield(td, col, val);
+						add_textfield(td, col, val, is_multi);
 					} else {
 						$.each(flagvals[col], function(_, prop) {
 							var checked = false;
@@ -252,9 +253,12 @@ $(function() {
 				data[column] = [];
 			data[column].push($(this).attr('name'));
 		});
-		row.find('input.textfield').each(function() {
+		row.find('.textfield').each(function() {
 			var column = $(this).parents('td').data('column');
-			data[column] = ['_text', $(this).val()];
+			data[column] = [
+				$(this).is('textarea') ? '_multiline' : '_text',
+				$(this).val(),
+			];
 		});
 		return API.call('PATCH', 'betatesters/'+uid, {
 			flags: JSON.stringify(data),
@@ -289,7 +293,7 @@ $(function() {
 	$('#users').on('change', 'input.flagtoggle', function(e) {
 		checkbox_update($(this));
 	});
-	$('#users').on('change', 'input.textfield', function(e) {
+	$('#users').on('change', '.textfield', function(e) {
 		textfield_update($(this));
 	});
 	$('#login_form').submit(function(e) {
