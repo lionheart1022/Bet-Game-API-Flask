@@ -356,7 +356,7 @@ $(function() {
 	$('#add_column').click(function(e) {
 		e.preventDefault();
 
-		var name = prompt('Enter new column name:');
+		var name = prompt('Enter new column name (will not be saved unless you add some flags to it!):');
 		if(!name)
 			return;
 
@@ -366,33 +366,13 @@ $(function() {
 		e.preventDefault();
 
 		var column = $(this).parents('th').data('column');
-		var name = prompt('Enter new flag name for column '+column+':');
+		var name = prompt('Enter new flag name for column '+column+' (will not be saved unless you check it for some user!):');
 		if(!name) { // empty or cancel
 			return;
 		}
 		$('td[data-column="'+column+'"]').each(function() {
 			add_checkbox($(this), column, name);
 		});
-	});
-	$('#flag_form').submit(function(e) {
-		e.preventDefault();
-		
-		var form = $('#flag_form');
-		if(form.find('input.flag').val()) {
-			var column = form.find('.column.show').text(),
-				name = form.find('input.flag').val();
-			$('td[data-column="'+column+'"]').each(function() {
-				add_checkbox($(this), column, name);
-			});
-			form.find('input.flag').val('');
-		} else if(form.find('input.column').val()
-				&& form.find('input.column').is(':visible')) {
-			var name = form.find('input.column').val();
-			add_column(name);
-			form.find('input.column').val('');
-		} else {
-			console.info('nothing entered');
-		}
 	});
 	$('#users thead').on('click', 'a.rename', function(e) {
 		e.preventDefault();
@@ -467,22 +447,6 @@ $(function() {
 			<input type="password" id="password" placeholder="Password?"/>
 			<input id="login_submit" type="submit" value="OK"/>
 			<div id="message" style="color: red;"></div>
-		</form>
-		<form id="flag_form" class="hide" action="">
-			<div class="flag">
-				Adding flag for column «<strong class="column show">?</strong>».
-			</div>
-			<div class="column">
-				Adding new column.
-			</div>
-			<br/>
-			<input type="text" class="column" placeholder="New column name"/>
-			<input type="text" class="flag" placeholder="New flag name"/>
-			<input type="submit" value="Add"/>
-			<input type="button" class="cancel" value="Done"/>
-			<br/>
-			<em>To remove flag, uncheck it everywhere (you can use search&replace) and refresh page.</em>
-			<b>Please note that the flag will not be saved unless you check it for at least one user!</b>
 		</form>
 		<div class="loaded">
 			| <a href="#gamestats">Go to game stats</a>
