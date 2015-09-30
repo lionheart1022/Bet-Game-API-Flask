@@ -39,19 +39,16 @@ $(function() {
 			.append($('<a/>', {
 				href: '#',
 				class: 'rename',
-				'data-column': name,
 				text: '[rename]',
 			}))
 			.append($('<a/>', {
 				href: '#',
 				class: 'delete',
-				'data-column': name,
 				text: '[delete]',
 			}))
 			.append($('<a/>', {
 				href: '#',
 				class: 'add',
-				'data-column': name,
 				text: '[+flag]',
 			}))
 			.appendTo($('#users thead tr'));
@@ -374,7 +371,7 @@ $(function() {
 
 		$('#flag_form .column:not(.show)').hide();
 		$('#flag_form .flag').show();
-		var column = $(this).data('column');
+		var column = $(this).parents('th').data('column');
 		$('#flag_form .column').text(column);
 		showForm($('#flag_form')).then(function() {
 			$('#flag_form input.flag').val('').focus();
@@ -403,7 +400,7 @@ $(function() {
 	$('#users thead').on('click', 'a.rename', function(e) {
 		e.preventDefault();
 
-		var oldname = $(this).data('column');
+		var oldname = $(this).parents('th').data('column');
 		var newname = prompt('Please enter new name:', oldname);
 		if(newname === null) // cancel
 			return;
@@ -432,7 +429,7 @@ $(function() {
 	$('#users thead').on('click', 'a.delete', function(e) {
 		e.preventDefault();
 
-		var colname = $(this).data('column');
+		var colname = $(this).parents('th').data('column');
 		if(confirm('Do you want to remove column '+colname+'?')) {
 			// no #users here because we want to catch floating thead
 			$('[data-column="'+colname+'"]').remove();
