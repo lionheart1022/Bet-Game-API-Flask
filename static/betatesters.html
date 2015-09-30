@@ -410,6 +410,7 @@ $(function() {
 		});
 		// prohibit adding text field after checkbox was added
 		$(this).parents('th').find('a.add_textfield').remove();
+		$('#users').floatThead('reflow');
 	});
 	$('#users thead').on('click', 'a.add_textfield', function(e) {
 		e.preventDefault();
@@ -423,6 +424,7 @@ $(function() {
 		$(this).parents('th').find('a.add').remove();
 		// ...and adding text fields, as one is already added
 		$(this).remove();
+		$('#users').floatThead('reflow');
 	});
 	$('#users thead').on('click', 'a.rename', function(e) {
 		e.preventDefault();
