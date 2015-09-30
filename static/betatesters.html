@@ -29,13 +29,44 @@ label {
 $(function() {
 	var flagnames = [],
 		flagvals = {};
-	function add_column(name) {
+	function add_column(name, is_empty) {
 		// unfloat before changing..
 		if($('#users').is(':visible'))
 			$('#users').floatThead('destroy');
 
 		if(!flagvals[name])
 			flagvals[name] = [];
+
+		var actions = $('<div/>', {
+			class: 'spoiler-body',
+		})
+		.append($('<a/>', {
+			href: '#',
+			class: 'rename',
+			text: '[rename]',
+		}))
+		.append($('<a/>', {
+			href: '#',
+			class: 'delete',
+			text: '[delete]',
+		}))
+		.append($('<a/>', {
+			href: '#',
+			class: 'add',
+			text: '[+flag]',
+		}));
+		if(is_empty) {
+			// the user will want to add some flags, so:
+			// pre-unfold it...
+			actions.show();
+			// ...and add special actions for multilines
+			actions.append($('<a/>', {
+				href: '#',
+				class: 'add_textfield',
+				text: '[+textfield]',
+			}));
+		}
+
 		$('<th/>', {
 			'data-column': name,
 		})
@@ -48,26 +79,7 @@ $(function() {
 				class: 'spoiler-head',
 				text: '...',
 			}))
-			.append(
-				$('<div/>', {
-					class: 'spoiler-body',
-				})
-				.append($('<a/>', {
-					href: '#',
-					class: 'rename',
-					text: '[rename]',
-				}))
-				.append($('<a/>', {
-					href: '#',
-					class: 'delete',
-					text: '[delete]',
-				}))
-				.append($('<a/>', {
-					href: '#',
-					class: 'add',
-					text: '[+flag]',
-				}))
-			)
+			.append(actions)
 			.appendTo($('#users thead tr'));
 		$('#users tbody tr').each(function() {
 			var row = $(this);
@@ -376,9 +388,7 @@ $(function() {
 		if(!name)
 			return;
 
-		add_column(name);
-		// the user will want to add some flags, so show actions
-		$('th[data-column="'+name+'"] .spoiler-body').show();
+		add_column(name, true);
 		$('html,body').animate({
 			scrollTop: 0,
 			scrollLeft: $('html,body').width()+1000, // to be sure :)
@@ -395,6 +405,19 @@ $(function() {
 		$('td[data-column="'+column+'"]').each(function() {
 			add_checkbox($(this), column, name);
 		});
+		// prohibit adding text field after checkbox was added
+		$(this).parents('th').find('a.add_textfield').remove();
+	});
+	$('#users thead').on('click', 'a.add_textfield', function(e) {
+		e.preventDefault();
+
+		var column = $(this).parents('th').data('column');
+		var is_multi = confirm('Do you want a multiline field?');
+		$('td[data-column="'+column+'"]').each(function() {
+			add_textfield($(this), column, '', is_multi);
+		});
+		// prohibit adding boolean flags to column with text field
+		$(this).parents('th').find('a.add').remove();
 	});
 	$('#users thead').on('click', 'a.rename', function(e) {
 		e.preventDefault();
