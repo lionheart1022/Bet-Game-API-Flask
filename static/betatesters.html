@@ -424,6 +424,8 @@ $(function() {
 		$(this).parents('th').find('a.add').remove();
 		// ...and adding text fields, as one is already added
 		$(this).remove();
+		// now that we want this text field to persist, let's trigger update on first row
+		row_update($('#users tr:not(.size-row):first'));
 		$('#users').floatThead('reflow');
 	});
 	$('#users thead').on('click', 'a.rename', function(e) {
