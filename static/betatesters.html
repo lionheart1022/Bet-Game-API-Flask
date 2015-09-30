@@ -436,7 +436,7 @@ $(function() {
 			.find('input').blur();
 		$('#users').floatThead('reflow');
 	});
-	$('.spoiler').click(function(e) {
+	$('body').on('click', '.spoiler', function(e) {
 		e.preventDefault();
 		$(this).next().slideToggle();
 	});
