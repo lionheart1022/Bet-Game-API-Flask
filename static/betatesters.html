@@ -415,6 +415,7 @@ $(function() {
 		if(confirm('Do you want to remove column '+colname+'?')) {
 			// no #users here because we want to catch floating thead
 			$('[data-column="'+colname+'"]').remove();
+			$('#users').floatThead('reflow');
 			$('#users tr').each(function() {
 				var ret = true;
 				row_update($(this), null, null, function(err) {
