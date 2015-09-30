@@ -378,7 +378,7 @@ $(function() {
 
 		add_column(name);
 		// the user will want to add some flags, so show actions
-		$('th[column-name="'+name+'"] .spoiler-body').show();
+		$('th[data-column="'+name+'"] .spoiler-body').show();
 		$('html,body').animate({
 			scrollTop: 0,
 			scrollLeft: $('html,body').width(),
