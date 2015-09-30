@@ -238,6 +238,8 @@ $(function() {
 		});
 	}
 	function row_update(row, control, success, failure) {
+		if(row.is('.size-row')) // skip it
+			return;
 		var uid = row.data('uid');
 		if(!uid) {
 			console.warn('Unknown row, no uid!', row, control);
@@ -416,7 +418,7 @@ $(function() {
 			// no #users here because we want to catch floating thead
 			$('[data-column="'+colname+'"]').remove();
 			$('#users').floatThead('reflow');
-			$('#users tr[data-column!=""]').each(function() { // plain [data-col] doesn't work
+			$('#users tr').each(function() {
 				var ret = true;
 				row_update($(this), null, null, function(err) {
 					alert('Failure!.. Please reload page.');
