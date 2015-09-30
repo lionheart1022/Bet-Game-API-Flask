@@ -274,8 +274,14 @@ $(function() {
 			}
 		});
 	}
+	function textfield_update(field) {
+		return row_update(field.parents('tr'), field);
+	}
 	$('#users').on('change', 'input.flagtoggle', function(e) {
 		checkbox_update($(this));
+	});
+	$('#users').on('change', 'input.textfield', function(e) {
+		textfield_update($(this));
 	});
 	$('#login_form').submit(function(e) {
 		e.preventDefault();
