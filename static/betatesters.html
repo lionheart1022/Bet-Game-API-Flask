@@ -85,7 +85,7 @@ $(function() {
 			var row = $(this);
 			var td = $('<td/>', {'data-column': name});
 			$.each(flagvals[name], function(_, prop) {
-				add_checkbox(td, name, prop);//, v.indexOf(prop) >= 0);
+				add_checkbox(td, prop);//, v.indexOf(prop) >= 0);
 			});
 			td.appendTo(row);
 		});
@@ -94,7 +94,7 @@ $(function() {
 		if($('#users').is(':visible'))
 			$('#users').floatThead();
 	}
-	function add_checkbox(dest, column, prop, checked) {
+	function add_checkbox(dest, prop, checked) {
 		var cbox = $('<input/>', {
 			'type': 'checkbox',
 			'name': prop,
@@ -107,7 +107,7 @@ $(function() {
 			.append(prop)
 			.appendTo(dest);
 	}
-	function add_textfield(dest, column, val, multiline) {
+	function add_textfield(dest, val, multiline) {
 		$(multiline ? '<textarea/>' : '<input/>', {
 			class: 'textfield',
 			type: 'text',
@@ -185,14 +185,14 @@ $(function() {
 								return false;
 							}
 						});
-						add_textfield(td, col, val, is_multi);
+						add_textfield(td, val, is_multi);
 					} else {
 						$.each(flagvals[col], function(_, prop) {
 							var checked = false;
 							if(typeof tester.flags !== 'string' &&
 									typeof tester.flags[col] !== 'undefined')
 								checked = tester.flags[col].indexOf(prop) != -1;
-							add_checkbox(td, col, prop, checked);
+							add_checkbox(td, prop, checked);
 						});
 					}
 					td.appendTo(row);
@@ -403,7 +403,7 @@ $(function() {
 			return;
 		}
 		$('td[data-column="'+column+'"]').each(function() {
-			add_checkbox($(this), column, name);
+			add_checkbox($(this), name);
 		});
 		// prohibit adding text field after checkbox was added
 		$(this).parents('th').find('a.add_textfield').remove();
@@ -414,7 +414,7 @@ $(function() {
 		var column = $(this).parents('th').data('column');
 		var is_multi = confirm('Do you want a multiline field?');
 		$('td[data-column="'+column+'"]').each(function() {
-			add_textfield($(this), column, '', is_multi);
+			add_textfield($(this), '', is_multi);
 		});
 		// prohibit adding boolean flags to column with text field
 		$(this).parents('th').find('a.add').remove();
