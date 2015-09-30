@@ -416,7 +416,7 @@ $(function() {
 			// no #users here because we want to catch floating thead
 			$('[data-column="'+colname+'"]').remove();
 			$('#users').floatThead('reflow');
-			$('#users tr[data-column]').each(function() {
+			$('#users tr[data-column!=""]').each(function() { // plain [data-col] doesn't work
 				var ret = true;
 				row_update($(this), null, null, function(err) {
 					alert('Failure!.. Please reload page.');
