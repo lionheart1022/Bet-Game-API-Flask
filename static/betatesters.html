@@ -44,6 +44,12 @@ $(function() {
 			}))
 			.append($('<a/>', {
 				href: '#',
+				class: 'delete',
+				'data-column': name,
+				text: '[delete]',
+			}))
+			.append($('<a/>', {
+				href: '#',
 				class: 'add',
 				'data-column': name,
 				text: '[+flag]',
@@ -397,6 +403,22 @@ $(function() {
 		showForm(form).then(function() {
 			form.find('.name').val(column).focus();
 		});
+	});
+	$('#users thead').on('click', 'a.delete', function(e) {
+		e.preventDefault();
+
+		var colname = $(this).data('column');
+		if(confirm('Do you want to remove column '+colname+'?')) {
+			$('#users [data-column="'+colname+'"]').remove();
+			$('#users tr').each(function() {
+				var ret = true;
+				row_update($(this), null, null, function(err) {
+					alert('Failure!.. Please reload page.');
+					ret = false; // break loop
+				});
+				return ret;
+			});
+		}
 	});
 	$('#rename_form').submit(function(e) {
 		e.preventDefault();
