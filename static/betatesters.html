@@ -365,12 +365,13 @@ $(function() {
 	$('#users thead').on('click', 'a.add', function(e) {
 		e.preventDefault();
 
-		$('#flag_form .column:not(.show)').hide();
-		$('#flag_form .flag').show();
 		var column = $(this).parents('th').data('column');
-		$('#flag_form .column').text(column);
-		showForm($('#flag_form')).then(function() {
-			$('#flag_form input.flag').val('').focus();
+		var name = prompt('Enter new flag name for column '+column+':');
+		if(!name) { // empty or cancel
+			return;
+		}
+		$('td[data-column="'+column+'"]').each(function() {
+			add_checkbox($(this), column, name);
 		});
 	});
 	$('#flag_form').submit(function(e) {
