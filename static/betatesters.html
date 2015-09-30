@@ -355,12 +355,12 @@ $(function() {
 	}
 	$('#add_column').click(function(e) {
 		e.preventDefault();
-		$('#flag_form .flag').hide();
-		$('#flag_form .column').show();
-		showForm($('#flag_form')).then(function() {
-			console.log('done');
-			$('#flag_form input.column').val('').focus();
-		});
+
+		var name = prompt('Enter new column name:');
+		if(!name)
+			return;
+
+		add_column(name);
 	});
 	$('#users thead').on('click', 'a.add', function(e) {
 		e.preventDefault();
