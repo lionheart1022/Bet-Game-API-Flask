@@ -82,8 +82,7 @@ $(function() {
 		$(multiline ? '<textarea/>' : '<input/>', {
 			class: 'textfield',
 			type: 'text',
-			value: val,
-		}).appendTo(dest);
+		}).val(val).appendTo(dest);
 	}
 	function showUsers() {
 		API.call('GET', 'betatesters', {}, function(ret) {
