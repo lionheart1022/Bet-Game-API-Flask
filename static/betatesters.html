@@ -186,6 +186,9 @@ $(function() {
 							}
 						});
 						add_textfield(td, val, is_multi);
+						// and prohibit adding bool flags to this column
+						// FIXME: should only be performed once... but how?
+						$('th[data-column="'+col+'"] a.add').remove();
 					} else {
 						$.each(flagvals[col], function(_, prop) {
 							var checked = false;
