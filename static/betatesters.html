@@ -36,21 +36,30 @@ $(function() {
 				text: name,
 			}))
 			.append(' ')
-			.append($('<a/>', {
-				href: '#',
-				class: 'rename',
-				text: '[rename]',
-			}))
-			.append($('<a/>', {
-				href: '#',
-				class: 'delete',
-				text: '[delete]',
-			}))
-			.append($('<a/>', {
-				href: '#',
-				class: 'add',
-				text: '[+flag]',
-			}))
+			.append($('<div/>', {
+				class: 'spoiler',
+				text: '...',
+			}
+			.append(
+				$('<div/>', {
+					style: 'display: none',
+				})
+				.append($('<a/>', {
+					href: '#',
+					class: 'rename',
+					text: '[rename]',
+				}))
+				.append($('<a/>', {
+					href: '#',
+					class: 'delete',
+					text: '[delete]',
+				}))
+				.append($('<a/>', {
+					href: '#',
+					class: 'add',
+					text: '[+flag]',
+				}))
+			)
 			.appendTo($('#users thead tr'));
 		$('#users tbody tr').each(function() {
 			var row = $(this);
@@ -426,6 +435,10 @@ $(function() {
 		$(this).parents('form').slideUp()
 			.find('input').blur();
 		$('#users').floatThead('reflow');
+	});
+	$('.spoiler').click(function(e) {
+		e.preventDefault();
+		$(this).next().slideToggle();
 	});
 
 	if(localStorage.token) {
