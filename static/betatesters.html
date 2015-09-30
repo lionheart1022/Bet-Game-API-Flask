@@ -387,7 +387,7 @@ $(function() {
 	$('#add_column').click(function(e) {
 		e.preventDefault();
 
-		var name = prompt('Enter new column name\n(will not be saved unless you add some flags to it!):');
+		var name = prompt('Enter new column name:\n(will not be saved unless you add some flags to it!)');
 		if(!name)
 			return;
 
@@ -401,7 +401,7 @@ $(function() {
 		e.preventDefault();
 
 		var column = $(this).parents('th').data('column');
-		var name = prompt('Enter new flag name for column '+column+'\n(will not be saved unless you check it for some user!):');
+		var name = prompt('Enter new flag name for column '+column+':\n(will not be saved unless you check it for some user!)');
 		if(!name) { // empty or cancel
 			return;
 		}
@@ -415,9 +415,9 @@ $(function() {
 		e.preventDefault();
 
 		var column = $(this).parents('th').data('column');
-		var is_multi = confirm('Do you want a multiline field?');
+		var is_single = confirm('Ok for simple field, Cancel multiline:');
 		$('td[data-column="'+column+'"]').each(function() {
-			add_textfield($(this), '', is_multi);
+			add_textfield($(this), '', !is_single);
 		});
 		// prohibit adding boolean flags to column with text field
 		$(this).parents('th').find('a.add').remove();
