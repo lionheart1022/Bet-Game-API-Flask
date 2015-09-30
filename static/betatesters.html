@@ -381,7 +381,7 @@ $(function() {
 		$('th[data-column="'+name+'"] .spoiler-body').show();
 		$('html,body').animate({
 			scrollTop: 0,
-			scrollLeft: $('html,body').width(),
+			scrollLeft: $('html,body').width()+1000, // to be sure :)
 		});
 	});
 	$('#users thead').on('click', 'a.add', function(e) {
