@@ -796,6 +796,20 @@ class DummyPoller(Poller):
     def pollGame(self, game):
         pass
 
+class TestPoller(Poller):
+    gametypes = {
+        'test': 'Test',
+    }
+    identity = ''
+    identity_name = ''
+    identity_check = lambda val: val
+    twitch = 2
+    twitch_gametypes = {
+        'test': 'FIFA 15',
+    }
+    def pollGame(self, game):
+        pass
+
 def poll_all():
     log.info('Polling started')
 
