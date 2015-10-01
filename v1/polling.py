@@ -122,7 +122,7 @@ class Poller:
         ))
 
     @classmethod
-    def gameDone(cls, game, winner, timestamp):
+    def gameDone(cls, game, winner, timestamp, details=None):
         """
         Mark the game as done, setting all needed fields.
         Winner is a string.
@@ -132,6 +132,7 @@ class Poller:
         log.debug('Marking game {} as done'.format(game))
         game.winner = winner
         game.state = 'finished'
+        game.details = details
         if not timestamp:
             game.finish_date = datetime.utcnow()
         elif isinstance(timestamp, datetime):
@@ -293,7 +294,8 @@ class FifaPoller(Poller, LimitedApi):
                 winner = 'opponent'
             else:
                 winner = 'draw'
-            self.gameDone(game, winner, match['timestamp'])
+            self.gameDone(game, winner, match['timestamp'],
+                          'Score: {} - {}'.format(crea.score, oppo.score))
             return True
 
 class RiotPoller(Poller):
