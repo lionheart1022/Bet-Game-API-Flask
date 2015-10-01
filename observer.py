@@ -472,17 +472,17 @@ class FifaHandler(Handler):
                 log.warning('No players data?..')
                 return None
             left, right = line.split('Score: ',1)[1].split('Players:',1)
-            nick1, nick2 = right.strip().split('\t\t',1)
+            onick1, onick2 = right.strip().split('\t\t',1) # o means original
             scores = [p for p in left.split()
                       if '-' in p and p[0].isdigit() and p[-1].isdigit()][0]
             score1, score2 = scores.split('-')
             team1, team2 = map(lambda x: x.strip(), left.split(scores))
-            nick1, nick2 = map(lambda x: x.lower(), (nick1, nick2))
+            nick1, nick2 = map(lambda x: x.lower(), (onick1, onick2))
             score1, score2 = map(int, (score1, score2))
 
             details = '{} ({}) vs {} ({}): {} - {}'.format(
-                nick1, team1,
-                nick2, team2,
+                onick1, team1,
+                onick2, team2,
                 score1, score2,
             )
 
