@@ -378,6 +378,15 @@ class Handler:
 
             # consider game done when either got quorum results
             # or maxdelta passed since first result
+            log.debug('have for now: r: {}, '
+                      'now: {}, '
+                      'fr: {}, '
+                      'md: {}'.format(
+                          results,
+                          datetime.utcnow(),
+                          first_res,
+                          first_res + self.maxdelta,
+                      ))
             if results and (len(results) >= self.quorum or
                             datetime.utcnow() > first_res + self.maxdelta):
                 # FIXME: maybe don't rely on first result
