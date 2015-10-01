@@ -431,7 +431,7 @@ class Handler:
         For 'offline' and None outcomes can return just outcome.
         If outcome is weak, it will only be considered if there are stronger outcomes.
         """
-        raise NotImplementedError
+        raise NotImplementedError('This should be overriden!')
     def done(self, result, timestamp, details=None):
         log.debug('Handler {} done, result {}, details {}'.format(
             self, result, details))
@@ -474,13 +474,21 @@ class FifaHandler(Handler):
                               .split() if '-' in p and p[0].isdigit()][0].split('-')
             nick1, nick2 = map(lambda x: x.lower(), (nick1, nick2))
             score1, score2 = map(int, (score1, score2))
+            team1, team2 = '', '' # TODO
+
+            def makedesc():
+                return '{} ({}) vs {} ({}): {} - {}'.format(
+                    nick1, team1,
+                    nick2, team2,
+                    score1, score2,
+                )
 
             log.info('Got score data. Nicks {} / {}, scores {} / {}'.format(
                 nick1, nick2, score1, score2))
 
             if score1 == score2:
                 log.info('draw detected')
-                return 'draw'
+                return 'draw', True, makedesc()
 
             cl = self.stream.creator.lower()
             ol = self.stream.opponent.lower()
