@@ -234,7 +234,7 @@ class Handler:
     def abort(self):
         self.thread.kill()
         # this will automatically execute `finally` clause in `watch_tc`
-        # and i.e. remove us from pool
+        # which will remove us from pool
 
         # if subprocess is still alive, kill it
         if hasattr(self, 'sub') and self.sub.poll() is None: # still running?
