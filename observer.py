@@ -476,19 +476,18 @@ class FifaHandler(Handler):
             score1, score2 = map(int, (score1, score2))
             team1, team2 = '', '' # TODO
 
-            def makedesc():
-                return '{} ({}) vs {} ({}): {} - {}'.format(
-                    nick1, team1,
-                    nick2, team2,
-                    score1, score2,
-                )
+            details = '{} ({}) vs {} ({}): {} - {}'.format(
+                nick1, team1,
+                nick2, team2,
+                score1, score2,
+            )
 
             log.info('Got score data. Nicks {} / {}, scores {} / {}'.format(
                 nick1, nick2, score1, score2))
 
             if score1 == score2:
                 log.info('draw detected')
-                return 'draw', True, makedesc()
+                return 'draw', True, details
 
             cl = self.stream.creator.lower()
             ol = self.stream.opponent.lower()
@@ -505,7 +504,7 @@ class FifaHandler(Handler):
             if not creator and not opponent:
                 log.warning('Wrong gamertags / good gamertag not detected! '
                             'Defaulting to draw.')
-                return 'draw'
+                return 'draw', False, 'Gamertags don\'t match -> draw... '+details
             if not creator:
                 creator = 1 if opponent == 2 else 2
 
@@ -513,7 +512,9 @@ class FifaHandler(Handler):
                 winner = 1
             else:
                 winner = 2
-            return 'creator' if winner == creator else 'opponent'
+            return('creator' if winner == creator else 'opponent',
+                   True,
+                   details)
         return None
 class TestHandler(Handler):
     gametypes = [
