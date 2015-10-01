@@ -351,15 +351,23 @@ class Handler:
                 log.exception('Error during checking line!')
                 result = None # just skip this line
 
-            if result == 'offline':
+            if isinstance(result, tuple):
+                outcome = result[0]
+            else:
+                outcome = result
+
+            if outcome == 'offline':
                 # handle it specially:
                 # force stop this process and retry in 30 seconds
                 # (will be done in watch_tc)
                 return 'offline'
 
-            if result is not None:
+            if outcome is not None:
+                if not isinstance(result, tuple):
+                    log.warning('Invalid outcome, no details available: '+str(result))
+                    result = (result, False, None) # consider it weak
                 self.stream.state = 'found'
-                results.append(result)
+                results.append(result) # tuple
                 if not first_res:
                     first_res = datetime.utcnow()
 
@@ -379,27 +387,34 @@ class Handler:
         # now that process is stopped, handle results found
         if not results:
             log.warning('process failed with status %d, considering draw' % sub.poll())
-            results = ['failed']
+            results = [('failed', True,
+                        'Observer terminated without returning any result! '
+                        'Please contact support.')]
             self.stream.state = 'failed'
             first_res = datetime.utcnow()
         log.debug('results list: '+str(results))
 
+        # if there is any strong result, drop all weak ones
+        for r in results:
+            if r[1]: # strong
+                # drop all weak results
+                results = list(filter(lambda r: r[1], results))
+                break
+
         # calculate most trusted result
         freqs = {}
         for r in results:
-            if r in freqs:
-                freqs[r] += 1
-            else:
-                freqs[r] = 1
-        # Sort by frequency reversive - i.e. most frequent goes first
+            freqs[r] = freqs.get(r, 0) + 1
+        # Sort by frequency descending - i.e. most frequent goes first
         pairs = sorted(freqs.items(), key=lambda p: p[1], reverse=True)
         # use most frequently occuring result
         result = pairs[0][0]
+        outcome, strong, details = result # decode it
 
         log.debug('got result: %s' % result)
         # handle result
         db.session.commit()
-        self.done(result, first_res.timestamp())
+        self.done(outcome, first_res.timestamp(), details)
 
         # if process didn't stop itself yet, kill it as we don't need it anymore
         if sub.poll() is None:
@@ -408,6 +423,15 @@ class Handler:
 
         # TODO: clean sub?
 
+    def check(self, line):
+        """
+        To be overriden.
+        Accepts one line from script\'s output;
+        returns tuple: outcome, is_strong, details.
+        For 'offline' and None outcomes can return just outcome.
+        If outcome is weak, it will only be considered if there are stronger outcomes.
+        """
+        raise NotImplementedError
     def done(self, result, timestamp, details=None):
         log.debug('Handler {} done, result {}, details {}'.format(
             self, result, details))
