@@ -252,6 +252,9 @@ class Handler:
         tgtype = poller.twitch_gametypes.get(self.stream.gametype)
         if not tgtype:
             raise ValueError('Invalid poller?? no gt for '+self.stream.gametype)
+        # for debugging:
+        if tgtype == 'None':
+            tgtype = None
         cinfo = Twitch.channel(self.stream.handle)
         if cinfo['game'] != tgtype:
             log.info('Stream {}: expected game {}, got {} - will wait'.format(
