@@ -517,7 +517,7 @@ def abort_stream(stream):
     # will remove itself
     return True
 
-def stream_done(stream, winner, timestamp):
+def stream_done(stream, winner, timestamp, details=None):
     """
     Runs on master node only.
     Marks given stream as done, and notifies clients etc.
@@ -553,7 +553,7 @@ def stream_done(stream, winner, timestamp):
             if winner:
                 if winner in ['creator','opponent'] and reverse:
                     winner = 'creator' if winner == 'opponent' else 'opponent'
-                Poller.gameDone(game, winner, int(timestamp))
+                Poller.gameDone(game, winner, int(timestamp), details)
         else:
             log.error('Invalid game ID: %d' % stream.game_id)
 
@@ -744,7 +744,7 @@ class StreamResource(restful.Resource):
             return requests.patch('{}/streams/{}/{}'.format(PARENT[1], id, gametype),
                                   data = args).json()
         else:
-            stream_done(stream, args.winner, args.timestamp)
+            stream_done(stream, args.winner, args.timestamp, args.details)
 
         return jsonify(success = True)
 
