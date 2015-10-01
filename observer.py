@@ -378,7 +378,7 @@ class Handler:
             if results and (len(results) >= self.quorum or
                             datetime.utcnow() > first_res + self.maxdelta):
                 # FIXME: maybe don't rely on first result
-                # as it might be errorneous
+                # as it might be errorneous?..
 
                 # kill the process as we don't need more results
                 sub.terminate()
