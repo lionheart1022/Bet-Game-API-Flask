@@ -425,7 +425,7 @@ class Handler:
         result = pairs[0][0]
         outcome, strong, details = result # decode it
 
-        log.debug('got result: %s' % result)
+        log.debug('got result: %s' % repr(result))
         # handle result
         db.session.commit()
         self.done(outcome, first_res.timestamp(), details)
