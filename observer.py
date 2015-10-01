@@ -402,7 +402,7 @@ class Handler:
 
         # now that process is stopped, handle results found
         if not results:
-            log.warning('process failed with status %d, considering draw' % sub.poll())
+            log.warning('process failed with status %s, considering draw' % str(sub.poll()))
             results = [('failed', True,
                         'Observer terminated without returning any result! '
                         'Please contact support.')]
