@@ -419,6 +419,7 @@ class Handler:
                 timestamp = timestamp,
             ),
         )
+        log.debug('Result sent.')
 
 class FifaHandler(Handler):
     gametypes = [
