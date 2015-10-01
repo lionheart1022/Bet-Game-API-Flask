@@ -488,7 +488,14 @@ class TestHandler(Handler):
     process = './test.sh'
 
     def check(self, line):
-        print('line')
+        print('line:',line)
+        outcomes = dict(
+            c='creator',
+            o='opponent',
+            d='draw',
+        )
+        if 'Done' in line:
+            return outcomes.get(line[-1], None)
 
 
 pool = {}
