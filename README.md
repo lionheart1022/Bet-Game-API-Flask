@@ -628,6 +628,7 @@ Possible game states:
 	"state": "finished", // see above
 	"accept_date": "RFC datetime", // date of eiter accepting or declining game, null for new games
 	"winner": "opponent", // either "creator", "opponent" or "draw"
+	"details": "Manchester vs Barcelona, score 1-3", // game result details, it depends on game and poller
 	"finish_date": "RFC datetime" // date when this game was finished, according to EA servers
 }
 ```

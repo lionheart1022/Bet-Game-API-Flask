@@ -258,6 +258,7 @@ class Game(db.Model):
     state = db.Column(db.Enum('new', 'cancelled', 'accepted', 'declined', 'finished'), default='new')
     accept_date = db.Column(db.DateTime, nullable=True)
     winner = db.Column(db.Enum('creator', 'opponent', 'draw'), nullable=True)
+    details = db.Column(db.Text, nullable=True)
     finish_date = db.Column(db.DateTime, nullable=True)
 
 

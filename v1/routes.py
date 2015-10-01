@@ -820,6 +820,7 @@ class GameResource(restful.Resource):
             'state': fields.String,
             'accept_date': fields.DateTime,
             'winner': fields.String,
+            'details': fields.String,
             'finish_date': fields.DateTime,
         }
     @require_auth
