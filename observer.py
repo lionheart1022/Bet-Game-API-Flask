@@ -36,7 +36,7 @@ from werkzeug.exceptions import default_exceptions
 from werkzeug.exceptions import HTTPException, BadRequest, MethodNotAllowed, Forbidden, NotImplemented, NotFound
 
 import os
-import atexit
+import signal
 from datetime import datetime, timedelta
 import itertools
 from eventlet.green import subprocess
@@ -595,13 +595,13 @@ def abort_stream(stream):
     # will remove itself
     return True
 
-@atexit.register
 def abort_all():
     for stream in pool.values():
         # this considers we already got game result from somewhere -
         # or will restart soon
         stream.abort()
     log.info('All stream watchers aborted for restart')
+signal.signal(signal.SIGTERM, abort_all) # when gunicorn worker is terminated
 
 def stream_done(stream, winner, timestamp, details=None):
     """
