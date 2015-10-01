@@ -395,7 +395,7 @@ def gamertag_field(nick):
         raise ValueError('Unknown gamertag: '+nick)
 
     url = 'https://www.easports.com/fifa/api/'\
-        'fifa15-xboxone/match-history/fut/{}'.format(quote(nick))
+        'fifa15-xboxone/match-history/friendlies/{}'.format(quote(nick))
     try:
         ret = requests.get(url)
         if ret.status_code == 404:
