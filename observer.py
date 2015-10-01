@@ -407,12 +407,13 @@ class Handler:
 
         # TODO: clean sub?
 
-    def done(self, result, timestamp):
+    def done(self, result, timestamp, details=None):
         # determine winner and propagate result to master
         requests.patch(
             '{}/streams/{}'.format(SELF_URL, self.stream.handle),
             data = dict(
                 winner = result,
+                details = details,
                 timestamp = timestamp,
             ),
         )
@@ -734,6 +735,7 @@ class StreamResource(restful.Resource):
 
         parser = RequestParser(bundle_errors=True)
         parser.add_argument('winner', required=True)
+        parser.add_argument('details', default=None)
         parser.add_argument('timestamp', type=float, required=True)
         args = parser.parse_args()
 
