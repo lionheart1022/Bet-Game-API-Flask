@@ -1013,9 +1013,10 @@ class GameResource(restful.Resource):
 
         if args.state == 'accepted':
             try:
-                poller.gamestarted(game)
+                poller = Poller.findPoller(game.gametype)
+                poller.gameStarted(game)
             except Exception as e:
-                log.exception('Error in gamestarted for {}: {}'.format(
+                log.exception('Error in gameStarted for {}: {}'.format(
                     poller, e))
                 abort('Failed to initialize poller, please contact support!', 500)
 

@@ -539,7 +539,7 @@ class CSGOPoller(Poller):
         ])
 
     @classmethod
-    def gamestarted(cls, game):
+    def gameStarted(cls, game):
         # store "<crea_total>:<oppo_total>" to know when match was played
         game.meta = ':'.join(map(
             lambda p: str(cls.fetch_match(p).total_matches_played),
