@@ -474,7 +474,11 @@ class FifaHandler(Handler):
                 log.warning('No players data?..')
                 return None
             left, right = line.split('Score: ',1)[1].split('Players:',1)
-            onick1, onick2 = right.strip().split('\t\t',1) # o means original
+            rights = right.strip().split('\t\t', 1)
+            if len(rights) == 2:
+                onick1, onick2 = rights # o means original
+            else:
+                onick1 = onick2 = rights # only one nickname retrieved?..
             scores = [p for p in left.split()
                       if '-' in p and p[0].isdigit() and p[-1].isdigit()][0]
             score1, score2 = scores.split('-')
