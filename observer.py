@@ -223,6 +223,7 @@ class Handler:
     def __init__(self, stream):
         self.stream = stream
         self.handle = stream.handle
+        self.gametype = stream.gametype
 
     def start(self):
         log.info('spawning handler')
