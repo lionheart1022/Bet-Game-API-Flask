@@ -601,7 +601,7 @@ def abort_all(*args):
         # or will restart soon
         stream.abort()
     log.info('All stream watchers aborted for restart')
-signal.signal(signal.SIGTERM, abort_all) # when gunicorn worker is terminated
+signal.signal(signal.SIGTERM, abort_all) # fire when gunicorn worker is terminated
 
 def stream_done(stream, winner, timestamp, details=None):
     """
