@@ -350,6 +350,8 @@ class Handler:
             except Exception as e:
                 log.exception('Error during checking line!')
                 result = None # just skip this line
+            else:
+                log.info('Got line result: %s'%result)
 
             if isinstance(result, tuple):
                 outcome = result[0]
