@@ -806,7 +806,7 @@ class TestPoller(Poller):
     identity_check = lambda val: val
     twitch = 2
     twitch_gametypes = {
-        'test': None, # to allow missing streams
+        'test': 'None', # to allow missing streams
     }
     def pollGame(self, game):
         pass
