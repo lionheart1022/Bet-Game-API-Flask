@@ -406,6 +406,7 @@ class Handler:
             results = [('failed', True,
                         'Observer terminated without returning any result! '
                         'Please contact support.')]
+            # FIXME: maybe better restart it?
             self.stream.state = 'failed'
             first_res = datetime.utcnow()
         log.debug('results list: '+str(results))
