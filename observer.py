@@ -391,7 +391,8 @@ class Handler:
                 freqs[r] += 1
             else:
                 freqs[r] = 1
-        pairs = sorted(freqs.items(), key=lambda p: p[1])
+        # Sort by frequency reversive - i.e. most frequent goes first
+        pairs = sorted(freqs.items(), key=lambda p: p[1], reverse=True)
         # use most frequently occuring result
         result = pairs[0][0]
 
