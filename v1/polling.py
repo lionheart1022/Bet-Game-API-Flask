@@ -141,30 +141,31 @@ class Poller:
             game.finish_date = datetime.utcfromtimestamp(timestamp)
         db.session.commit() # to avoid observer overwriting it before us..
 
-        # move funds...
-        if winner == 'creator':
-            winner = game.creator
-            looser = game.opponent
-        elif winner == 'opponent':
-            winner = game.opponent
-            looser = game.creator
-        winner.balance += game.bet
-        looser.balance -= game.bet
-        db.session.add(Transaction(
-            player = winner,
-            type = 'won',
-            sum = game.bet,
-            balance = winner.balance,
-            game = game,
-        ))
-        db.session.add(Transaction(
-            player = looser,
-            type = 'lost',
-            sum = -game.bet,
-            balance = looser.balance,
-            game = game,
-        ))
-        # and unlock bets
+        # move funds (only if somebody won)
+        if winner in ['creator', 'opponent']:
+            if winner == 'creator':
+                winner = game.creator
+                looser = game.opponent
+            elif winner == 'opponent':
+                winner = game.opponent
+                looser = game.creator
+            winner.balance += game.bet
+            looser.balance -= game.bet
+            db.session.add(Transaction(
+                player = winner,
+                type = 'won',
+                sum = game.bet,
+                balance = winner.balance,
+                game = game,
+            ))
+            db.session.add(Transaction(
+                player = looser,
+                type = 'lost',
+                sum = -game.bet,
+                balance = looser.balance,
+                game = game,
+            ))
+        # and unlock bets (always)
         # withdrawing them finally from accounts
         game.creator.locked -= game.bet
         game.opponent.locked -= game.bet
