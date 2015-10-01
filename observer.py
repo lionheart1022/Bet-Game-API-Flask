@@ -595,7 +595,7 @@ def abort_stream(stream):
     # will remove itself
     return True
 
-def abort_all():
+def abort_all(*args):
     for stream in pool.values():
         # this considers we already got game result from somewhere -
         # or will restart soon
