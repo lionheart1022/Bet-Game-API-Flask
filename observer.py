@@ -36,6 +36,7 @@ from werkzeug.exceptions import default_exceptions
 from werkzeug.exceptions import HTTPException, BadRequest, MethodNotAllowed, Forbidden, NotImplemented, NotFound
 
 import os
+import atexit
 from datetime import datetime, timedelta
 import itertools
 from eventlet.green import subprocess
@@ -233,7 +234,7 @@ class Handler:
     def abort(self):
         self.thread.kill()
         # this will automatically execute `finally` clause in `watch_tc`
-        # and remove us from pool
+        # and i.e. remove us from pool
 
         # if subprocess is still alive, kill it
         if hasattr(self, 'sub') and self.sub.poll() is None: # still running?
@@ -593,6 +594,14 @@ def abort_stream(stream):
     pool[stream.handle, stream.gametype].abort()
     # will remove itself
     return True
+
+@atexit.register
+def abort_all():
+    for stream in pool.values():
+        # this considers we already got game result from somewhere -
+        # or will restart soon
+        stream.abort()
+    log.info('All stream watchers aborted for restart')
 
 def stream_done(stream, winner, timestamp, details=None):
     """
