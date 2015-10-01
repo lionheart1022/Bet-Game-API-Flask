@@ -389,6 +389,11 @@ class Handler:
                       ))
             if results and (len(results) >= self.quorum or
                             datetime.utcnow() > first_res + self.maxdelta):
+                # FIXME: this clause is executed only on next line,
+                # so if we got 3 results (<quorum) and none after that
+                # then we will wait until next line,
+                # which may be not soon.
+
                 # kill the process as we don't need more results
                 sub.terminate()
                 # will kill() later, after done() - to avoid delaying it
