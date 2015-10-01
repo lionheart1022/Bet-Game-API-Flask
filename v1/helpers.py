@@ -397,6 +397,10 @@ def gamertag_field(nick):
     url = 'https://www.easports.com/fifa/api/'\
         'fifa15-xboxone/match-history/friendlies/{}'.format(quote(nick))
     try:
+        # FIXME
+        # EA Sports is now almost down, so don't validate gamertag
+        return nick
+        # FIXME
         ret = requests.get(url)
         if ret.status_code == 404:
             # don't cache not-registered nicks as they can appear in future
