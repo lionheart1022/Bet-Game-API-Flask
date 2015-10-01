@@ -6,6 +6,7 @@ from flask.ext.restful.utils import http_status_message
 
 from werkzeug.exceptions import HTTPException
 
+import os
 import urllib.parse
 import jwt
 import hashlib, uuid
@@ -641,8 +642,12 @@ def notify_users(game, nomail=False):
             log.exception('APNS failure!')
             message = None # will not send PUSH
         else:
-            conn = apns_session.get_connection('push_sandbox',
-                                                cert_file='apns.pem')
+            # calculate path relative to this script location,
+            # because working directory may vary (for observer)
+            cert_file = os.path.dirname(__file__)+'/../apns.pem'
+            conn = apns_session.get_connection(
+                'push_sandbox',
+                cert_file=cert_file)
 
     log.debug('msg: '+str(message))
 
