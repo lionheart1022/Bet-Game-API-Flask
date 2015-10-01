@@ -345,7 +345,11 @@ class Handler:
         for line in sub.stdout:
             log.info('got line '+str(line))
             line = line.strip().decode()
-            result = self.check(line)
+            try:
+                result = self.check(line)
+            except Exception as e:
+                log.exception('Error during checking line!')
+                result = None # just skip this line
 
             if result == 'offline':
                 # handle it specially:
@@ -432,6 +436,9 @@ class FifaHandler(Handler):
             log.warning('Couldn\'t get result, skipping')
             return None #'draw'
         if 'Score:' in line:
+            # this may raise an exception
+            # if only one player name is present;
+            # it will be catched in watch().
             nick1, nick2 = line.split('Players:',1)[1].strip().split('\t\t',1)
             score1, score2 = [p for p in line.split('Score: ',1)[1]
                               .split('Players:',1)[0]
