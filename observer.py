@@ -468,13 +468,17 @@ class FifaHandler(Handler):
             # this may raise an exception
             # if only one player name is present;
             # it will be catched in watch().
-            nick1, nick2 = line.split('Players:',1)[1].strip().split('\t\t',1)
-            score1, score2 = [p for p in line.split('Score: ',1)[1]
-                              .split('Players:',1)[0]
-                              .split() if '-' in p and p[0].isdigit()][0].split('-')
+            if 'Players:' not in line:
+                log.warning('No players data?..')
+                return None
+            left, right = line.split('Score: ',1)[1].split('Players:',1)
+            nick1, nick2 = right.strip().split('\t\t',1)
+            scores = [p for p in left.split()
+                      if '-' in p and p[0].isdigit() and p[-1].isdigit()][0]
+            score1, score2 = scores.split('-')
+            team1, team2 = map(lambda x: x.strip(), left.split(scores))
             nick1, nick2 = map(lambda x: x.lower(), (nick1, nick2))
             score1, score2 = map(int, (score1, score2))
-            team1, team2 = '', '' # TODO
 
             details = '{} ({}) vs {} ({}): {} - {}'.format(
                 nick1, team1,
