@@ -412,7 +412,7 @@ class Handler:
             self, result, details))
         # propagate result to master
         requests.patch(
-            '{}/streams/{}'.format(SELF_URL, self.stream.handle),
+            '{}/streams/{}/{}'.format(SELF_URL, self.stream.handle, self.stream.gametype),
             data = dict(
                 winner = result,
                 details = details,
