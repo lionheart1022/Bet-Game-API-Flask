@@ -466,9 +466,9 @@ class FifaHandler(Handler):
             elif ol == nick2:
                 opponent = 2
             if not creator and not opponent:
-                log.warning('defaulting to creator! '+line)
-                creator = 1
-                opponent = 2
+                log.warning('Wrong gamertags / good gamertag not detected! '
+                            'Defaulting to draw.')
+                return 'draw'
             if not creator:
                 creator = 1 if opponent == 2 else 2
 
