@@ -385,7 +385,7 @@ class Handler:
                           results,
                           datetime.utcnow(),
                           first_res,
-                          first_res + self.maxdelta,
+                          (first_res + self.maxdelta) if first_res else '..',
                       ))
             if results and (len(results) >= self.quorum or
                             datetime.utcnow() > first_res + self.maxdelta):
