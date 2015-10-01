@@ -408,7 +408,9 @@ class Handler:
         # TODO: clean sub?
 
     def done(self, result, timestamp, details=None):
-        # determine winner and propagate result to master
+        log.debug('Handler {} done, result {}, details {}'.format(
+            self, result, details))
+        # propagate result to master
         requests.patch(
             '{}/streams/{}'.format(SELF_URL, self.stream.handle),
             data = dict(
