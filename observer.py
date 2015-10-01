@@ -303,17 +303,25 @@ class Handler:
         except Exception: # will not catch GreenletExit
             log.exception('Watching failed')
 
-            self.stream.state = 'failed'
-            db.session.commit()
-            # mark it as Done anyway
-            self.done('failed', datetime.utcnow().timestamp())
+            try: # will fail if stream is deleted
+                self.stream.state = 'failed'
+                db.session.commit()
+                # mark it as Done anyway
+                self.done('failed', datetime.utcnow().timestamp())
+            except Exception: # stream was deleted?
+                log.exception('Failed to mark stream as done-anyway')
         except eventlet.greenlet.GreenletExit:
             # do nothing (just perform `finally` block) but don't print traceback
             log.info('Watcher aborted for handle '+self.handle)
         finally:
             # mark that this stream has stopped
             # stream may be already deleted from db, so use saved handle
-            del pool[self.handle, self.gametype]
+            # FIXME: for some reason this will be called twice for streams
+            # which were waiting for correct gametype..
+            if (self.handle, self.gametype) in pool:
+                del pool[self.handle, self.gametype]
+            else:
+                log.warning('For some reason, was already deleted')
 
     def watch(self):
         # start subprocess and watch its output
