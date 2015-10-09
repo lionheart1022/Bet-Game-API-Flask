@@ -70,37 +70,35 @@ class PlayerResource(restful.Resource):
                            required=False)
         partial.add_argument('old_password', required=False)
         return parser
-    @classproperty
-    def fields_self(cls):
-        return dict(
+    @classmethod
+    def fields(cls, public=True, stat=False):
+        ret = dict(
             id = fields.Integer,
             nickname = fields.String,
             email = fields.String,
             facebook_connected = fields.Boolean(attribute='facebook_token'),
-            balance = fields.Raw, # because it is already JSON
             bio = fields.String,
             has_userpic = fields.Boolean,
-            devices = fields.List(fields.Nested(dict(
-                id = fields.Integer,
-                last_login = fields.DateTime,
-            ))),
 
             ea_gamertag = fields.String,
             riot_summonerName = fields.String,
             steam_id = fields.String,
             starcraft_uid = fields.String,
-
+        )
+        if not public: ret.update(dict(
+            balance = fields.Raw, # because it is already JSON
+            devices = fields.List(fields.Nested(dict(
+                id = fields.Integer,
+                last_login = fields.DateTime,
+            ))),
+        ))
+        if stat: ret.update(dict(
             # some stats
             gamecount = fields.Integer, # FIXME: optimize query somehow?
             winrate = fields.Float,
             #popularity = fields.Integer,
-        )
-    @classproperty
-    def fields_public(cls):
-        copy = cls.fields_self.copy()
-        del copy['balance']
-        del copy['devices']
-        return copy
+        ))
+        return ret
 
     @classmethod
     def login_do(cls, player, args=None, created=False):
@@ -119,7 +117,7 @@ class PlayerResource(restful.Resource):
         db.session.commit() # to create device id
 
         ret = jsonify(
-            player = marshal(player, cls.fields_self),
+            player = marshal(player, cls.fields(public=False)),
             token = makeToken(player, device=dev),
             created = created,
         )
@@ -178,7 +176,7 @@ class PlayerResource(restful.Resource):
             return jsonify(
                 players = fields.List(
                     fields.Nested(
-                        self.fields_public
+                        self.fields(public=True)
                     )
                 ).format(query),
                 num_results = total_count,
@@ -191,9 +189,7 @@ class PlayerResource(restful.Resource):
             raise NotFound
 
         return marshal(player,
-                       self.fields_self
-                       if player == user else
-                       self.fields_public)
+                       self.fields(public=(player != user)))
 
     def post(self, id=None):
         if id:
@@ -261,7 +257,7 @@ class PlayerResource(restful.Resource):
 
         db.session.commit()
 
-        return marshal(user, self.fields_self)
+        return marshal(user, self.fields(public=False))
 
     @app.route('/players/<id>/login', methods=['POST'])
     def player_login(id):
@@ -387,7 +383,7 @@ class PlayerResource(restful.Resource):
             raise Forbidden
 
         return jsonify(opponents = fields.List(fields.Nested(
-            PlayerResource.fields_public
+            PlayerResource.fields(public=True)
         )).format(user.recent_opponents))
 
 # Userpic
@@ -436,6 +432,7 @@ class UserpicResource(restful.Resource):
 
     def post(self, *args, **kwargs):
         return self.put(*args, **kwargs)
+
 
 # Balance
 @app.route('/balance', methods=['GET'])
@@ -808,8 +805,8 @@ class GameResource(restful.Resource):
     def fields(cls):
         return {
             'id': fields.Integer,
-            'creator': fields.Nested(PlayerResource.fields_public),
-            'opponent': fields.Nested(PlayerResource.fields_public),
+            'creator': fields.Nested(PlayerResource.fields(public=True)),
+            'opponent': fields.Nested(PlayerResource.fields(public=True)),
             'gamertag_creator': fields.String,
             'gamertag_opponent': fields.String,
             'twitch_handle': fields.String,
