@@ -176,7 +176,7 @@ class PlayerResource(restful.Resource):
             return jsonify(
                 players = fields.List(
                     fields.Nested(
-                        self.fields(public=True)
+                        self.fields(public=True, stat=True)
                     )
                 ).format(query),
                 num_results = total_count,
