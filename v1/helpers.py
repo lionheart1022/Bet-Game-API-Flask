@@ -16,7 +16,7 @@ import requests
 from functools import wraps
 import binascii
 import apns_clerk
-import datadog
+import datadog as datadog_api
 
 import config
 from .models import *
@@ -45,14 +45,14 @@ def datadog(title, text=None, _log=True, **tags):
             tags.setdefault('user.id', g.user.id)
             tags.setdefault('user.nickname', g.user.nickname)
             tags.setdefault('user.email', g.user.email)
-        datadog.api.Event.create(
+        datadog_api.api.Event.create(
             title=title,
             text=text,
             tags=[':'.join(map(str, item)) for item in tags.items()],
         )
     except:
         log.exception('Datadog failure')
-dd_stat = datadog.statsd
+dd_stat = datadog_api.statsd
 
 
 ### Data returning ###
