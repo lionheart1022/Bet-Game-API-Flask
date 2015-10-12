@@ -213,9 +213,10 @@ class PlayerResource(restful.Resource):
 
         datadog(
             'New player registered',
-            'ID: {}, email: {email}, nickname: {nickname}'.format(
+            'ID: {}, email: {}, nickname: {}'.format(
                 player.id,
-                **args,
+                player.email,
+                player.nickname,
             ),
             **{
                     'user.id': player.id,
