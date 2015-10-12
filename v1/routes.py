@@ -1225,4 +1225,5 @@ def debug_echo():
 @app.route('/debug/datadog')
 def debug_datadog():
     datadog('Debug', 'Debug received')
+    dd_stat.increment('player.registered')
     return ''
