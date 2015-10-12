@@ -40,7 +40,7 @@ def datadog(title, text=None, _log=True, **tags):
 
     tags.setdefault('version', 1)
     tags.setdefault('application', 'betgame')
-    if getattr(g, 'user'):
+    if getattr(g, 'user', None):
         tags.setdefault('user.id', g.user.id)
         tags.setdefault('user.nickname', g.user.nickname)
         tags.setdefault('user.email', g.user.email)
