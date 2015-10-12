@@ -20,7 +20,7 @@ else
 	workers=${2:-3}
 	logfile="/home/betgame/betgame${testing}.log"
 	app="main:live('$logfile')"
-	opts="--access-logfile /home/betgame/access${testing}.log --error-logfile /home/betgame/errors${testing}.log"
+	opts="--name betgame-main${testing} --access-logfile /home/betgame/access${testing}.log --error-logfile /home/betgame/errors${testing}.log"
 	shift 2
 fi
 # --preload 
