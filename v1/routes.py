@@ -1150,6 +1150,10 @@ class BetaResource(restful.Resource):
         beta.console = args.console
         db.session.add(beta)
         db.session.commit()
+
+        datadog('Beta registration', repr(args))
+        dd_stat.increment('beta.registration')
+
         return jsonify(
             success = True,
             betatester = marshal(
