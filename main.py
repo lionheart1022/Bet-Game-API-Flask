@@ -6,6 +6,7 @@ from werkzeug.exceptions import default_exceptions
 import logging
 from logging.handlers import SysLogHandler
 import socket
+import datadog
 
 import config
 
@@ -13,6 +14,8 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = config.DB_URL
 app.config['ERROR_404_HELP'] = False # disable this flask_restful feature
 app.config['MAX_CONTENT_LENGTH'] = 4 * 1024 * 1024 # limit upload size for userpics
+
+datadog.initialize(api_key=config.DATADOG_API_KEY)
 
 # Fix request context's remote_addr property to respect X-Real-IP header
 from flask import Request
