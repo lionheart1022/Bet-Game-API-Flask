@@ -16,6 +16,7 @@ import requests
 from functools import wraps
 import binascii
 import apns_clerk
+from datadog import api as dd_api
 
 import config
 from .models import *
@@ -29,6 +30,21 @@ class log_cls:
     def __getattr__(self, name):
         return getattr(current_app.logger, name)
 log = log_cls()
+
+def datadog(title, text=None, tags=None):
+    """
+    Call log.info and send event to datadog
+    """
+    log.info('{}: {}'.format(title, text) if text else title)
+
+    if not tags:
+        tags = {}
+    tags.setdefault('version', 1)
+    tags.setdefault('application', 'betgame')
+    dd_api.Event.create(title=title,
+                        text=text,
+                        tags=[':'.join(map(str, item)) for item in tags.items()])
+
 
 ### Data returning ###
 def abort(message, code=400, **kwargs):
