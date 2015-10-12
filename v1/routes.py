@@ -224,7 +224,7 @@ class PlayerResource(restful.Resource):
                 'user.email': player.email,
             }
         )
-        dd_stat.increment('user.registrations')
+        dd_stat.increment('user.registration')
 
         return self.login_do(player, args_login, created=True)
 
@@ -286,6 +286,9 @@ class PlayerResource(restful.Resource):
         if not check_password(args.password, player.password):
             abort('Password incorrect', 403)
 
+        datadog('Player regular login', 'nickname: {}'.format(player.nickname))
+        dd_stat.increment('user.login')
+
         return PlayerResource.login_do(player)
 
     @app.route('/federated_login', methods=['POST'])
@@ -334,6 +337,14 @@ class PlayerResource(restful.Resource):
             player.nickname = name
             db.session.add(player)
         player.facebook_token = args.token
+
+        datadog('Player federated '+('registration' if created else 'login'),
+                'nickname: {}, service: facebook'.format(player.nickname),
+                service = 'facebook')
+        dd_stat.increment('user.login_facebook')
+        if created:
+            dd_stat.incremented('user.registration')
+
         return PlayerResource.login_do(player, created=created)
 
     @app.route('/players/<id>/reset_password', methods=['POST'])
