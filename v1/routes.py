@@ -1208,3 +1208,7 @@ def debug_echo():
         repr(request.get_data()),
         repr(request.form),
     )
+@app.route('/debug/datadog')
+def debug_datadog():
+    datadog('Debug', 'Debug received')
+    return ''
