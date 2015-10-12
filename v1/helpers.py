@@ -31,7 +31,7 @@ class log_cls:
         return getattr(current_app.logger, name)
 log = log_cls()
 
-def datadog(title, text=None, _log=True **tags):
+def datadog(title, text=None, _log=True, **tags):
     """
     Call log.info and send event to datadog
     """
