@@ -16,7 +16,7 @@ import requests
 from functools import wraps
 import binascii
 import apns_clerk
-from datadog import api as dd_api
+import datadog
 
 import config
 from .models import *
@@ -35,18 +35,24 @@ def datadog(title, text=None, _log=True, **tags):
     """
     Call log.info and send event to datadog
     """
-    if _log:
-        log.info('{}: {}'.format(title, text) if text else title)
+    try:
+        if _log:
+            log.info('{}: {}'.format(title, text) if text else title)
 
-    tags.setdefault('version', 1)
-    tags.setdefault('application', 'betgame')
-    if getattr(g, 'user', None):
-        tags.setdefault('user.id', g.user.id)
-        tags.setdefault('user.nickname', g.user.nickname)
-        tags.setdefault('user.email', g.user.email)
-    dd_api.Event.create(title=title,
-                        text=text,
-                        tags=[':'.join(map(str, item)) for item in tags.items()])
+        tags.setdefault('version', 1)
+        tags.setdefault('application', 'betgame')
+        if getattr(g, 'user', None):
+            tags.setdefault('user.id', g.user.id)
+            tags.setdefault('user.nickname', g.user.nickname)
+            tags.setdefault('user.email', g.user.email)
+        datadog.api.Event.create(
+            title=title,
+            text=text,
+            tags=[':'.join(map(str, item)) for item in tags.items()],
+        )
+    except:
+        log.exception('Datadog failure')
+dd_stat = datadog.statsd
 
 
 ### Data returning ###

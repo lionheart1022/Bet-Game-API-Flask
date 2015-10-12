@@ -23,7 +23,6 @@ from .apis import *
 from .polling import *
 from .helpers import MyRequestParser as RequestParser # instead of system one
 from .main import app, db, api, before_first_request
-
 # Players
 @api.resource(
     '/players',
@@ -211,6 +210,20 @@ class PlayerResource(restful.Resource):
         db.session.commit()
 
         self.greet(player)
+
+        datadog(
+            'New player registered',
+            'ID: {}, email: {email}, nickname: {nickname}'.format(
+                player.id,
+                **args,
+            ),
+            **{
+                    'user.id': player.id,
+                    'user.nickname': player.nickname,
+                    'user.email': player.email,
+            },
+        )
+        dd_stat.increment('user.registrations')
 
         return self.login_do(player, args_login, created=True)
 
