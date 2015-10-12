@@ -31,16 +31,18 @@ class log_cls:
         return getattr(current_app.logger, name)
 log = log_cls()
 
-def datadog(title, text=None, tags=None):
+def datadog(title, text=None, **tags):
     """
     Call log.info and send event to datadog
     """
     log.info('{}: {}'.format(title, text) if text else title)
 
-    if not tags:
-        tags = {}
     tags.setdefault('version', 1)
     tags.setdefault('application', 'betgame')
+    if getattr(g, 'user'):
+        tags.setdefault('user.id', g.user.id)
+        tags.setdefault('user.nickname', g.user.nickname)
+        tags.setdefault('user.email', g.user.email)
     dd_api.Event.create(title=title,
                         text=text,
                         tags=[':'.join(map(str, item)) for item in tags.items()])

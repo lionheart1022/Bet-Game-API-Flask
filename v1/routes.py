@@ -481,8 +481,12 @@ def balance_deposit(user):
     parser.add_argument('dry_run', type=boolean_field, default=False)
     args = parser.parse_args()
 
-    log.info('Payment received: '+' '.join(
-        ['{}: {}'.format(k,v) for k,v in args.items()]))
+    datadog(
+        'Payment received',
+        ' '.join(
+            ['{}: {}'.format(k,v) for k,v in args.items()]
+        ),
+    )
 
     rate = Fixer.latest(args.currency, 'USD')
     if not rate:
