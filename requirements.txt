@@ -1,4 +1,5 @@
 gunicorn
+setproctitle
 Flask
 flask_sqlalchemy
 flask_cors
