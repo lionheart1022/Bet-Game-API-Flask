@@ -31,11 +31,12 @@ class log_cls:
         return getattr(current_app.logger, name)
 log = log_cls()
 
-def datadog(title, text=None, **tags):
+def datadog(title, text=None, _log=True **tags):
     """
     Call log.info and send event to datadog
     """
-    log.info('{}: {}'.format(title, text) if text else title)
+    if _log:
+        log.info('{}: {}'.format(title, text) if text else title)
 
     tags.setdefault('version', 1)
     tags.setdefault('application', 'betgame')
@@ -59,6 +60,11 @@ def abort(message, code=400, **kwargs):
         request.method,
         request.base_url.split('//',1)[-1].split('/',1)[-1],
         ', '.join(['{}: {}'.format(*i) for i in data.items()])))
+    datadog('Request aborted',
+        request.base_url.split('//',1)[-1].split('/',1)[-1],
+            ', '.join(['{}: {}'.format(*i) for i in data.items()]),
+        _log=False,
+    )
 
     try:
         flask_abort(code)

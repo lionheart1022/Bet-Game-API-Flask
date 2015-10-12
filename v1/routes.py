@@ -624,8 +624,10 @@ def balance_withdraw(user):
             trinfo = None
         stat = trinfo.get('transaction_status')
         if stat == 'SUCCESS':
-            log.info('Payout succeeded to {}, {} coins'.format(
-                args.paypal_email, args.coins))
+            datadog(
+                'Payout succeeded to {}, {} coins'.format(
+                    args.paypal_email, args.coins),
+            )
             return jsonify(success=True,
                            dry_run=False,
                            paid = amount,
