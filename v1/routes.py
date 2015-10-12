@@ -222,7 +222,7 @@ class PlayerResource(restful.Resource):
                 'user.id': player.id,
                 'user.nickname': player.nickname,
                 'user.email': player.email,
-            },
+            }
         )
         dd_stat.increment('user.registrations')
 
