@@ -429,9 +429,9 @@ class PlayerResource(restful.Resource):
             history = [
                 dict(
                     date = date,
-                    total = total,
-                    wins = wins,
-                    rate = rate,
+                    games = total,
+                    wins = float(wins),
+                    rate = float(rate),
                 ) for date,total,wins,rate in user.winratehist(**params)
             ],
         )
