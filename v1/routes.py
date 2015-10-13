@@ -187,8 +187,9 @@ class PlayerResource(restful.Resource):
         if not player:
             raise NotFound
 
+        is_self = player == user
         return marshal(player,
-                       self.fields(public=(player != user)))
+                       self.fields(public=not is_self, stat=is_self))
 
     def post(self, id=None):
         if id:
