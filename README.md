@@ -198,6 +198,31 @@ If given user has no userpic, will return HTTP code `204 NO CONTENT`.
 Returns list of recent opponents of current player.
 Only can be called for self.
 
+### GET /players/<id>/winratehist
+Only can be called for self.
+Will return win history data for graph building.
+
+Parameters:
+
+* `interval`: either `day`, `week` or `month`
+* `range`: count of `interval`s to be returned
+
+In the output intervals will be placed in reverse time order, i.e. latest first.
+
+`wins` value may be a fraction, because game ended as a draw is considered half-win.
+
+```json
+{
+	"history": [
+		{
+			"date": "Tue, 18 Aug 2015 23:04:57 GMT", // start of the interval
+			"games": 5,
+			"wins": 2.5, // float, 0..games
+			"rate": 0.5 // float, 0..1
+	]
+}
+```
+
 ### PUT /players/<id>/userpic
 This is an alternate way to specify userpic.
 Accepts `userpic` parameter containing a file to be uploaded.
