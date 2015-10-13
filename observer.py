@@ -602,6 +602,8 @@ def abort_all(*args):
         # or will restart soon
         stream.abort()
     log.info('All stream watchers aborted for restart')
+    # this is to fight strange bug when sigterm is handled every second
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
 signal.signal(signal.SIGTERM, abort_all) # fire when gunicorn worker is terminated
 
 def stream_done(stream, winner, timestamp, details=None):
