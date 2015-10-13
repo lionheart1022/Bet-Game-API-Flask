@@ -67,9 +67,9 @@ def abort(message, code=400, **kwargs):
         request.base_url.split('//',1)[-1].split('/',1)[-1],
         ', '.join(['{}: {}'.format(*i) for i in data.items()])))
     datadog('Request aborted',
-        request.base_url.split('//',1)[-1].split('/',1)[-1],
-            ', '.join(['{}: {}'.format(*i) for i in data.items()]),
-        False
+        request.base_url.split('//',1)[-1].split('/',1)[-1] + ' ' +
+        ', '.join(['{}: {}'.format(*i) for i in data.items()]),
+        _log=False,
     )
 
     try:
