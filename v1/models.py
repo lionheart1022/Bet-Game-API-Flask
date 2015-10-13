@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import or_, case, select
 from sqlalchemy.sql.expression import func
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
@@ -106,6 +106,35 @@ class Player(db.Model):
             (won + draw) / count
         )
 
+    @hybrid_method
+    def winratehist(self, days=None, weeks=None, months=None):
+        count = days or weeks or months
+        if not count:
+            raise ValueError('Please provide something!')
+        # 30.5 is approximate number of days in month
+        delta = timedelta(days=1 if days else 7 if weeks else 30.5)
+        now = datetime.utcnow()
+        ret = []
+        for i in range(count):
+            prev = now - delta
+
+            count, wins = 0, 0
+            for game in self.games.filter(
+                Game.state == 'finished',
+                Game.finish_date > prev,
+                Game.finish_date <= now,
+            ):
+                count += 1
+                whoami = 'creator' if game.creator_id == self.id else 'opponent'
+                if game.winner == 'draw':
+                    wins += 0.5
+                elif game.winner == whoami:
+                    wins += 1
+            rate = (wins / count) if count else 0
+
+            ret.append((prev, rate))
+            now = prev
+        return ret
     @hybrid_property
     def lastbet(self):
         return self.games.order_by(Game.create_date.desc()).first().create_date
