@@ -106,7 +106,7 @@ class Player(db.Model):
             (won + draw) / count
         )
 
-    @hybrid_method
+    #@hybrid_method
     def winratehist(self, days=None, weeks=None, months=None):
         count = days or weeks or months
         if not count:
