@@ -426,7 +426,14 @@ class PlayerResource(restful.Resource):
             args.interval+'s': args.range,
         }
         return jsonify(
-            history = user.winratehist(**params)
+            history = [
+                dict(
+                    date = date,
+                    total = total,
+                    wins = wins,
+                    rate = rate,
+                ) for date,total,wins,rate in user.winratehist(**params)
+            ],
         )
 
 

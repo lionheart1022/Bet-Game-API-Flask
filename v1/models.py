@@ -132,7 +132,7 @@ class Player(db.Model):
                     wins += 1
             rate = (wins / count) if count else 0
 
-            ret.append((prev, rate))
+            ret.append((prev, count, wins, rate))
             now = prev
         return ret
     @hybrid_property
