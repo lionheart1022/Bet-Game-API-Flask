@@ -411,6 +411,24 @@ class PlayerResource(restful.Resource):
         return jsonify(opponents = fields.List(fields.Nested(
             PlayerResource.fields(public=True)
         )).format(user.recent_opponents))
+    @app.route('/players/<id>/winratehist')
+    @require_auth
+    def winratehist(user, id):
+        if Player.find(id) != user:
+            raise Forbidden
+        parser = RequestParser()
+        parser.add_argument('range', type=int, required=True)
+        parser.add_argument('interval', required=True, choices=(
+            'day', 'week', 'month'))
+        args = parser.parse_args()
+
+        params = {
+            args.interval+'s': args.range,
+        }
+        return jsonify(
+            history = user.winratehist(**params)
+        )
+
 
 # Userpic
 @api.resource('/players/<id>/userpic')
