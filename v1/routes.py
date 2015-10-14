@@ -465,6 +465,9 @@ class UserpicResource(restful.Resource):
 
         f.save(cls.file_for(player))
 
+        datadog('Userpic uploaded', 'original filename: {}'.format(
+            f.filename))
+
     @require_auth(allow_nonfilled=True)
     def put(self, id, user):
         player = Player.find(id)
