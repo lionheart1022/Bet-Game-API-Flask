@@ -446,6 +446,16 @@ class UploadableResource(restful.Resource):
     def file_for(cls, entity, ext):
         return os.path.join(cls.FILEDIR, '{}.{}'.format(entity.id, ext))
     @classmethod
+    def delfile(cls, entity):
+        deleted = False
+        for ext in cls.ALLOWED:
+            f = cls.file_for(entity, ext)
+            if os.path.exists(f):
+                os.remove(f)
+                log.debug('removed {}'.format(f))
+                deleted = True
+        return deleted
+    @classmethod
     def upload(cls, f, entity):
         ext = f.filename.lower().rsplit('.',1)[-1]
         if ext not in cls.ALLOWED:
@@ -454,11 +464,7 @@ class UploadableResource(restful.Resource):
 
         # FIXME: limit size
 
-        for ext in cls.ALLOWED:
-            f = cls.file_for(entity, ext)
-            if os.path.exists(f):
-                os.remove(f)
-                log.debug('removed {}'.format(f))
+        cls.delfile(entity)
 
         f.save(cls.file_for(entity, ext))
 
@@ -487,6 +493,10 @@ class UploadableResource(restful.Resource):
         return dict(success=True)
     def post(self, *args, **kwargs):
         return self.put(*args, **kwargs)
+    def delete(self, id):
+        return dict(
+            deleted = self.delfile(self.get_entity(id, True)),
+        )
 @api.resource('/players/<id>/userpic')
 class UserpicResource(UploadableResource):
     PARAM = 'userpic'
