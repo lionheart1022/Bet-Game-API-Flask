@@ -454,12 +454,18 @@ class UploadableResource(restful.Resource):
 
         # FIXME: limit size
 
+        for ext in cls.ALLOWED:
+            f = cls.file_for(entity, ext)
+            if os.path.exists(f):
+                os.remove(f)
+                log.debug('removed {}'.format(f))
+
         f.save(cls.file_for(entity, ext))
 
         datadog('{} uploaded'.format(cls.PARAM), 'original filename: {}'.format(
             f.filename))
 
-    def get_entity(self, id, put):
+    def get_entity(self, id, is_put):
         raise NotImplementedError # override this!
 
     def get(self, id):
