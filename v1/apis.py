@@ -278,7 +278,7 @@ class Riot(LimitedApi):
                     return cls.summoner_check(val, region)
                 except ValueError:
                     pass
-            raise ValueError('Summoner {} not exists in any region')
+            raise ValueError('Summoner {} not exists in any region'.format(val))
 
         ret = cls.call(region, 'v1.4', 'summoner/by-name/'+val)
         if val.lower() in ret:
