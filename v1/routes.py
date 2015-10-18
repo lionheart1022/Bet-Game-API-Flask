@@ -961,7 +961,7 @@ class GameResource(restful.Resource):
         query = query.paginate(args.page, args.results_per_page,
                                error_out = False).items
 
-        return jsonify(
+        return dict(
             games = fields.List(fields.Nested(self.fields)).format(query),
             num_results = total_count,
             total_pages = math.ceil(total_count/args.results_per_page),
