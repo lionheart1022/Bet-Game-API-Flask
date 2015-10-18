@@ -182,7 +182,7 @@ class Player(db.Model):
 
     def has_userpic(self):
         from .routes import UserpicResource
-        return os.path.exists(UserpicResource.findfile(self))
+        return bool(UserpicResource.findfile(self))
 
     _identities = [
         'nickname',
@@ -289,6 +289,11 @@ class Game(db.Model):
     winner = db.Column(db.Enum('creator', 'opponent', 'draw'), nullable=True)
     details = db.Column(db.Text, nullable=True)
     finish_date = db.Column(db.DateTime, nullable=True)
+
+    @property
+    def has_message(self):
+        from .routes import GameMessageResource
+        return bool(GameMessageResource.findfile(self))
 
 
 class Beta(db.Model):

@@ -904,6 +904,7 @@ class GameResource(restful.Resource):
             'gamemode': fields.String,
             'gametype': fields.String,
             'bet': fields.Float,
+            'has_message': fields.Boolean,
             'create_date': fields.DateTime,
             'state': fields.String,
             'accept_date': fields.DateTime,
