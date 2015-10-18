@@ -491,9 +491,9 @@ class UploadableResource(restful.Resource):
             return (None, 204) # HTTP code 204 NO CONTENT
     def put(self, id):
         entity = self.get_entity(id, True)
-        f = request.files.get(cls.PARAM)
+        f = request.files.get(self.PARAM)
         if not f:
-            abort('[{}]: please provide file!'.format(cls.PARAM))
+            abort('[{}]: please provide file!'.format(self.PARAM))
 
         self.upload(f, entity)
 
