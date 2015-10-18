@@ -306,7 +306,7 @@ class Beta(db.Model):
     ]
     console = db.Column(db.String(128))
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
-    flags = db.Column(db.Text) # probably json
+    flags = db.Column(db.Text, default='') # probably json
     backup = db.Column(db.Text)
 
 
