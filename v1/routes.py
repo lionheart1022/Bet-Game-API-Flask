@@ -438,54 +438,63 @@ class PlayerResource(restful.Resource):
 
 
 # Userpic
-@api.resource('/players/<id>/userpic')
-class UserpicResource(restful.Resource):
-    PICDIR = os.path.dirname(__file__)+'/../userpics/'
+class UploadableResource(restful.Resource):
+    PARAM = None
+    FILEDIR=None
+    ALLOWED=None
     @classmethod
-    def file_for(cls, player):
-        return os.path.join(cls.PICDIR, str(player.id)+'.png')
-
-    @require_auth
-    def get(self, user, id):
-        player = Player.find(id)
-        if not player:
-            raise NotFound
-
-        f = self.file_for(player)
-        if not os.path.exists(f):
-            return (None, 204) # HTTP code 204 NO CONTENT
-        return send_file(f)
-
+    def file_for(cls, entity, ext):
+        return os.path.join(cls.FILEDIR, '{}.{}'.format(entity.id, ext))
     @classmethod
-    def upload(cls, f, player):
-        if not f.filename.lower().endswith('.png'):
-            abort('[userpic]: only PNG files allowed')
+    def upload(cls, f, entity):
+        ext = f.filename.lower().rsplit('.',1)[-1]
+        if ext not in cls.ALLOWED:
+            abort('[{}]: {} files are not allowed'.format(
+                cls.PARAM, ext.upper()))
 
-        # FIXME: limit size!
+        # FIXME: limit size
 
-        f.save(cls.file_for(player))
+        f.save(cls.file_for(entity, ext))
 
-        datadog('Userpic uploaded', 'original filename: {}'.format(
+        datadog('{} uploaded'.format(cls.PARAM), 'original filename: {}'.format(
             f.filename))
 
-    @require_auth(allow_nonfilled=True)
-    def put(self, id, user):
+    def get_entity(self, id, put):
+        raise NotImplementedError # override this!
+
+    def get(self, id):
+        entity = self.get_entity(id, False)
+        for ext in self.ALLOWED:
+            f = self.file_for(entity, ext)
+            if os.path.exists(f):
+                return send_file(f)
+        else:
+            return (None, 204) # HTTP code 204 NO CONTENT
+    def put(self, id):
+        entity = self.get_entity(id, True)
+        f = request.files.get(cls.PARAM)
+        if not f:
+            abort('[{}]: please provide file!'.format(cls.PARAM))
+
+        self.upload(f, entity)
+
+        return dict(success=True)
+    def post(self, *args, **kwargs):
+        return self.put(*args, **kwargs)
+@api.resource('/players/<id>/userpic')
+class UserpicResource(restful.Resource):
+    PARAM = 'userpic'
+    FILEDIR = os.path.dirname(__file__)+'/../uploads/userpics/'
+    FILEEXT = '.png'
+    ALLOWED = ['png']
+    @require_auth
+    def get_entity(self, id, is_put, user):
         player = Player.find(id)
         if not player:
             raise NotFound
-        if player != user:
+        if is_put and player != user:
             raise Forbidden
-
-        f = request.files.get('userpic')
-        if not f:
-            abort('[userpic]: please provide file!')
-
-        self.upload(f, player)
-
-        return dict(success=True)
-
-    def post(self, *args, **kwargs):
-        return self.put(*args, **kwargs)
+        return player
 
 
 # Balance
