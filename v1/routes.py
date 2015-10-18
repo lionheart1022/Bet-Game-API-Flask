@@ -1186,7 +1186,7 @@ class GameMessageResource(UploadableResource):
             raise Forbidden
         if is_put and user != game.creator:
             raise Forbidden
-        if game.state != 'new':
+        if is_put and game.state != 'new':
             abort('This game is already {}'.format(game.state))
         return user
 
