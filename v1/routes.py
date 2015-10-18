@@ -488,10 +488,9 @@ class UploadableResource(restful.Resource):
     def post(self, *args, **kwargs):
         return self.put(*args, **kwargs)
 @api.resource('/players/<id>/userpic')
-class UserpicResource(restful.Resource):
+class UserpicResource(UploadableResource):
     PARAM = 'userpic'
     FILEDIR = os.path.dirname(__file__)+'/../uploads/userpics/'
-    FILEEXT = '.png'
     ALLOWED = ['png']
     @require_auth
     def get_entity(self, id, is_put, user):
@@ -1152,6 +1151,26 @@ class GameResource(restful.Resource):
 
         return marshal(game, self.fields)
 
+
+@api.resource(
+    '/games/<int:id>/msg'
+)
+class GameMessageResource(UploadableResource):
+    PARAM = 'msg'
+    FILEDIR = os.path.dirname(__file__)+'/../uploads/messages/'
+    ALLOWED = ['mpg','mp3','ogg','ogv']
+    @require_auth
+    def get_entity(self, id, is_put, user):
+        game = Game.query.get(id)
+        if not game:
+            raise NotFound
+        if user not in [game.creator, game.opponent]:
+            raise Forbidden
+        if is_put and user != game.creator:
+            raise Forbidden
+        if game.state != 'new':
+            abort('This game is already {}'.format(game.state))
+        return user
 
 # Beta testers
 @api.resource(
