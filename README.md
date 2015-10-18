@@ -486,6 +486,14 @@ Arguments:
 	Optional, defaults to creator's own gamertag (if specified).
  * `gamertag_opponent`: gamertag of the player for which invitation opponent roots.
 	Optional, defaults to opponent's own gamertag (if specified).
+ * `savetag`: optional. Controls updating creator's default identity for given gametype. Here are options:
+   * `never` (default) - don't update
+   * `always` - always replace player's identity with passed one
+   * `ignore_if_exists` - if player has no corresponding identity then save,
+      else ignore.
+   * `fail_if_exists` - if player has no corresponding identity then save,
+      else abort query (without creating game object).
+      You can then ask user what to do and then resend query with either `never` or `always`.
  * `gametype`: one of `supported` gametypes from `GET /gametypes` endpoint
  * `gamemode`: one of game modes allowed for chosen gametype according to `GET /gametypes`.
  * `bet`: numeric bet amount, should not exceed your balance.
