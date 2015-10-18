@@ -558,6 +558,22 @@ Game invitation creator can only make invitation `cancelled`.
 Returns *Game resource* object on success.
 
 
+### GET /games/<id>/msg
+Returns binary message file attached to this game, or `204 NO CONTENT` if file was not attached.
+Content-type will be passed automatically based on file extension.
+
+### PUT /games/<id>/msg
+Attach message to given game, just like `PUT /players/<id>/userpic`.
+Message file should be passed as `msg` parameter.
+Upon success will return `{"success": true}`.
+You cannot upload/change message if game state is not `new`.
+
+For now accepted extensions are `OGG`, `MP3`, `MPG`, `OGV`. I can add more if you need.
+
+This endpoint is also available as `POST /games/<id>/msg` for compatibility.
+
+### GET 
+
 Resources
 ---------
 
@@ -657,6 +673,7 @@ Possible game states:
 	"gametype": "xboxone-fifa15", // see POST /games for options
 	"gamemode": "friendlies", // or any other, see POST /games for details
 	"bet": 5.29, // bet amount
+	"has_message": true, // bool, tells if GET /games/<id>/msg will work
 	"create_date": "RFC datetime",
 	"state": "finished", // see above
 	"accept_date": "RFC datetime", // date of eiter accepting or declining game, null for new games
