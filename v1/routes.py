@@ -446,6 +446,13 @@ class UploadableResource(restful.Resource):
     def file_for(cls, entity, ext):
         return os.path.join(cls.FILEDIR, '{}.{}'.format(entity.id, ext))
     @classmethod
+    def findfile(cls, entity):
+        for ext in cls.ALLOWED:
+            f = cls.file_for(entity, ext)
+            if os.path.exists(f):
+                return f
+        return None
+    @classmethod
     def delfile(cls, entity):
         deleted = False
         for ext in cls.ALLOWED:

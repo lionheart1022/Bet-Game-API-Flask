@@ -182,7 +182,7 @@ class Player(db.Model):
 
     def has_userpic(self):
         from .routes import UserpicResource
-        return os.path.exists(UserpicResource.file_for(self))
+        return os.path.exists(UserpicResource.findfile(self))
 
     _identities = [
         'nickname',
