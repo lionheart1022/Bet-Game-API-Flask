@@ -942,6 +942,8 @@ class GameResource(restful.Resource):
         parser.add_argument('opponent_id', type=Player.find_or_fail,
                             required=True, dest='opponent')
         parser.add_argument('gamertag_creator', required=False)
+        parser.add_argument('savetag', default='never', choices=(
+            'never', 'ignore_if_exists', 'fail_if_exists', 'replace'))
         parser.add_argument('gamertag_opponent', required=False)
         parser.add_argument('twitch_handle',
                             type=Twitch.check_handle,
@@ -986,13 +988,28 @@ class GameResource(restful.Resource):
                     args['gamertag_'+who] = checker(args['gamertag_'+who])
                 except ValueError as e:
                     abort('[gamertag_{}]: {}'.format(who, e))
+                return True # was passed
             else:
                 if gamertag_field:
                     args['gamertag_'+who] = getattr(args[who], gamertag_field)
                 if not args['gamertag_'+who]:
                     abort('You didn\'t specify {} gamertag, and '
                           '{}don\'t have default one configured.'.format(*msgf))
-        check_gamertag('creator', ('your', ''))
+                return False # was not passed
+        if check_gamertag('creator', ('your', '')) and gamertag_field:
+            if args.savetag == 'replace':
+                repl = True
+            elif args.savetag == 'never':
+                repl = False
+            elif args.savetag == 'ignore_if_exists':
+                repl = not getattr(args.creator, gamertag_field)
+            elif args.savetag == 'fail_if_exists':
+                repl = True
+                if getattr(args.creator, gamertag_field) != args.gamertag_creator:
+                    abort('Gamertag already set and is different!',
+                          problem='savetag')
+            if repl:
+                setattr(args.creator, gamertag_field, args.gamertag_creator)
         check_gamertag('opponent', ('opponent\'s', 'they '))
 
         if poller.sameregion:
