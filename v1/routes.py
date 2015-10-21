@@ -1176,7 +1176,7 @@ class GameResource(restful.Resource):
 class GameMessageResource(UploadableResource):
     PARAM = 'msg'
     FILEDIR = os.path.dirname(__file__)+'/../uploads/messages/'
-    ALLOWED = ['mpg','mp3','ogg','ogv']
+    ALLOWED = ['mpg','mp3','ogg','ogv', 'mp4', 'm4a']
     @require_auth
     def get_entity(self, id, is_put, user):
         game = Game.query.get(id)
