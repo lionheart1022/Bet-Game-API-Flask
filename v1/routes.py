@@ -1,4 +1,4 @@
-from flask import request, jsonify, current_app, g, send_file
+from flask import request, jsonify, current_app, g, send_file, make_response
 from flask.ext import restful
 from flask.ext.restful import fields, marshal
 from sqlalchemy.sql.expression import func
@@ -440,11 +440,22 @@ class PlayerResource(restful.Resource):
 # Userpic
 class UploadableResource(restful.Resource):
     PARAM = None
-    FILEDIR=None
+    ROOT = os.path.dirname(__file__)+'/../uploads'
+    SUBDIR = None
     ALLOWED=None
     @classmethod
+    def url_for(cls, entity, ext):
+        return '/uploads/{}/{}'.format(
+            cls.SUBDIR,
+            '{}.{}'.format(entity.id, ext),
+        )
+    @classmethod
     def file_for(cls, entity, ext):
-        return os.path.join(cls.FILEDIR, '{}.{}'.format(entity.id, ext))
+        return os.path.join(
+            cls.ROOT,
+            cls.SUBDIR,
+            '{}.{}'.format(entity.id, ext),
+        )
     @classmethod
     def findfile(cls, entity):
         for ext in cls.ALLOWED:
@@ -486,7 +497,9 @@ class UploadableResource(restful.Resource):
         for ext in self.ALLOWED:
             f = self.file_for(entity, ext)
             if os.path.exists(f):
-                return send_file(f)
+                response = make_response()
+                response.headers['X-Accel-Redirect'] = cls.url_for(entity, ext)
+                return response
         else:
             return (None, 204) # HTTP code 204 NO CONTENT
     def put(self, id):
@@ -507,7 +520,7 @@ class UploadableResource(restful.Resource):
 @api.resource('/players/<id>/userpic')
 class UserpicResource(UploadableResource):
     PARAM = 'userpic'
-    FILEDIR = os.path.dirname(__file__)+'/../uploads/userpics/'
+    SUBDIR = 'userpics'
     ALLOWED = ['png']
     @require_auth
     def get_entity(self, id, is_put, user):
@@ -1177,7 +1190,7 @@ class GameResource(restful.Resource):
 )
 class GameMessageResource(UploadableResource):
     PARAM = 'msg'
-    FILEDIR = os.path.dirname(__file__)+'/../uploads/messages/'
+    SUBDIR = 'messages'
     ALLOWED = ['mpg','mp3','ogg','ogv', 'mp4', 'm4a']
     @require_auth
     def get_entity(self, id, is_put, user):
