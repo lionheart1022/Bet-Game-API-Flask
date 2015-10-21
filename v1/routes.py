@@ -1171,7 +1171,9 @@ class GameResource(restful.Resource):
 
 
 @api.resource(
-    '/games/<int:id>/msg'
+    '/games/<int:id>/msg',
+    '/games/<int:id>/msg.mp4',
+    '/games/<int:id>/msg.m4a',
 )
 class GameMessageResource(UploadableResource):
     PARAM = 'msg'
