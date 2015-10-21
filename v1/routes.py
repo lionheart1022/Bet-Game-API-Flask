@@ -499,6 +499,7 @@ class UploadableResource(restful.Resource):
             if os.path.exists(f):
                 response = make_response()
                 response.headers['X-Accel-Redirect'] = self.url_for(entity, ext)
+                response.headers['Content-Type'] = '' # autodetect by nginx
                 return response
         else:
             return (None, 204) # HTTP code 204 NO CONTENT
