@@ -568,7 +568,8 @@ Message file should be passed as `msg` parameter.
 Upon success will return `{"success": true}`.
 You cannot upload/change message if game state is not `new`.
 
-For now accepted extensions are `OGG`, `MP3`, `MPG`, `OGV`. I can add more if you need.
+For now accepted extensions are `OGG`, `MP3`, `MPG`, `OGV`, `MP4` and `M4A`. I can add more if you need.
+Maximum file size is currently 32MB.
 
 This endpoint is also available as `POST /games/<id>/msg` for compatibility.
 
