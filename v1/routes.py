@@ -1188,7 +1188,7 @@ class GameMessageResource(UploadableResource):
             raise Forbidden
         if is_put and game.state != 'new':
             abort('This game is already {}'.format(game.state))
-        return user
+        return game
 
 # Beta testers
 @api.resource(
