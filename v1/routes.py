@@ -498,7 +498,7 @@ class UploadableResource(restful.Resource):
             f = self.file_for(entity, ext)
             if os.path.exists(f):
                 response = make_response()
-                response.headers['X-Accel-Redirect'] = cls.url_for(entity, ext)
+                response.headers['X-Accel-Redirect'] = self.url_for(entity, ext)
                 return response
         else:
             return (None, 204) # HTTP code 204 NO CONTENT
