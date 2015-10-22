@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from collections import OrderedDict, namedtuple
 import email
 import requests
+from requests_oauthlib import OAuth1Session
 
 import config
 from .helpers import log
@@ -208,6 +209,32 @@ def mailsend(user, mtype, sender=None, delayed=None, usebase=True, **kwargs):
         log.exception('Failed to send {} mail to {}'.format(mtype, user))
         log.error('{} {}'.format(ret.status_code, ret.text))
         return False
+
+
+class Twitter:
+    @classmethod
+    def session(cls, identity):
+        if ':' not in identity:
+            raise ValueError('Incorrect identity, should be <token>:<secret>')
+        key, secret = identity.split(':',1)
+        return OAuth1Session(
+            key,
+            client_secret=secret,
+            resource_owner_key = config.TWITTER_API_KEY,
+            resource_owner_secret = config.TWITTER_API_SECRET,
+        )
+    @classmethod
+    def identity(cls, token):
+        url = 'https://api.twitter.com/1.1/account/verify_credentials.json'
+        ret = cls.session(token).get(url)
+        try:
+            jret = ret.json()
+        except:
+            jret = {}
+        jret['_ret'] = ret
+        jret['_code'] = ret.status_code
+        return jret
+
 
 class LimitedApi:
     # this is default delay between subsequent requests to the same api,
