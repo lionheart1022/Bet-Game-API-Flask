@@ -7,6 +7,7 @@ flask_cors
 mysql-connector-python
 python_jwt
 requests
+requests-oauthlib
 eventlet>=0.17.4
 
 flask_restful
