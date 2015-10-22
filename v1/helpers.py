@@ -165,6 +165,29 @@ def federatedRenewFacebook(refresh_token):
             err.get('code', ret.status_code),
             err.get('type', ret.reason),
             err.get('message', 'no info')))
+def federatedRenewTwitter(refresh_token):
+    # TODO!
+    return refresh_token
+    ret = requests.get('https://graph.facebook.com/oauth/access_token',
+                       params=dict(
+                           grant_type='fb_exchange_token',
+                           client_id=config.FACEBOOK_AUTH_CLIENT_ID,
+                           client_secret=config.FACEBOOK_AUTH_CLIENT_SECRET,
+                           fb_exchange_token=refresh_token,
+                       ))
+    # result is in urlencoded form, so convert it to dict
+    jret = dict(urllib.parse.parse_qsl(ret.text))
+    if 'access_token' in jret:
+        return jret['access_token']
+    else:
+        try:
+            err = ret.json().get('error', {})
+        except Exception:
+            err = {}
+        abort('Failed to renew Facebook token: {} {} ({})'.format(
+            err.get('code', ret.status_code),
+            err.get('type', ret.reason),
+            err.get('message', 'no info')))
 def makeToken(user, service=None, refresh_token=None,
               from_token=None, longterm=False, device=None):
     """

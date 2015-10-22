@@ -42,6 +42,7 @@ class PlayerResource(restful.Resource):
             ('email', email, True),
             ('password', encrypt_password, True),
             ('facebook_token', federatedRenewFacebook, False), # should be last to avoid extra queries
+            ('twitter_token', federatedRenewTwitter, False), # should be last to avoid extra queries
             ('bio', None, False),
         ]
         identities = set()
@@ -76,6 +77,7 @@ class PlayerResource(restful.Resource):
             nickname = fields.String,
             email = fields.String,
             facebook_connected = fields.Boolean(attribute='facebook_token'),
+            twitter_connected = fields.Boolean(attribute='twitter_token'),
             bio = fields.String,
             has_userpic = fields.Boolean,
 
@@ -345,7 +347,8 @@ class PlayerResource(restful.Resource):
             player.password = encrypt_password(None) # random salt
             player.nickname = name
             db.session.add(player)
-        player.facebook_token = args.token
+
+        setattr(player, '{}_token'.format(args.svc), args.token)
 
         datadog('Player federated '+('registration' if created else 'login'),
                 'nickname: {}, service: {}'.format(player.nickname, args.svc),

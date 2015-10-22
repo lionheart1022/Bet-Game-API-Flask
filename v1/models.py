@@ -13,6 +13,7 @@ class Player(db.Model):
     email = db.Column(db.String(128), nullable=False, unique=True)
     password = db.Column(db.LargeBinary(36))
     facebook_token = db.Column(db.String(128))
+    twitter_token = db.Column(db.String(256))
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
     bio = db.Column(db.Text)
 
