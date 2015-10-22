@@ -296,32 +296,40 @@ class PlayerResource(restful.Resource):
     @secure_only
     def federated():
         parser = RequestParser()
+        parser.add_argument('svc', choices=['facebook', 'twitter'],
+                            default='facebook')
         parser.add_argument('token', type=federatedRenewFacebook, required=True)
         args = parser.parse_args()
 
-        ret = requests.get(
-            'https://graph.facebook.com/v2.3/me',
-            params = dict(
-                access_token = args.token,
-                fields = 'id,email,name',
-            ),
-        )
-        jret = ret.json()
-        if 'error' in jret:
-            err = jret['error']
-            abort('Error fetching email from Facebook: {} {} ({})'.format(
-                err.get('code', ret.status_code),
-                err.get('type', ret.reason),
-                err.get('message', 'no details'),
-            ))
-        if 'email' in jret:
-            identity = jret['email']
-        elif 'id' in jret:
-            identity = jret['id']
-        else:
-            abort('Facebook didn\'t return email nor user id')
+        if args.svc == 'facebook':
+            # get identity and name
+            ret = requests.get(
+                'https://graph.facebook.com/v2.3/me',
+                params = dict(
+                    access_token = args.token,
+                    fields = 'id,email,name',
+                ),
+            )
+            jret = ret.json()
+            if 'error' in jret:
+                err = jret['error']
+                abort('Error fetching email from Facebook: {} {} ({})'.format(
+                    err.get('code', ret.status_code),
+                    err.get('type', ret.reason),
+                    err.get('message', 'no details'),
+                ))
+            if 'email' in jret:
+                identity = jret['email']
+            elif 'id' in jret:
+                identity = jret['id']
+            else:
+                abort('Facebook didn\'t return email nor user id')
 
-        name = jret.get('name')
+            name = jret.get('name')
+        elif args.svc == 'twitter':
+            # get identity and name
+            pass # TODO
+
         if name:
             n=1
             while Player.query.filter_by(nickname=name).count():
@@ -340,9 +348,9 @@ class PlayerResource(restful.Resource):
         player.facebook_token = args.token
 
         datadog('Player federated '+('registration' if created else 'login'),
-                'nickname: {}, service: facebook'.format(player.nickname),
-                service = 'facebook')
-        dd_stat.increment('user.login_facebook')
+                'nickname: {}, service: {}'.format(player.nickname, args.svc),
+                service=args.svc)
+        dd_stat.increment('user.login_'+args.svc)
         if created:
             dd_stat.incremented('user.registration')
 
