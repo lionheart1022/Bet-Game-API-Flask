@@ -300,10 +300,11 @@ class PlayerResource(restful.Resource):
         parser = RequestParser()
         parser.add_argument('svc', choices=['facebook', 'twitter'],
                             default='facebook')
-        parser.add_argument('token', type=federatedRenewFacebook, required=True)
+        parser.add_argument('token', required=True)
         args = parser.parse_args()
 
         if args.svc == 'facebook':
+            args.token = federatedRenewFacebook(args.token)
             # get identity and name
             ret = requests.get(
                 'https://graph.facebook.com/v2.3/me',
