@@ -218,15 +218,18 @@ class Twitter:
             raise ValueError('Incorrect identity, should be <token>:<secret>')
         key, secret = identity.split(':',1)
         return OAuth1Session(
-            key,
-            client_secret=secret,
-            resource_owner_key = config.TWITTER_API_KEY,
-            resource_owner_secret = config.TWITTER_API_SECRET,
+            config.TWITTER_API_KEY,
+            client_secret = config.TWITTER_API_SECRET,
+            resource_owner_key = key,
+            resource_owner_secret = secret,
         )
     @classmethod
     def identity(cls, token):
         url = 'https://api.twitter.com/1.1/account/verify_credentials.json'
-        ret = cls.session(token).get(url)
+        ret = cls.session(token).get(url, params=dict(
+            include_email=True,
+            skip_status=True,
+        ))
         try:
             jret = ret.json()
         except:
