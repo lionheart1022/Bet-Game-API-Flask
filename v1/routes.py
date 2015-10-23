@@ -305,6 +305,7 @@ class PlayerResource(restful.Resource):
 
         log.debug('fed: svc={}, token={}'.format(args.svc, args.token))
 
+        email = None
         if args.svc == 'facebook':
             try:
                 args.token = federatedRenewFacebook(args.token)
@@ -327,7 +328,7 @@ class PlayerResource(restful.Resource):
                     err.get('message', 'no details'),
                 ))
             if 'email' in jret:
-                identity = jret['email']
+                identity = email = jret['email']
             elif 'id' in jret:
                 identity = jret['id']
             else:
@@ -341,7 +342,8 @@ class PlayerResource(restful.Resource):
                 abort('Error fetching info from Twitter: {}'.format(
                     jret.get('error', 'no details')))
             name = jret.get('screen_name')
-            identity = jret['id'] # TODO: email - but it requires special perm
+            email = jret.get('email')
+            identity = jret['id']
 
         if name:
             n=1
@@ -349,23 +351,29 @@ class PlayerResource(restful.Resource):
                 name = '{} {}'.format(jret['name'], n)
                 n+=1
 
-        if isinstance(identity, str) and '@' in identity:
-            player = Player.query.filter_by(email=identity).first()
+        if email:
+            player = Player.query.filter_by(email=email).first()
         else:
             player = Player.query.filter_by(**{args.svc+'_id': identity}).first()
         created = False
         if not player:
             created = True
             player = Player()
-            player.email = identity
+            player.email = email
             player.password = encrypt_password(None) # random salt
             player.nickname = name
             db.session.add(player)
 
+        setattr(player, '{}_id'.format(args.svc), identity)
         setattr(player, '{}_token'.format(args.svc), args.token)
 
         datadog('Player federated '+('registration' if created else 'login'),
-                'nickname: {}, service: {}'.format(player.nickname, args.svc),
+                'nickname: {}, service: {}, id: {}, email: {}'.format(
+                    player.nickname,
+                    args.svc,
+                    identity,
+                    email,
+                ),
                 service=args.svc)
         dd_stat.increment('user.login_'+args.svc)
         if created:
