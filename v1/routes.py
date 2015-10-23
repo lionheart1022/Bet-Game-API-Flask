@@ -303,6 +303,8 @@ class PlayerResource(restful.Resource):
         parser.add_argument('token', required=True)
         args = parser.parse_args()
 
+        log.debug('fed: svc={}, token={}'.format(args.svc, args.token))
+
         if args.svc == 'facebook':
             try:
                 args.token = federatedRenewFacebook(args.token)
