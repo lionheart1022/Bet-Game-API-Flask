@@ -369,7 +369,7 @@ class PlayerResource(restful.Resource):
                 service=args.svc)
         dd_stat.increment('user.login_'+args.svc)
         if created:
-            dd_stat.incremented('user.registration')
+            dd_stat.increment('user.registration')
 
         return PlayerResource.login_do(player, created=created)
 
