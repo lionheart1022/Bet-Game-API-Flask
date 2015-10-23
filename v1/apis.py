@@ -227,8 +227,8 @@ class Twitter:
     def identity(cls, token):
         url = 'https://api.twitter.com/1.1/account/verify_credentials.json'
         ret = cls.session(token).get(url, params=dict(
-            include_email=True,
-            skip_status=True,
+            include_email='true', # plain True doesn't work here
+            skip_status='true', # here True would work as well
         ))
         try:
             jret = ret.json()
