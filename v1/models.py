@@ -10,7 +10,7 @@ from .main import db
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nickname = db.Column(db.String(64), unique=True)
-    email = db.Column(db.String(128), nullable=False, unique=True)
+    email = db.Column(db.String(128), nullable=True, unique=True)
     password = db.Column(db.LargeBinary(36))
     facebook_id = db.Column(db.String(64))
     facebook_token = db.Column(db.String(128))
@@ -42,7 +42,7 @@ class Player(db.Model):
 
     @property
     def complete(self):
-        return self.nickname != None
+        return (self.email != None) & (self.nickname != None)
     @hybrid_property
     def games(self):
         return Game.query.filter(
