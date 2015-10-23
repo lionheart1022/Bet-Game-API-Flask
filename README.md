@@ -268,13 +268,19 @@ Also will return error if there is no device id in auth token,
 which may happen if token was issued before this endpoint was implemented.
 
 ### POST /federated_login
-Federated login via Facebook.
+Federated login via Facebook or Twitter.
 
 *Arguments*:
 
- * `token`: Facebook auth token
+ * `svc`: service to use, `facebook` or `twitter`. Defaults to `facebook` for compatibility.
+ * `token`: Facebook or Twitter auth token.
+	For twitter you should provide both token and secret divided by `:`:
+    `...?svc=twitter&token=ACCESS_TOKEN:ACCESS_SECRET` (replace with actual tokens)
 
-Token should be requested with `email` permission for server to be able to fetch user's email.
+For Facebook, token should be requested with `email` permission for server to be able to fetch user's email.
+
+Nickname will be assigned automatically according to Twitter/FB display name,
+avoiding any duplicates by adding a number. Later the user may wish to change nickname.
 
 This endpoint returns object identical to `POST /players` or `POST /players/<nick>/login`,
 depending on whether this player was already registered or not.
