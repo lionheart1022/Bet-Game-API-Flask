@@ -330,7 +330,12 @@ class PlayerResource(restful.Resource):
             name = jret.get('name')
         elif args.svc == 'twitter':
             # get identity and name
-            pass # TODO
+            jret = Twitter.identity(args.token)
+            if 'error' in jret:
+                abort('Error fetching info from Twitter: {}'.format(
+                    jret.get('error', 'no details')))
+            name = jret.get('screen_name')
+            identity = jret['id'] # TODO: email - but it requires special perm
 
         if name:
             n=1
@@ -338,7 +343,10 @@ class PlayerResource(restful.Resource):
                 name = '{} {}'.format(jret['name'], n)
                 n+=1
 
-        player = Player.query.filter_by(email=identity).first()
+        if isinstance(identity, str) and '@' in identity:
+            player = Player.query.filter_by(email=identity).first()
+        else:
+            player = Player.query.filter_by(**{args.svc+'_id': identity}).first()
         created = False
         if not player:
             created = True
