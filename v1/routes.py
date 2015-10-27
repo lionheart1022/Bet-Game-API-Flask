@@ -87,7 +87,8 @@ class PlayerResource(restful.Resource):
             starcraft_uid = fields.String,
         )
         if not public: ret.update(dict(
-            balance = fields.Raw, # because it is already JSON
+            balance = fields.Float,
+            balance_info = fields.Raw(attribute='balance_obj'), # because it is already JSON
             devices = fields.List(fields.Nested(dict(
                 id = fields.Integer,
                 last_login = fields.DateTime,
