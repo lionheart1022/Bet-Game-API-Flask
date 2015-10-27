@@ -317,7 +317,7 @@ class PlayerResource(restful.Resource):
                 'https://graph.facebook.com/v2.3/me',
                 params = dict(
                     access_token = args.token,
-                    fields = 'id,email,name',
+                    fields = 'id,email,name,picture',
                 ),
             )
             jret = ret.json()
@@ -335,7 +335,9 @@ class PlayerResource(restful.Resource):
             else:
                 abort('Facebook didn\'t return neither email nor user id')
 
-            userpic = None # TODO
+            userpic = jret.get('picture',{}).get('data')
+            if userpic:
+                userpic = None if userpic['is_silhouette'] else userpic['url']
 
             name = jret.get('name')
         elif args.svc == 'twitter':
