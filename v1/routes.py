@@ -164,20 +164,22 @@ class PlayerResource(restful.Resource):
             else:
                 query = Player.query
 
+            orders = []
             if args.order:
-                orders = [getattr(Player, args.order.lstrip('-'))]
+                orders.append(getattr(Player, args.order.lstrip('-')))
                 # special handling for order by winrate:
                 if args.order.endswith('winrate'):
                     # sort also by game count
                     orders.append(Player.gamecount)
                 # ...and always add player.id to stabilize order
-                orders.append(Player.id)
+            orders.append(Player.id)
+            if args.order:
                 orders = map(
                     operator.methodcaller(
                         'desc' if args.order.startswith('-') else 'asc'
                     ), orders
                 )
-                query = query.order_by(*orders)
+            query = query.order_by(*orders)
 
             if query:
                 total_count = query.count()

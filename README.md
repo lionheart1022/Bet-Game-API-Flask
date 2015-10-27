@@ -170,6 +170,8 @@ By default, it returns all players registered, but output can be filtered.
   + `winrate`: order by `winrate` field.
     Note that if you sort by win rate, players will also be sorted by `gamecount` as a secound key.
     This is to ensure list order will be adequate even if some players have no finished games.
+  Also player `id` is always used as last key to ensure stable ordering.
+  If you choose descending ordering, `id` will also sort descending.
 * `results_per_page` defaults to 10, max is 50
 * `page` - which page to return, defaults to 1
 
