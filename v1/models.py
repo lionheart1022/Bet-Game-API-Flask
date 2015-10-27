@@ -53,14 +53,7 @@ class Player(db.Model):
         return fast_count(self.games)
     @gamecount.expression
     def gamecount(cls):
-        return (
-            db.select([func.count(Game.id)])
-            .where(cls.id.in_([
-                Game.creator_id,
-                Game.opponent_id,
-            ]))
-            .as_scalar()
-        )
+        return cls.games.with_entities(func.count('*')).as_scalar()
     @hybrid_property
     def winrate(self):
         # FIXME: rewrite in sql?
