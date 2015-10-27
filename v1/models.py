@@ -192,7 +192,9 @@ class Player(db.Model):
             sq.c.id == self.id,
         )
         from .helpers import log
-        log.debug(str(q))
+        from sqlalchemy.dialects import mysql
+        log.debug(str(q.statement.compile(dialect=mysql.dialect,
+                                          compile_kwargs={'literal_binds':True}))
         return int(q.scalar()) # get just rownum. sql variable is float, so round it
     @hybrid_property
     def recent_opponents(self):
