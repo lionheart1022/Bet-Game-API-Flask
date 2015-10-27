@@ -146,7 +146,6 @@ class PlayerResource(restful.Resource):
                      ('lastbet',
                       'popularity',
                       'winrate',
-                      'gamecount',
                       )], []),
                 required=False,
             )
