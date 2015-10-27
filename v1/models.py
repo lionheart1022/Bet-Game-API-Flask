@@ -55,10 +55,10 @@ class Player(db.Model):
     def gamecount(cls):
         return (
             db.select([func.count(Game.id)])
-            .where(cls.id.in_(
+            .where(cls.id.in_([
                 Game.creator_id,
                 Game.opponent_id,
-            ))
+            ]))
         )
     @hybrid_property
     def winrate(self):
