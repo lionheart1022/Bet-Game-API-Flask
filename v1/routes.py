@@ -13,6 +13,7 @@ import math
 import json
 from functools import reduce
 import itertools
+import operator
 import requests
 from PIL import Image
 
@@ -164,19 +165,19 @@ class PlayerResource(restful.Resource):
                 query = Player.query
 
             if args.order:
-                if args.order.startswith('-'):
-                    order = getattr(Player, args.order[1:]).desc()
-                else:
-                    order = getattr(Player, args.order).asc()
+                orders = [getattr(Player, args.order.lstrip('-'))]
                 # special handling for order by winrate:
                 if args.order.endswith('winrate'):
-                    additional = Player.gamecount
-                    if args.order.startswith('-'):
-                        additional = additional.desc()
-                    query = query.order_by(order, additional, Player.id)
-                else:
-                    query = query.order_by(order)
-            # TODO: sort by win rate desc if requested
+                    # sort also by game count...
+                    orders.append(Player.gamecount)
+                    # ...and player.id is to stabilize order
+                    orders.append(Player.id)
+                orders = map(
+                    operator.methodcaller(
+                        'desc' if args.order.startswith('-') else 'asc'
+                    ), orders
+                )
+                query = query.order_by(*orders)
 
             if query:
                 total_count = query.count()
