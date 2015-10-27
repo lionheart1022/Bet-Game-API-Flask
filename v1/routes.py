@@ -173,7 +173,7 @@ class PlayerResource(restful.Resource):
                     additional = Player.gamecount
                     if args.order.startswith('-'):
                         additional = additional.desc()
-                    query = query.order_by(order, additional)
+                    query = query.order_by(order, additional, Player.id)
                 else:
                     query = query.order_by(order)
             # TODO: sort by win rate desc if requested
