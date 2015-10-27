@@ -478,6 +478,15 @@ class PlayerResource(restful.Resource):
             ],
         )
 
+    @app.route('/players/<id>/leaderposition')
+    @require_auth
+    def leaderposition(user, id):
+        player = Player.find(id)
+        if not player:
+            raise NotFound
+        return jsonify(
+            position = player.leaderposition(),
+        )
 
 # Userpic
 class UploadableResource(restful.Resource):

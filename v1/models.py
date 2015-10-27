@@ -166,6 +166,19 @@ class Player(db.Model):
         )
         return cls.games.filter(Game.state == 'accepted').with_entities(func.count('*'))
 
+    def leaderposition(self):
+        initializer = db.session.query('@rownum := 0').subquery()
+        q = Player.query._from_selectable(
+            initializer,
+        ).with_entities(
+            '@rownum := @rownum + 1 AS rownum',
+            Player.id, # or else Player table will be omitted
+        ).order_by(
+            Player.winrate.desc(),
+        ).filter(
+            Player.id == self.id,
+        )
+        return q.scalar() # get just rownum
     @hybrid_property
     def recent_opponents(self):
         # last 5 sent and 5 received
