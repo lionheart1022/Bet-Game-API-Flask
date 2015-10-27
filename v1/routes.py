@@ -168,7 +168,14 @@ class PlayerResource(restful.Resource):
                     order = getattr(Player, args.order[1:]).desc()
                 else:
                     order = getattr(Player, args.order).asc()
-                query = query.order_by(order)
+                # special handling for order by winrate:
+                if args.order.endswith('winrate'):
+                    additional = Player.gamecount
+                    if args.order.startswith('-'):
+                        additional = additional.desc()
+                    query = query.order_by(order, additional)
+                else:
+                    query = query.order_by(order)
             # TODO: sort by win rate desc if requested
 
             if query:
