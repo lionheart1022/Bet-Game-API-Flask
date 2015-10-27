@@ -191,6 +191,8 @@ class Player(db.Model):
         ).filter(
             sq.c.id == self.id,
         )
+        from .helpers import log
+        log.debug(str(q))
         return int(q.scalar()) # get just rownum. sql variable is float, so round it
     @hybrid_property
     def recent_opponents(self):
