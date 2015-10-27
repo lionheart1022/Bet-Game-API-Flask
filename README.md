@@ -282,6 +282,9 @@ For Facebook, token should be requested with `email` permission for server to be
 Nickname will be assigned automatically according to Twitter/FB display name,
 avoiding any duplicates by adding a number. Later the user may wish to change nickname.
 
+If the user has no userpic provided (wheter it is newly created user or existing one),
+this api call will try to fetch userpic from social service.
+
 This endpoint returns object identical to `POST /players` or `POST /players/<nick>/login`,
 depending on whether this player was already registered or not.
 HTTP code will be `201` or `200`, accordingly.
