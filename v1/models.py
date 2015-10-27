@@ -175,20 +175,23 @@ class Player(db.Model):
 
     def leaderposition(self):
         initializer = db.session.query('@rownum := 0').subquery()
-        q = Player.query._from_selectable(
+        sq = Player.query._from_selectable(
             initializer,
         ).with_entities(
-            '@rownum := @rownum + 1 AS rownum',
-            Player.id, # or else Player table will be omitted
+            db.literal_column('@rownum := @rownum + 1').alias('rownum'),
+            Player.id.alias('id'),
         ).order_by(
             # FIXME: hardcoded algorithm is not good
             Player.winrate.desc(),
             Player.gamecount.desc(),
             Player.id.desc(),
+        ).subquery()
+        q = db.session.query(
+            sq.c.rownum
         ).filter(
-            Player.id == self.id,
+            sq.c.id == self.id,
         )
-        return int(q.scalar()) # get just rownum
+        return q.scalar() # get just rownum
     @hybrid_property
     def recent_opponents(self):
         # last 5 sent and 5 received
