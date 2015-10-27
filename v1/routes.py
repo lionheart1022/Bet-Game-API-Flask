@@ -144,7 +144,8 @@ class PlayerResource(restful.Resource):
                 choices=sum(
                     [[s, '-'+s]
                      for s in
-                     ('lastbet',
+                     ('id',
+                      'lastbet',
                       'popularity',
                       'winrate',
                       'gamecount',
@@ -172,7 +173,8 @@ class PlayerResource(restful.Resource):
                     # sort also by game count
                     orders.append(Player.gamecount)
                 # ...and always add player.id to stabilize order
-            orders.append(Player.id)
+            if not args.order or not args.order.endswith('id'):
+                orders.append(Player.id)
             if args.order:
                 orders = map(
                     operator.methodcaller(
