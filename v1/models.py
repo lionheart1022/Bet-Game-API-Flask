@@ -48,9 +48,18 @@ class Player(db.Model):
         return Game.query.filter(
             (Game.creator_id == self.id) | # OR
             (Game.opponent_id == self.id))
-    @property
+    @hybrid_property
     def gamecount(self):
         return fast_count(self.games)
+    @gamecount.expression
+    def gamecount(cls):
+        return (
+            db.select([func.count(Game.id)])
+            .where(self.id.in_(
+                Game.creator_id,
+                Game.opponent_id,
+            ))
+        )
     @hybrid_property
     def winrate(self):
         # FIXME: rewrite in sql?
