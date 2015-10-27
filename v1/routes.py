@@ -168,10 +168,10 @@ class PlayerResource(restful.Resource):
                 orders = [getattr(Player, args.order.lstrip('-'))]
                 # special handling for order by winrate:
                 if args.order.endswith('winrate'):
-                    # sort also by game count...
+                    # sort also by game count
                     orders.append(Player.gamecount)
-                    # ...and player.id is to stabilize order
-                    orders.append(Player.id)
+                # ...and always add player.id to stabilize order
+                orders.append(Player.id)
                 orders = map(
                     operator.methodcaller(
                         'desc' if args.order.startswith('-') else 'asc'
