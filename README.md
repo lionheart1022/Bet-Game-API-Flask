@@ -229,6 +229,16 @@ In the output intervals will be placed in reverse time order, i.e. latest first.
 }
 ```
 
+### GET /players/<id>/leaderposition
+Calculates and returns leaderboard position for given player id.
+Position is calculated according to `GET /players?order=-winrate` query.
+
+```json
+{
+	"position": 9
+}
+```
+
 ### PUT /players/<id>/userpic
 This is an alternate way to specify userpic.
 Accepts `userpic` parameter containing a file to be uploaded.

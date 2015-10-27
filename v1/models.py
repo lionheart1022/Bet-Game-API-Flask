@@ -181,11 +181,14 @@ class Player(db.Model):
             '@rownum := @rownum + 1 AS rownum',
             Player.id, # or else Player table will be omitted
         ).order_by(
+            # FIXME: hardcoded algorithm is not good
             Player.winrate.desc(),
+            Player.gamecount.desc(),
+            Player.id.desc(),
         ).filter(
             Player.id == self.id,
         )
-        return q.scalar() # get just rownum
+        return int(q.scalar()) # get just rownum
     @hybrid_property
     def recent_opponents(self):
         # last 5 sent and 5 received
