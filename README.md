@@ -35,46 +35,46 @@ so it should be easy to adapt it to design.
 
 * User first installed an app.
   App asks him if he want to register as a new user, login, or register/login with Facebook.
-  * If user chooses plain registration, you should ask him to enter
-    nickname, email, password
-    and optionally EA gamertag.
-    Then you call `POST /players` endpoint
-    passing the data you got from user
-    and this device's push token.
-  * If user chose to log in, you will ask to enter name
-    (which can be either email, nickname or gamertag) and password.
-    Then you call `POST /players/<name entered by user>/login`
-    passing password and device's push token.
-    **As an alternative**, if your SDK doesn't allow
-    whitespaces and special characters in URL,
-    you should use `POST /players/_/login` endpoint
-    and add `id` parameter with name entered by user.
-    This approach works for all endpoints requiring user's id in url.
-  * If user chose Facebook login, you should use Facebook api
-    to retrieve facebook auth token.
-    Please request `email` permission for that token
-    because the server will fetch user's email address from Facebook.
-    You then call `POST /federated_login` endpoint
-    passing the token retrieved from Facebook API.
-    * Federated login endpoint returns either `200 OK` or `201 CREATED` code
-      and `created` boolean field.
-      If it returns `created=true` then you need to ask the user
-      to modify email (because facebook may not return user's email),
-      modify nickname (because it is set to Facebook user name
-      and the user might want to change it),
-      and enter EA gamertag (optionally).
-      You can prefill data from object returned by `POST /federated_login` endpoint.
+    + If user chooses plain registration, you should ask him to enter
+      nickname, email, password
+      and optionally EA gamertag.
+      Then you call `POST /players` endpoint
+      passing the data you got from user
+      and this device's push token.
+    + If user chose to log in, you will ask to enter name
+      (which can be either email, nickname or gamertag) and password.
+      Then you call `POST /players/<name entered by user>/login`
+      passing password and device's push token.
+      **As an alternative**, if your SDK doesn't allow
+      whitespaces and special characters in URL,
+      you should use `POST /players/_/login` endpoint
+      and add `id` parameter with name entered by user.
+      This approach works for all endpoints requiring user's id in url.
+    + If user chose Facebook login, you should use Facebook api
+      to retrieve facebook auth token.
+      Please request `email` permission for that token
+      because the server will fetch user's email address from Facebook.
+      You then call `POST /federated_login` endpoint
+      passing the token retrieved from Facebook API.
+        - Federated login endpoint returns either `200 OK` or `201 CREATED` code
+          and `created` boolean field.
+          If it returns `created=true` then you need to ask the user
+          to modify email (because facebook may not return user's email),
+          modify nickname (because it is set to Facebook user name
+          and the user might want to change it),
+          and enter EA gamertag (optionally).
+          You can prefill data from object returned by `POST /federated_login` endpoint.
 * Now that the user logged in, he needs to choose the game to bet on.
   Game types are listed with `GET /gametypes` endpoint with `full=true` option.
   It will return list of endpoints with parameters: for details consult with endpoint description.
   You should only allow the user to choose `supported` gametypes,
   because he will not be able to `POST /games` for unsupported ones.
-  * You will need to show images for that gametypes.
-    For that you should use `GET /gametypes/<type>/image` endpoint
-    which returns `image/png` binary image.
-    By default it has maximum size available, but you can ask the system to shrink it
-    by passing either `w`, `h` or both parameters.
-    If you pass both of them, image will be shrank down and then cropped to fit.
+    * You will need to show images for that gametypes.
+      For that you should use `GET /gametypes/<type>/image` endpoint
+      which returns `image/png` binary image.
+      By default it has maximum size available, but you can ask the system to shrink it
+      by passing either `w`, `h` or both parameters.
+      If you pass both of them, image will be shrank down and then cropped to fit.
 * After the user chose game type, he will want to bet.
   For that you should use `POST /games` endpoint.
   The user chooses his opponent (either by nickname, gamertag or email),
@@ -163,13 +163,13 @@ By default, it returns all players registered, but output can be filtered.
 * `order` - sorting order, optional. By default players returned are sorted by id, in ascending order.
   Prepend with `-` for descending order.
   Here is a list of supported orders:
-  + `lastbet`: order by time of last bet invitation made/received by the player -
-    note that it doesn't have to be accepted;
-  + `popularity`: order by count of accepted bet invitations (including ones sent by this player);
-  + `gamecount`: order by count of games this player has - they include all games: new, accepted, declined and finished
-  + `winrate`: order by `winrate` field.
-    Note that if you sort by win rate, players will also be sorted by `gamecount` as a secound key.
-    This is to ensure list order will be adequate even if some players have no finished games.
+    + `lastbet`: order by time of last bet invitation made/received by the player -
+      note that it doesn't have to be accepted;
+    + `popularity`: order by count of accepted bet invitations (including ones sent by this player);
+    + `gamecount`: order by count of games this player has - they include all games: new, accepted, declined and finished
+    + `winrate`: order by `winrate` field.
+      Note that if you sort by win rate, players will also be sorted by `gamecount` as a secound key.
+      This is to ensure list order will be adequate even if some players have no finished games.
   Also player `id` is always used as last key to ensure stable ordering.
   If you choose descending ordering, `id` will also sort descending.
   If you don't specify any ordering, players will be sorted by `id` ascending.
@@ -512,13 +512,13 @@ Arguments:
  * `gamertag_opponent`: gamertag of the player for which invitation opponent roots.
 	Optional, defaults to opponent's own gamertag (if specified).
  * `savetag`: optional. Controls updating creator's default identity for given gametype. Here are options:
-   * `never` (default) - don't update
-   * `replace` - always replace player's identity with passed one
-   * `ignore_if_exists` - if player has no corresponding identity then save,
-      else ignore.
-   * `fail_if_exists` - if player has no corresponding identity then save,
-      else abort query (without creating game object).
-      You can then ask user what to do and then resend query with either `never` or `replace`.
+    * `never` (default) - don't update
+    * `replace` - always replace player's identity with passed one
+    * `ignore_if_exists` - if player has no corresponding identity then save,
+       else ignore.
+    * `fail_if_exists` - if player has no corresponding identity then save,
+       else abort query (without creating game object).
+       You can then ask user what to do and then resend query with either `never` or `replace`.
  * `gametype`: one of `supported` gametypes from `GET /gametypes` endpoint
  * `gamemode`: one of game modes allowed for chosen gametype according to `GET /gametypes`.
  * `bet`: numeric bet amount, should not exceed your balance.
