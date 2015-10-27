@@ -306,6 +306,7 @@ class PlayerResource(restful.Resource):
         log.debug('fed: svc={}, token={}'.format(args.svc, args.token))
 
         email = None
+        # get identity, name, email and userpic
         if args.svc == 'facebook':
             try:
                 args.token = federatedRenewFacebook(args.token)
@@ -332,7 +333,9 @@ class PlayerResource(restful.Resource):
             elif 'id' in jret:
                 identity = jret['id']
             else:
-                abort('Facebook didn\'t return email nor user id')
+                abort('Facebook didn\'t return neither email nor user id')
+
+            userpic = None # TODO
 
             name = jret.get('name')
         elif args.svc == 'twitter':
@@ -344,6 +347,7 @@ class PlayerResource(restful.Resource):
             name = jret.get('screen_name')
             email = jret.get('email')
             identity = jret['id']
+            userpic = jret.get('profile_image_url')
 
         if name:
             n=1
@@ -363,6 +367,8 @@ class PlayerResource(restful.Resource):
             player.password = encrypt_password(None) # random salt
             player.nickname = name
             db.session.add(player)
+        if userpic and not player.has_userpic():
+            UserpicResource.fromurl(userpic, player)
 
         setattr(player, '{}_id'.format(args.svc), identity)
         setattr(player, '{}_token'.format(args.svc), args.token)
@@ -521,6 +527,20 @@ class UploadableResource(restful.Resource):
 
         datadog('{} uploaded'.format(cls.PARAM), 'original filename: {}'.format(
             f.filename))
+
+    @classmethod
+    def fromurl(cls, url, entity):
+        if len(cls.ALLOWED) > 1:
+            raise ValueError('This is only applicable for single-ext resources')
+
+        cls.delfile(entity)
+        ret = requests.get(url, stream=True)
+        with open(cls.file_for(entity, cls.ALLOWED[0]), 'wb') as f:
+            for chunk in ret.iter_content(1024):
+                f.write(chunk)
+
+        datadog('{} uploaded from url'.format(cls.PARAM), 'original filename: {}, url: {}'.format(
+            f.filename, url))
 
     def get_entity(self, id, is_put):
         raise NotImplementedError # override this!
