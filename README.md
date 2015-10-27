@@ -602,7 +602,8 @@ Resources
 	"starcraft_uid": null,
 	"tivia_character": null,
 	"devices": [ list of Device resources ],
-	"balance": { Balance resource },
+	"balance": 3.95, // current balance in coins
+	"balance_info": { Balance resource },
 	"gamecount": 3, // how many game invitations are there with this player, including declined and ongoing ones
 	"winrate": 0.4, // 0..1 - percentage of games won; can be `null` if there are no finished games!
 }
