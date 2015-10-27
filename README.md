@@ -166,7 +166,10 @@ By default, it returns all players registered, but output can be filtered.
   + `lastbet`: order by time of last bet invitation made/received by the player -
     note that it doesn't have to be accepted;
   + `popularity`: order by count of accepted bet invitations (including ones sent by this player);
+  + `gamecount`: order by count of games this player has - they include all games: new, accepted, declined and finished
   + `winrate`: order by `winrate` field.
+    Note that if you sort by win rate, players will also be sorted by `gamecount` as a secound key.
+    This is to ensure list order will be adequate even if some players have no finished games.
 * `results_per_page` defaults to 10, max is 50
 * `page` - which page to return, defaults to 1
 
