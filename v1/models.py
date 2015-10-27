@@ -178,8 +178,8 @@ class Player(db.Model):
         sq = Player.query._from_selectable(
             initializer,
         ).with_entities(
-            db.literal_column('@rownum := @rownum + 1').alias('rownum'),
-            Player.id.alias('id'),
+            db.literal_column('@rownum := @rownum + 1').label('rownum'),
+            Player.id.label('id'),
         ).order_by(
             # FIXME: hardcoded algorithm is not good
             Player.winrate.desc(),
