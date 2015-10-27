@@ -53,6 +53,7 @@ class Player(db.Model):
         return fast_count(self.games)
     @gamecount.expression
     def gamecount(cls):
+        return cls.games.with_entities(func.count('*'))
         return (
             db.select([func.count(Game.id)])
             .where(cls.id.in_([
