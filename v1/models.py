@@ -71,8 +71,12 @@ class Player(db.Model):
         return wins / count
     @winrate.expression
     def winrate(cls):
-        count = (
+        mygames = (
             db.select([func.count(Game.id)])
+            .where(Game.state == 'finished')
+        )
+        count = (
+            mygames
             .where(cls.id.in_([
                 Game.creator_id,
                 Game.opponent_id,
@@ -80,7 +84,7 @@ class Player(db.Model):
             .label('cnt')
         )
         won = (
-            db.select([func.count(Game.id)])
+            mygames
             .where(
                 (
                     (Game.creator_id == cls.id) &
@@ -93,7 +97,7 @@ class Player(db.Model):
             .label('won')
         )
         draw = (
-            db.select([func.count(Game.id) / 2])
+            mygames.with_only_columns([func.count(Game.id) / 2])
             .where(
                 (
                     (Game.creator_id == cls.id) |
