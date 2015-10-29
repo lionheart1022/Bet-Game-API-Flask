@@ -620,8 +620,11 @@ Resources
 	"devices": [ list of Device resources ],
 	"balance": 3.95, // current balance in coins
 	"balance_info": { Balance resource },
+	// next fields are included only for `GET /players` endpoint
 	"gamecount": 3, // how many game invitations are there with this player, including declined and ongoing ones
 	"winrate": 0.4, // 0..1 - percentage of games won; can be `null` if there are no finished games!
+	// next field is only included for `GET /players` endpoint ordered by `winrate` or `-winrate`
+	"leaderposition": 7, // same as `leaderposition` endpoint
 }
 ```
 
