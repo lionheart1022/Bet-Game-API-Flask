@@ -72,7 +72,7 @@ class PlayerResource(restful.Resource):
         partial.add_argument('old_password', required=False)
         return parser
     @classmethod
-    def fields(cls, public=True, stat=False):
+    def fields(cls, public=True, stat=False, leaders=False):
         ret = dict(
             id = fields.Integer,
             nickname = fields.String,
@@ -100,6 +100,9 @@ class PlayerResource(restful.Resource):
             gamecount = fields.Integer, # FIXME: optimize query somehow?
             winrate = fields.Float,
             #popularity = fields.Integer,
+        ))
+        if leaders: ret.update(dict(
+            leaderposition = fields.Integer,
         ))
         return ret
 
@@ -191,7 +194,8 @@ class PlayerResource(restful.Resource):
             return jsonify(
                 players = fields.List(
                     fields.Nested(
-                        self.fields(public=True, stat=True)
+                        self.fields(public=True, stat=True,
+                                    leaders='winrate' in args.order)
                     )
                 ).format(query),
                 num_results = total_count,
@@ -498,7 +502,7 @@ class PlayerResource(restful.Resource):
         if not player:
             raise NotFound
         return jsonify(
-            position = player.leaderposition(),
+            position = player.leaderposition,
         )
 
 # Userpic

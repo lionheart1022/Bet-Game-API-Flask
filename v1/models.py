@@ -173,7 +173,7 @@ class Player(db.Model):
         )
         return cls.games.filter(Game.state == 'accepted').with_entities(func.count('*'))
 
-    _leadercache = {}
+    _leadercache = {} # is a class field
     _leadercachetime = None
     @property
     def leaderposition(self):
