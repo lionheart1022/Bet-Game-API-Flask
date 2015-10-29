@@ -175,6 +175,7 @@ class PlayerResource(restful.Resource):
                 # ...and always add player.id to stabilize order
             if not args.order or not args.order.endswith('id'):
                 orders.append(Player.id)
+            log.debug('ordering: '+repr(orders))
             if args.order:
                 orders = map(
                     operator.methodcaller(
