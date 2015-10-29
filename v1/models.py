@@ -179,6 +179,8 @@ class Player(db.Model):
         # MySQL kept ordering line numbers according to ID,
         # regardless of ORDER BY clause.
         # Maybe because of joins or so.
+
+        # TODO: maybe cache result in memory for e.g. 5min
         q = Player.query.with_entities(
             Player.id,
         ).order_by(
