@@ -201,9 +201,6 @@ class Player(db.Model):
                 for n, row in enumerate(q)
             }
         return self._leadercache[self.id]
-            for n, row in enumerate(q):
-                if row[0] == self.id:
-                    return n+1
     @hybrid_property
     def recent_opponents(self):
         # last 5 sent and 5 received
