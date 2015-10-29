@@ -181,7 +181,6 @@ class PlayerResource(restful.Resource):
                         'desc' if args.order.startswith('-') else 'asc'
                     ), orders
                 )
-            log.debug('ordering: '+', '.join([str(o) for o in orders]))
             query = query.order_by(*orders)
 
             if query:

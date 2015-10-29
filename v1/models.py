@@ -174,28 +174,25 @@ class Player(db.Model):
         return cls.games.filter(Game.state == 'accepted').with_entities(func.count('*'))
 
     def leaderposition(self):
-        initializer = db.session.query('@rownum := 0').subquery()
-        sq = Player.query._from_selectable(
-            initializer,
-        ).with_entities(
-            db.literal_column('@rownum := @rownum + 1').label('rownum'),
-            Player.id.label('id'),
+        # This is dirty way, but "db-related" one did not work..
+        # http://stackoverflow.com/questions/7057772/get-row-position-in-mysql-query
+        # MySQL kept ordering line numbers according to ID,
+        # regardless of ORDER BY clause.
+        # Maybe because of joins or so.
+        q = Player.query.with_entities(
+            Player.id,
         ).order_by(
-            # FIXME: hardcoded algorithm is not good
+            # FIXME: hardcoded algorithm is not a good thing
             Player.winrate.desc(),
             Player.gamecount.desc(),
             Player.id.desc(),
-        ).subquery()
-        q = db.session.query(
-            sq.c.rownum
-        ).filter(
-            sq.c.id == self.id,
         )
-        from .helpers import log
-        from sqlalchemy.dialects import mysql
-        log.debug(str(q.statement.compile(dialect=mysql.dialect(),
-                                          compile_kwargs={'literal_binds':True})))
-        return int(q.scalar()) # get just rownum. sql variable is float, so round it
+        for n, row in enumerate(q):
+            if row[0] == self.id:
+                return n+1
+        log.error('This should never happen! '
+                  'Player id {} not found in leaderboard'.format(self.id))
+        return -1 # should never happen
     @hybrid_property
     def recent_opponents(self):
         # last 5 sent and 5 received
