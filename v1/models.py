@@ -173,28 +173,37 @@ class Player(db.Model):
         )
         return cls.games.filter(Game.state == 'accepted').with_entities(func.count('*'))
 
+    _leadercache = {}
+    _leadercachetime = None
+    @property
     def leaderposition(self):
-        # This is dirty way, but "db-related" one did not work..
-        # http://stackoverflow.com/questions/7057772/get-row-position-in-mysql-query
-        # MySQL kept ordering line numbers according to ID,
-        # regardless of ORDER BY clause.
-        # Maybe because of joins or so.
+        if not self._leadercache or self._leadercachetime < datetime.utcnow():
+            self._leadercachetime = datetime.utcnow() + \
+                timedelta(minutes=5)
+            self._leadercache = {}
+            # This is dirty way, but "db-related" one did not work..
+            # http://stackoverflow.com/questions/7057772/get-row-position-in-mysql-query
+            # MySQL kept ordering line numbers according to ID,
+            # regardless of ORDER BY clause.
+            # Maybe because of joins or so.
 
-        # TODO: maybe cache result in memory for e.g. 5min
-        q = Player.query.with_entities(
-            Player.id,
-        ).order_by(
-            # FIXME: hardcoded algorithm is not a good thing
-            Player.winrate.desc(),
-            Player.gamecount.desc(),
-            Player.id.desc(),
-        )
-        for n, row in enumerate(q):
-            if row[0] == self.id:
-                return n+1
-        log.error('This should never happen! '
-                  'Player id {} not found in leaderboard'.format(self.id))
-        return -1 # should never happen
+            # TODO: maybe cache result in memory for e.g. 5min
+            q = Player.query.with_entities(
+                Player.id,
+            ).order_by(
+                # FIXME: hardcoded algorithm is not a good thing?
+                Player.winrate.desc(),
+                Player.gamecount.desc(),
+                Player.id.desc(),
+            )
+            self._leadercache = {
+                row[0]: n+1
+                for n, row in enumerate(q)
+            }
+        return self._leadercache[self.id]
+            for n, row in enumerate(q):
+                if row[0] == self.id:
+                    return n+1
     @hybrid_property
     def recent_opponents(self):
         # last 5 sent and 5 received
