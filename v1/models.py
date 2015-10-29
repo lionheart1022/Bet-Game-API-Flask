@@ -212,6 +212,7 @@ class Player(db.Model):
             Player.id.in_(db.session.query(recv.c.creator_id)),
         ))
 
+    @property
     def has_userpic(self):
         from .routes import UserpicResource
         return bool(UserpicResource.findfile(self))
