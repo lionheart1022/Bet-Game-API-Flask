@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from sqlalchemy import or_, case, select
+from sqlalchemy import or_, and_, case, select
 from sqlalchemy.sql.expression import func
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from flask import g
@@ -344,6 +344,29 @@ class ChatMessage(db.Model):
     text = db.Column(db.Text)
     time = db.Column(db.DateTime, default=datetime.utcnow)
     has_attachment = db.Column(db.Boolean, default=False)
+    viewed = db.Column(db.Boolean, default=False)
+
+    @hybrid_method
+    def is_for(self, user):
+        return (user.id == self.sender_id) | (user.id == self.receiver_id)
+    def other(self, user):
+        if user == self.sender:
+            return self.receiver
+        if user == self.receiver:
+            return self.sender
+        raise ValueError('Message is unrelated to user %d' % user.id)
+    @classmethod
+    def for_user(cls, user):
+        return cls.query.filter(or_(
+            cls.sender_id == user.id,
+            cls.receiver_id == user.id,
+        ))
+    @classmethod
+    def for_users(cls, a, b):
+        return cls.query.filter(
+            cls.sender_id.in_([a.id, b.id]),
+            cls.receiver_id.in_([a.id, b.id]),
+        )
 
 class Beta(db.Model):
     id = db.Column(db.Integer, primary_key=True)

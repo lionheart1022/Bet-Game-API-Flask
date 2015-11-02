@@ -505,6 +505,7 @@ class PlayerResource(restful.Resource):
             position = player.leaderposition,
         )
 
+
 # Userpic
 class UploadableResource(restful.Resource):
     PARAM = None
@@ -1291,21 +1292,100 @@ class GameMessageResource(UploadableResource):
 
 # Messaging
 @api.resource(
-    '/players/<id>/talks',
-    '/players/<id>/talks/',
-    '/players/<id>/talks/<int:id>',
+    '/players/<player_id>/dialogs',
+    '/players/<player_id>/dialogs/',
+    '/players/<player_id>/dialogs/<int:id>',
 )
 class ChatMessageResource(restful.Resource):
-    def get(self, id=None):
-        pass
-    def post(self, id=None):
+    @classproperty
+    def fields(cls):
+        return dict(
+            id = fields.Integer,
+            sender = fields.Nested(Player.fields()),
+            receiver = fields.Nested(Player.fields()),
+            text = fields.String,
+            time = fields.DateTime,
+            has_attachment = fields.Boolean,
+            viewed = fields.Boolean,
+        )
+    @require_auth
+    def get(self, user, player_id, id=None):
+        if id:
+            msg = ChatMessage.query.get(id)
+            if not msg:
+                raise NotFound
+            if not msg.is_for(user):
+                raise Forbidden
+        player = Player.find(player_id)
+        if user == player:
+            if id:
+                # not a legal request
+                abort('Please use /players/{}/dialogs/{}'.format(
+                    msg.other(player),
+                    msg.id,
+                ))
+            messages = ChatMessage.for_user(player)
+            # TODO return list
+        else:
+            if id:
+                return marshal(msg, self.fields)
+            messages = ChatMessage.for_users(player, user)
+
+        assert not id
+
+        # TODO apply pagination
+
+        return marshal(messages, fields.List(fields.Nested(self.fields)))
+
+    @require_auth
+    def post(self, user, player_id, id=None):
         if id:
             raise MethodNotAllowed
-        pass
-    def patch(self, id=None):
+
+        player = Player.find(player_id)
+        if player == user:
+            abort('You cannot send message to yourself')
+
+        parser = RequestParser()
+        parser.add_argument('text', required=False)
+        args = parser.parse_args()
+        # TODO check for attachment
+        msg = ChatMessage()
+        msg.sender = user
+        msg.receiver = player
+        msg.text = args.text
+        db.session.add(msg)
+        db.session.commit()
+        return marshal(msg, self.fields)
+
+    @require_auth
+    def patch(self, user, player_id, id=None):
         if not id:
             raise MethodNotAllowed
-        pass
+        player = Player.find(player_id)
+        if not player:
+            raise NotFound
+
+        msg = ChatMessage.query.get(id)
+        if not msg:
+            raise NotFound
+        if not msg.is_for(user):
+            raise Forbidden
+
+        if msg.other(user) != player:
+            abort('Wrong user id') # TODO do we need to check that at all?
+
+        if msg.receiver_id != user.id:
+            abort('You cannot patch message which is not addressed to you', 403)
+
+        parser = RequestParser()
+        parser.add_argument('viewed', type=boolean_field, required=True)
+        # we allow marking message as unread
+        args = parser.parse_args()
+
+        msg.viewed = args.viewed
+        db.session.commit()
+        return marshal(msg, self.fields)
 
 
 # Beta testers
