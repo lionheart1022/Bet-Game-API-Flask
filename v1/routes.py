@@ -1288,6 +1288,26 @@ class GameMessageResource(UploadableResource):
             abort('This game is already {}'.format(game.state))
         return game
 
+
+# Messaging
+@api.resource(
+    '/players/<id>/talks',
+    '/players/<id>/talks/',
+    '/players/<id>/talks/<int:id>',
+)
+class ChatMessageResource(restful.Resource):
+    def get(self, id=None):
+        pass
+    def post(self, id=None):
+        if id:
+            raise MethodNotAllowed
+        pass
+    def patch(self, id=None):
+        if not id:
+            raise MethodNotAllowed
+        pass
+
+
 # Beta testers
 @api.resource(
     '/betatesters',
@@ -1401,6 +1421,7 @@ class BetaResource(restful.Resource):
         db.session.commit()
 
         return marshal(beta, self.fields)
+
 
 # Debugging-related endpoints
 @app.route('/debug/push_state/<state>', methods=['POST'])

@@ -335,6 +335,16 @@ class Game(db.Model):
         return bool(GameMessageResource.findfile(self))
 
 
+class ChatMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
+    sender = db.relationship(Player, foreign_keys='ChatMessage.sender_id')
+    receiver_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
+    receiver = db.relationship(Player, foreign_keys='ChatMessage.receiver_id')
+    text = db.Column(db.Text)
+    time = db.Column(db.DateTime, default=datetime.utcnow)
+    has_attachment = db.Column(db.Boolean, default=False)
+
 class Beta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(128))
