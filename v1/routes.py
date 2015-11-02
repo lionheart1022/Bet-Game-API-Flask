@@ -572,11 +572,11 @@ class UploadableResource(restful.Resource):
         datadog('{} uploaded from url'.format(cls.PARAM), 'original filename: {}, url: {}'.format(
             f.filename, url))
 
-    def get_entity(self, id, is_put):
+    def get_entity(self, kwargs, is_put):
         raise NotImplementedError # override this!
 
-    def get(self, id):
-        entity = self.get_entity(id, False)
+    def get(self, **kwargs):
+        entity = self.get_entity(kwargs, False)
         for ext in self.ALLOWED:
             f = self.file_for(entity, ext)
             if os.path.exists(f):
@@ -586,8 +586,8 @@ class UploadableResource(restful.Resource):
                 return response
         else:
             return (None, 204) # HTTP code 204 NO CONTENT
-    def put(self, id):
-        entity = self.get_entity(id, True)
+    def put(self, **kwargs):
+        entity = self.get_entity(kwargs, True)
         f = request.files.get(self.PARAM)
         if not f:
             abort('[{}]: please provide file!'.format(self.PARAM))
@@ -597,9 +597,9 @@ class UploadableResource(restful.Resource):
         return dict(success=True)
     def post(self, *args, **kwargs):
         return self.put(*args, **kwargs)
-    def delete(self, id):
+    def delete(self, **kwargs):
         return dict(
-            deleted = self.delfile(self.get_entity(id, True)),
+            deleted = self.delfile(self.get_entity(kwargs, True)),
         )
 @api.resource('/players/<id>/userpic')
 class UserpicResource(UploadableResource):
@@ -607,8 +607,8 @@ class UserpicResource(UploadableResource):
     SUBDIR = 'userpics'
     ALLOWED = ['png']
     @require_auth
-    def get_entity(self, id, is_put, user):
-        player = Player.find(id)
+    def get_entity(self, args, is_put, user):
+        player = Player.find(args['id'])
         if not player:
             raise NotFound
         if is_put and player != user:
@@ -1277,8 +1277,8 @@ class GameMessageResource(UploadableResource):
     SUBDIR = 'messages'
     ALLOWED = ['mpg','mp3','ogg','ogv', 'mp4', 'm4a']
     @require_auth
-    def get_entity(self, id, is_put, user):
-        game = Game.query.get(id)
+    def get_entity(self, args, is_put, user):
+        game = Game.query.get(args['id'])
         if not game:
             raise NotFound
         if user not in [game.creator, game.opponent]:
