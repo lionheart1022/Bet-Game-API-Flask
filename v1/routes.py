@@ -533,6 +533,12 @@ class UploadableResource(restful.Resource):
                 return f
         return None
     @classmethod
+    def onupload(cls, entity, ext):
+        pass
+    @classmethod
+    def ondelete(cls, entity):
+        pass
+    @classmethod
     def delfile(cls, entity):
         deleted = False
         for ext in cls.ALLOWED:
@@ -541,6 +547,7 @@ class UploadableResource(restful.Resource):
                 os.remove(f)
                 log.debug('removed {}'.format(f))
                 deleted = True
+                cls.ondelete(entity)
         return deleted
     @classmethod
     def upload(cls, f, entity):
@@ -555,6 +562,8 @@ class UploadableResource(restful.Resource):
 
         f.save(cls.file_for(entity, ext))
 
+        cls.onupload(entity, ext)
+
         datadog('{} uploaded'.format(cls.PARAM), 'original filename: {}'.format(
             f.filename))
 
@@ -568,6 +577,8 @@ class UploadableResource(restful.Resource):
         with open(cls.file_for(entity, cls.ALLOWED[0]), 'wb') as f:
             for chunk in ret.iter_content(1024):
                 f.write(chunk)
+
+        cls.onupload(entity, cls.ALLOWED[0])
 
         datadog('{} uploaded from url'.format(cls.PARAM), 'original filename: {}, url: {}'.format(
             f.filename, url))
