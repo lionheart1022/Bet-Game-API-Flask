@@ -532,12 +532,20 @@ class UploadableResource(restful.Resource):
             if os.path.exists(f):
                 return f
         return None
+
     @classmethod
     def onupload(cls, entity, ext):
         pass
     @classmethod
     def ondelete(cls, entity):
         pass
+    @classmethod
+    def found(cls, entity, ext):
+        pass
+    @classmethod
+    def notfound(cls, entity):
+        pass
+
     @classmethod
     def delfile(cls, entity):
         deleted = False
@@ -591,11 +599,13 @@ class UploadableResource(restful.Resource):
         for ext in self.ALLOWED:
             f = self.file_for(entity, ext)
             if os.path.exists(f):
+                self.found(entity, ext)
                 response = make_response()
                 response.headers['X-Accel-Redirect'] = self.url_for(entity, ext)
                 response.headers['Content-Type'] = '' # autodetect by nginx
                 return response
         else:
+            self.notfound(entity)
             return (None, 204) # HTTP code 204 NO CONTENT
     def put(self, **kwargs):
         entity = self.get_entity(kwargs, True)
