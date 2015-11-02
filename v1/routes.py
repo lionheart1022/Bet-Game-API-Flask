@@ -1318,16 +1318,14 @@ class ChatMessageResource(restful.Resource):
                 raise Forbidden
         player = Player.find(player_id)
         if user == player:
-            if id:
-                # not a legal request
-                abort('Please use /players/{}/dialogs/{}'.format(
-                    msg.other(player),
-                    msg.id,
-                ))
+            if msg:
+                # don't check message's other party
+                return marshal(msg, self.fields)
             messages = ChatMessage.for_user(player)
-            # TODO return list
         else:
-            if id:
+            if msg:
+                if not msg.is_for(player):
+                    abort('Player ID mismatch')
                 return marshal(msg, self.fields)
             messages = ChatMessage.for_users(player, user)
 
