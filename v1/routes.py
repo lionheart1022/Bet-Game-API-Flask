@@ -1445,12 +1445,16 @@ class ChatMessageAttachmentResource(UploadableResource):
         return msg
     @classmethod
     def onupload(cls, entity, ext):
-        entity.has_attachment = True
-        db.session.commit()
+        if not entity.has_attachment:
+            entity.has_attachment = True
+            db.session.commit()
     @classmethod
     def ondelete(cls, entity):
-        entity.has_attachment = False
-        db.session.commit()
+        if entity.has_attachment:
+            entity.has_attachment = False
+            db.session.commit()
+    found = onupload
+    notfound = ondelete
 
 
 # Beta testers
