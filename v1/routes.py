@@ -1303,9 +1303,9 @@ class GameMessageResource(UploadableResource):
 
 # Messaging
 @api.resource(
-    '/players/<player_id>/dialogs',
-    '/players/<player_id>/dialogs/',
-    '/players/<player_id>/dialogs/<int:id>',
+    '/players/<player_id>/messages',
+    '/players/<player_id>/messages/',
+    '/players/<player_id>/messages/<int:id>',
 )
 class ChatMessageResource(restful.Resource):
     @classproperty
@@ -1332,6 +1332,11 @@ class ChatMessageResource(restful.Resource):
             if msg:
                 # don't check message's other party
                 return marshal(msg, self.fields)
+            # TODO:
+            # SELECT * FROM messages
+            # WHERE is_for(user)
+            # GROUP BY other(user)
+            # ORDER BY time DESC
             messages = ChatMessage.for_user(player)
         else:
             if msg:
@@ -1344,7 +1349,10 @@ class ChatMessageResource(restful.Resource):
 
         # TODO apply pagination
 
-        return marshal(messages, fields.List(fields.Nested(self.fields)))
+        return marshal(
+            dict(messages=messages),
+            dict(messages=fields.List(fields.Nested(self.fields))),
+        )
 
     @require_auth
     def post(self, user, player_id, id=None):
@@ -1406,7 +1414,7 @@ class ChatMessageResource(restful.Resource):
         return marshal(msg, self.fields)
 
 @api.resource(
-    '/players/<player_id>/dialogs/<int:id>/attachment'
+    '/players/<player_id>/messages/<int:id>/attachment'
 )
 class ChatMessageAttachmentResource(UploadableResource):
     PARAM = 'attachment'

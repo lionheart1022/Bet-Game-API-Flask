@@ -320,6 +320,42 @@ User can be identified by either gamertag or email address.
 }
 ```
 
+### GET /players/<nick>/messages
+Returns list of messages between requesting user and given player.
+If `<nick>` is `me`, will return all messages for requesting user.
+Pagination is not implemented yet.
+
+```json
+{
+	"messages": [ list of Chat Message resources ]
+}
+```
+
+### GET /players/<nick>/messages/<id>
+Returns single Chat Message resource.
+
+### POST /players/<nick>/messages
+Creates new message for player `<nick>`.
+
+Available parameters:
+
+* `text`: message text
+
+Or you can attach a media file using `attachment` parameter (as with userpic).
+
+Returns newly created Chat Message resource on success.
+
+### PATCH /players/<nick>/messages/<id>
+This endpoint allows to change message `unread` state, i.e. mark message as read or as unread.
+
+* `viewed`: boolean
+
+Returns Chat Message resource.
+
+### GET /players/<nick>/messages/<id>/attachment
+Returns body of message attachment (if any) with proper MIME type.
+Will return `204 NO CONTENT` if that message has no attachment.
+
 
 ### GET /balance
 Learn current player's balance.
@@ -710,5 +746,18 @@ Possible game states:
 	"winner": "opponent", // either "creator", "opponent" or "draw"
 	"details": "Manchester vs Barcelona, score 1-3", // game result details, it depends on game and poller
 	"finish_date": "RFC datetime" // date when this game was finished, according to EA servers
+}
+```
+
+### Chat message resource
+```json
+{
+	"id": 123,
+	"sender": { Limited Player resource },
+	"receiver": { Limited Player resource },
+	"text": "Message text", // might be `null` if `has_attachment` is `true`
+	"time": "RFC datetime",
+	"has_attachment": false,
+	"viewed": false, // `false` means "unread" message state
 }
 ```
