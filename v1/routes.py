@@ -1358,12 +1358,21 @@ class ChatMessageResource(restful.Resource):
         parser = RequestParser()
         parser.add_argument('text', required=False)
         args = parser.parse_args()
-        # TODO check for attachment
+
         msg = ChatMessage()
         msg.sender = user
         msg.receiver = player
         msg.text = args.text
         db.session.add(msg)
+
+        if 'attachment' in request.files:
+            ChatMessageAttachmentResource.upload(
+                request.files['attachment'],
+                msg)
+        elif not msg.text:
+            db.session.delete(msg)
+            abort('Please provide either text or attachment, or both')
+
         db.session.commit()
         return marshal(msg, self.fields)
 
