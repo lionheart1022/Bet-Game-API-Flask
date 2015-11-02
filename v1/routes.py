@@ -195,7 +195,7 @@ class PlayerResource(restful.Resource):
                 players = fields.List(
                     fields.Nested(
                         self.fields(public=True, stat=True,
-                                    leaders='winrate' in args.order)
+                                    leaders='winrate' in (args.order or ''))
                     )
                 ).format(query),
                 num_results = total_count,
