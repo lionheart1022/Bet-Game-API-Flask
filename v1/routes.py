@@ -1396,6 +1396,35 @@ class ChatMessageResource(restful.Resource):
         db.session.commit()
         return marshal(msg, self.fields)
 
+@api.resource(
+    '/players/<player_id>/dialogs/<int:id>/attachment'
+)
+class ChatMessageAttachmentResource(UploadableResource):
+    PARAM = 'attachment'
+    SUBDIR = 'attachments'
+    ALLOWED = ['mp4','m4a','png','jpg']
+    @require_auth
+    def get_entity(self, args, is_put, user):
+        player = Player.find(args['player_id'])
+        if not player:
+            raise NotFound
+        msg = ChatMessage.query.get(args['id'])
+        if not msg:
+            raise NotFound
+        if not msg.is_for(user):
+            raise Forbidden
+        if player != user and not msg.is_for(player):
+            abort('Player ID mismatch')
+        return msg
+    @classmethod
+    def onupload(cls, entity, ext):
+        entity.has_attachment = True
+        db.session.commit()
+    @classmethod
+    def ondelete(cls, entity):
+        entity.has_attachment = False
+        db.session.commit()
+
 
 # Beta testers
 @api.resource(
