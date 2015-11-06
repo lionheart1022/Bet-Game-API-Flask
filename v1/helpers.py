@@ -631,6 +631,55 @@ class JsonField(restful.fields.Raw):
 
 # Notification
 apns_session = None
+def send_push(msg):
+    global apns_session
+    try:
+        if not apns_session:
+            apns_session = apns_clerk.Session()
+    except Exception: # import error, OpenSSL error
+        log.exception('APNS failure!')
+        return False
+
+    # calculate path relative to this script location,
+    # because working directory may vary (for observer)
+    cert_file = os.path.dirname(__file__)+'/../apns.pem'
+    conn = apns_session.get_connection(
+        'push_sandbox',
+        cert_file=cert_file)
+
+    def send_push_do(msg, tries=0):
+        log.debug('send_push: try {}'.format(tries))
+        srv = apns_clerk.APNs(conn)
+        try:
+            log.debug('sending..')
+            ret = srv.send(message)
+            log.info('push sending done for {}'.format(msg))
+        except:
+            log.error('Failed to connect to APNs', exc_info=True)
+            return False
+        else:
+            for token, reason in ret.failed.items():
+                log.warning('Device {} failed by {}, removing'.format(token,reason))
+                dev = Device.query.filter_by(push_token=token).first()
+                if dev:
+                    log.warning('removing')
+                    db.session.delete(dev)
+                    db.session.commit()
+
+            for code, error in ret.errors:
+                log.warning('Error {}: {}'.format(code, error))
+
+            if ret.needs_retry():
+                if tries < 10:
+                    log.info('needs retry.. so will retry')
+                    return send_push(ret.retry, tries+1)
+                else:
+                    log.warning('needs retry.. but max retries exceed')
+                    return False
+            return True
+
+    return send_push_do(msg)
+
 def notify_users(game, nomail=False):
     """
     This method sends PUSH notifications about game state change
@@ -671,53 +720,8 @@ def notify_users(game, nomail=False):
                                     content_available=1,
                                     game=restful.marshal(
                                         game, routes.GameResource.fields))
-        global apns_session
-        try:
-            if not apns_session:
-                apns_session = apns_clerk.Session()
-        except Exception: # import error, OpenSSL error
-            log.exception('APNS failure!')
-            message = None # will not send PUSH
-        else:
-            # calculate path relative to this script location,
-            # because working directory may vary (for observer)
-            cert_file = os.path.dirname(__file__)+'/../apns.pem'
-            conn = apns_session.get_connection(
-                'push_sandbox',
-                cert_file=cert_file)
 
     log.debug('msg: '+str(message))
-
-    def send_push(msg, tries=0):
-        log.debug('send_push: try {}'.format(tries))
-        srv = apns_clerk.APNs(conn)
-        try:
-            log.debug('sending..')
-            ret = srv.send(message)
-            log.info('push sending done for {}'.format(msg))
-        except:
-            log.error('Failed to connect to APNs', exc_info=True)
-            return False
-        else:
-            for token, reason in ret.failed.items():
-                log.warning('Device {} failed by {}, removing'.format(token,reason))
-                dev = Device.query.filter_by(push_token=token).first()
-                if dev:
-                    log.warning('removing')
-                    db.session.delete(dev)
-                    db.session.commit()
-
-            for code, error in ret.errors:
-                log.warning('Error {}: {}'.format(code, error))
-
-            if ret.needs_retry():
-                if tries < 10:
-                    log.info('needs retry.. so will retry')
-                    return send_push(ret.retry, tries+1)
-                else:
-                    log.warning('needs retry.. but max retries exceed')
-                    return False
-            return True
 
     from .apis import mailsend
     def send_mail(game):
