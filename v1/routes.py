@@ -1348,8 +1348,8 @@ class ChatMessageResource(restful.Resource):
     def fields(cls):
         return dict(
             id = fields.Integer,
-            sender = fields.Nested(Player.fields()),
-            receiver = fields.Nested(Player.fields()),
+            sender = fields.Nested(Player.fields),
+            receiver = fields.Nested(Player.fields),
             text = fields.String,
             time = fields.DateTime,
             has_attachment = fields.Boolean,
