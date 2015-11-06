@@ -15,9 +15,12 @@ from .models import *
 
 class Identity(namedtuple('Identity', 'id name checker')):
     _all = {}
-    def __init__(self, id, name, checker):
-        super().__init__() # parameters were assigned in __new__
-        self._all[id] = self
+    def __new__(cls, id, name, checker):
+        if not checker:
+            checker = lambda val: val
+        ret = super().__new__(id, name, checker)
+        cls._all[id] = ret
+        return ret
     @classmethod
     def get(cls, id):
         return cls._all.get(id)
@@ -25,7 +28,7 @@ class Identity(namedtuple('Identity', 'id name checker')):
     def all(cls):
         return cls._all.values()
 Identity('ea_gamertag', 'XBox GamerTag', gamertag_field),
-Identity('fifa_team', 'FIFA Team Name', fifa_team),
+Identity('fifa_team', 'FIFA Team Name', None), # FIXME
 Identity('riot_summonerName', 'Riot Summoner Name ("name" or "region/name")',
             Riot.summoner_check),
 Identity('steam_id','STEAM ID (numeric or URL)', Steam.parse_id),
