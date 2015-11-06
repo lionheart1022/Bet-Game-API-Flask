@@ -323,7 +323,12 @@ User can be identified by either gamertag or email address.
 ### GET /players/<nick>/messages
 Returns list of messages between requesting user and given player.
 If `<nick>` is `me`, will return all messages for requesting user.
-Pagination is not implemented yet.
+This query is paginated.
+
+Paramerers:
+
+* `results_per_page` defaults to 10, max is 50
+* `page` - which page to return, defaults to 1
 
 ```json
 {
