@@ -652,7 +652,7 @@ def send_push(msg):
         srv = apns_clerk.APNs(conn)
         try:
             log.debug('sending..')
-            ret = srv.send(message)
+            ret = srv.send(msg)
             log.info('push sending done for {}'.format(msg))
         except:
             log.error('Failed to connect to APNs', exc_info=True)
