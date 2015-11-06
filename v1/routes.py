@@ -1022,6 +1022,8 @@ class GameResource(restful.Resource):
             'gamertag_creator': fields.String,
             'gamertag_opponent': fields.String,
             'twitch_handle': fields.String,
+            'twitch_identity_creator': fields.String,
+            'twitch_identity_opponent': fields.String,
             'gamemode': fields.String,
             'gametype': fields.String,
             'bet': fields.Float,
@@ -1101,6 +1103,8 @@ class GameResource(restful.Resource):
         parser.add_argument('twitch_handle',
                             type=Twitch.check_handle,
                             required=False)
+        parser.add_argument('twitch_identity_creator', required=False)
+        parser.add_argument('twitch_identity_opponent', required=False)
         parser.add_argument('gametype', choices=Poller.all_gametypes,
                             required=True)
         parser.add_argument('bet', type=float, required=True)
@@ -1130,25 +1134,27 @@ class GameResource(restful.Resource):
         gamertag_field = poller.identity_id
 
         args.creator = user # to simplify checking
-        def check_gamertag(who, msgf):
-            if args['gamertag_'+who]:
+        def check_gamertag(who, msgf,
+                           typ='gamertag', field=gamertag_field):
+            if args[typ+'_'+who]:
                 # Checking method might convert data somehow,
                 # so it is mandatory to call it.
                 checker = poller.identity_check
                 if isinstance(checker, str): # resolve it here
                     checker = globals()[checker]
                 try:
-                    args['gamertag_'+who] = checker(args['gamertag_'+who])
+                    args[typ+'_'+who] = checker(args[typ+'_'+who])
                 except ValueError as e:
-                    abort('[gamertag_{}]: {}'.format(who, e))
+                    abort('[{}_{}]: {}'.format(typ, who, e))
                 return True # was passed
             else:
-                if gamertag_field:
-                    args['gamertag_'+who] = getattr(args[who], gamertag_field)
-                if not args['gamertag_'+who]:
-                    abort('You didn\'t specify {} gamertag, and '
-                          '{}don\'t have default one configured.'.format(*msgf))
+                if field:
+                    args[typ+'_'+who] = getattr(args[who], field)
+                if not args[typ+'_'+who]:
+                    abort('You didn\'t specify {} {typ}, and '
+                          '{}don\'t have default one configured.'.format(*msgf, typ=typ))
                 return False # was not passed
+
         if check_gamertag('creator', ('your', '')) and gamertag_field:
             if args.savetag == 'replace':
                 repl = True
@@ -1164,6 +1170,17 @@ class GameResource(restful.Resource):
             if repl:
                 setattr(args.creator, gamertag_field, args.gamertag_creator)
         check_gamertag('opponent', ('opponent\'s', 'they '))
+
+        if poller.twitch_identity:
+            check_gamertag('creator', ('your',''),
+                           'twitch_identity', poller.twitch_identity.id)
+            check_gamertag('opponent', ('opponent\'s','they '),
+                           'twitch_identity', poller.twitch_identity.id)
+        else:
+            for role in 'creator', 'opponent':
+                if args['twitch_identity_'+role]:
+                    abort('[twitch_identity_{}]: not supported for this game type'.format(
+                        role))
 
         if poller.sameregion:
             # additional check for regions
