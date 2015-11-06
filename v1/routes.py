@@ -1428,6 +1428,7 @@ class ChatMessageResource(restful.Resource):
         db.session.add(msg)
 
         if 'attachment' in request.files:
+            db.session.commit() # for id
             ChatMessageAttachmentResource.upload(
                 request.files['attachment'],
                 msg)
