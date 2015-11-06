@@ -1390,11 +1390,25 @@ class ChatMessageResource(restful.Resource):
         parser = RequestParser()
         parser.add_argument('page', type=int, default=1)
         parser.add_argument('results_per_page', type=int, default=10)
+        parser.add_argument(
+            'order', default='time',
+            choices=sum(
+                [[s, '-'+s]
+                 for s in (
+                     'time',
+                 )], []),
+        )
         args = parser.parse_args()
         if args.results_per_page > 50:
             abort('[results_per_page]: max is 50')
 
-        # TODO: ordering and filtering
+        # TODO: filtering
+
+        if args.order.startswith('-'):
+            order = getattr(ChatMessage, args.order[1:]).desc()
+        else:
+            order = getattr(ChatMessage, args.order).asc()
+        messages = messages.order_by(order)
 
         total_count = messages.count()
         messages = messages.paginate(args.page, args.results_per_page,

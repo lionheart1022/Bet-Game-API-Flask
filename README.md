@@ -329,6 +329,8 @@ Paramerers:
 
 * `results_per_page` defaults to 10, max is 50
 * `page` - which page to return, defaults to 1
+* `order` - either `time` or `-time`.
+	Default is `time`, while `-time` means descending order.
 
 ```json
 {
