@@ -20,6 +20,7 @@ class Player(db.Model):
     bio = db.Column(db.Text)
 
     ea_gamertag = db.Column(db.String(64), unique=True)
+    fifa_team = db.Column(db.String(64), unique=False)
     riot_summonerName = db.Column(db.String(64), unique=True)
     # in fact, it is integer, but saved as string for compatibility
     steam_id = db.Column(db.String(64), unique=True)
@@ -316,6 +317,8 @@ class Game(db.Model):
     gamertag_creator = db.Column(db.String(128))
     gamertag_opponent = db.Column(db.String(128))
     twitch_handle = db.Column(db.String(128))
+    twitch_identity_creator = db.Column(db.String(128))
+    twitch_identity_opponent = db.Column(db.String(128))
 
     gametype = db.Column(db.String(64), nullable=False)
     gamemode = db.Column(db.String(64), nullable=False)
