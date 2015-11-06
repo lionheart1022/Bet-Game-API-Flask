@@ -82,9 +82,11 @@ class PlayerResource(restful.Resource):
             has_userpic = fields.Boolean,
 
             ea_gamertag = fields.String,
+            fifa_team = fields.String,
             riot_summonerName = fields.String,
             steam_id = fields.String,
             starcraft_uid = fields.String,
+            tibia_character = fields.String,
         )
         if not public: ret.update(dict(
             balance = fields.Float,
