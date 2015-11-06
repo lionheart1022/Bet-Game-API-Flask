@@ -1396,7 +1396,7 @@ class ChatMessageResource(restful.Resource):
 
         # TODO: ordering and filtering
 
-        total_count = query.count()
+        total_count = messages.count()
         messages = messages.paginate(args.page, args.results_per_page,
                                      error_out=False).items
 
