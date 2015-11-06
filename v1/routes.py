@@ -388,7 +388,7 @@ class PlayerResource(restful.Resource):
             player.password = encrypt_password(None) # random salt
             player.nickname = name
             db.session.add(player)
-        if userpic and not player.has_userpic():
+        if userpic and not player.has_userpic:
             UserpicResource.fromurl(userpic, player)
 
         setattr(player, '{}_id'.format(args.svc), identity)
