@@ -13,11 +13,11 @@ from .apis import *
 from .helpers import *
 from .models import *
 
-all_identities = {}
 class Identity(namedtuple('Identity', 'id name checker')):
+    all = {}
     def __init__(self, id, name, checker):
         super.__init__(id, name, checker)
-        all_identities[id] = self
+        self.all[id] = self
 Identity('ea_gamertag', 'XBox GamerTag', gamertag_field),
 Identity('fifa_team', 'FIFA Team Name', fifa_team),
 Identity('riot_summonerName', 'Riot Summoner Name ("name" or "region/name")',
@@ -50,7 +50,7 @@ class Poller:
 
     @classproperty
     def identity(cls):
-        return all_identities.get(cls.identity_id)
+        return Identity.all.get(cls.identity_id)
     @classproperty
     def identity_name(cls):
         return cls.identity.name if cls.identity else None
@@ -59,7 +59,7 @@ class Poller:
         return cls.identity.checker if cls.identity else lambda val: val
     @classproperty
     def twitch_identity(cls):
-        return all_identities.get(cls.twitch_identity_id)
+        return Identity.all.get(cls.twitch_identity_id)
 
     @classmethod
     def findPoller(cls, gametype):

@@ -47,7 +47,7 @@ class PlayerResource(restful.Resource):
             ('bio', None, False),
         ]
         identities = set()
-        for identity in all_identities.values():
+        for identity in Identity.all.values():
             identities.add((identity.id, identity.checker, False))
         fieldlist.extend(identities)
         for name, type, required in fieldlist:
@@ -900,7 +900,7 @@ def gametypes():
         times = bta # in proper order
 
     gamedata = []
-    identities = {i.id: i.name for i in all_identities.values()}
+    identities = {i.id: i.name for i in Identity.all.values()}
     for poller in Poller.allPollers():
         for gametype, gametype_name in poller.gametypes.items():
             if poller.identity:
