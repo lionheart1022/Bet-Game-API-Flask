@@ -1393,13 +1393,19 @@ class ChatMessageResource(restful.Resource):
         args = parser.parse_args()
         if args.results_per_page > 50:
             abort('[results_per_page]: max is 50')
+
         # TODO: ordering and filtering
+
+        total_count = query.count()
         messages = messages.paginate(args.page, args.results_per_page,
                                      error_out=False).items
 
         return marshal(
             dict(messages=messages),
             dict(messages=fields.List(fields.Nested(self.fields))),
+            num_results = total_count,
+            total_pages = math.ceil(total_count/args.results_per_page),
+            page = args.page,
         )
 
     @require_auth
