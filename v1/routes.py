@@ -1418,7 +1418,7 @@ class ChatMessageResource(restful.Resource):
                 request.files['attachment'],
                 msg)
         elif not msg.text:
-            db.session.delete(msg)
+            db.session.expunge(msg)
             abort('Please provide either text or attachment, or both')
 
         db.session.commit()
