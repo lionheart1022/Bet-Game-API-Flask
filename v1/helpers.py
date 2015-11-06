@@ -693,6 +693,7 @@ def notify_chat(msg):
             msg.receiver.nickname
         ))
         return False
+    from . import routes # for fields list
     message = apns_clerk.Message(
         receivers,
         alert='Message from {}: {}'.format(
@@ -702,7 +703,7 @@ def notify_chat(msg):
         badge='increment',
         content_available=1,
         message=restful.marshal(
-            msg, ChatMessageResource.fields
+            msg, routes.ChatMessageResource.fields
         ),
     )
     return send_push(message)
