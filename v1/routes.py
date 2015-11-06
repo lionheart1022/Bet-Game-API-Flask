@@ -1387,7 +1387,15 @@ class ChatMessageResource(restful.Resource):
 
         assert not id
 
-        # TODO apply pagination
+        parser = RequestParser()
+        parser.add_argument('page', type=int, default=1)
+        parser.add_argument('results_per_page', type=int, default=10)
+        args = parser.parse_args()
+        if args.results_per_page > 50:
+            abort('[results_per_page]: max is 50')
+        # TODO: ordering and filtering
+        messages = messages.paginate(args.page, args.results_per_page,
+                                     error_out=False).items
 
         return marshal(
             dict(messages=messages),
