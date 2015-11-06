@@ -1173,17 +1173,6 @@ class GameResource(restful.Resource):
                 setattr(args.creator, gamertag_field, args.gamertag_creator)
         check_gamertag('opponent', ('opponent\'s', 'they '))
 
-        if poller.twitch_identity:
-            check_gamertag('creator', ('your',''),
-                           'twitch_identity', poller.twitch_identity.id)
-            check_gamertag('opponent', ('opponent\'s','they '),
-                           'twitch_identity', poller.twitch_identity.id)
-        else:
-            for role in 'creator', 'opponent':
-                if args['twitch_identity_'+role]:
-                    abort('[twitch_identity_{}]: not supported for this game type'.format(
-                        role))
-
         if poller.sameregion:
             # additional check for regions
             region1 = args['gamertag_creator'].split('/',1)[0]
@@ -1196,6 +1185,18 @@ class GameResource(restful.Resource):
         if poller.twitch == 2 and not args.twitch_handle:
             abort('[twitch_handle]: is mandatory for this game type!',
                   problem='twitch_handle')
+
+        if args.twitch_handle:
+            if poller.twitch_identity:
+                check_gamertag('creator', ('your',''),
+                            'twitch_identity', poller.twitch_identity.id)
+                check_gamertag('opponent', ('opponent\'s','they '),
+                            'twitch_identity', poller.twitch_identity.id)
+            else:
+                for role in 'creator', 'opponent':
+                    if args['twitch_identity_'+role]:
+                        abort('[twitch_identity_{}]: not supported for this game type'.format(
+                            role))
 
         if args.bet < 0.99:
             abort('[bet]: too low amount', problem='bet')
