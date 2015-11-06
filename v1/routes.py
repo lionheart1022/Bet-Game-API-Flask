@@ -47,9 +47,8 @@ class PlayerResource(restful.Resource):
             ('bio', None, False),
         ]
         identities = set()
-        for poller in Poller.allPollers():
-            if poller.identity:
-                identities.add((poller.identity, poller.identity_check, False))
+        for identity in all_identities.values():
+            identities.add((identity.id, identity.checker, False))
         fieldlist.extend(identities)
         for name, type, required in fieldlist:
             if hasattr(Player, name):
@@ -901,7 +900,7 @@ def gametypes():
         times = bta # in proper order
 
     gamedata = []
-    identities = {}
+    identities = {i.id: i.name for i in all_identities.values()}
     for poller in Poller.allPollers():
         for gametype, gametype_name in poller.gametypes.items():
             if poller.identity:
@@ -910,8 +909,8 @@ def gametypes():
                     name = gametype_name,
                     supported = True,
                     gamemodes = poller.gamemodes,
-                    identity = poller.identity,
-                    identity_name = poller.identity_name,
+                    identity = poller.identity.id,
+                    identity_name = poller.identity.name,
                     twitch = poller.twitch,
                 )
                 if args.betcount:
@@ -933,7 +932,6 @@ def gametypes():
                         data['description'].strip().split('\n\n')
                     ))
                 gamedata.append(data)
-                identities[poller.identity] = poller.identity_name
             else: # DummyPoller
                 gamedata.append(dict(
                     id = gametype,
@@ -1124,7 +1122,7 @@ class GameResource(restful.Resource):
         if args.opponent == user:
             abort('You cannot compete with yourself')
 
-        gamertag_field = poller.identity
+        gamertag_field = poller.identity_id
 
         args.creator = user # to simplify checking
         def check_gamertag(who, msgf):

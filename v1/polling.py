@@ -13,6 +13,26 @@ from .apis import *
 from .helpers import *
 from .models import *
 
+Identity = namedtuple('Identity', 'id name checker')
+all_identities = {}
+def add_identity(ident):
+    all_identities[ident.id] = ident
+    return ident
+for i in [
+    Identity('ea_gamertag', 'XBox GamerTag', gamertag_field),
+    Identity('fifa_team', 'FIFA Team Name', fifa_team),
+    Identity('riot_summonerName', 'Riot Summoner Name ("name" or "region/name")',
+                Riot.summoner_check),
+    Identity('steam_id','STEAM ID (numeric or URL)', Steam.parse_id),
+    Identity('starcraft_uid','StarCraft profile URL from battle.net or sc2ranks.com',
+                StarCraft.check_uid),
+    #Identity('tibia_character','Tibia Character name',TibiaPoller.identity_check),
+    # -- will be added in class definition
+    #Identity('','',lambda x:x),
+]:
+    add_identity(i)
+
+
 ### Polling ###
 class Poller:
     gametypes = {} # list of supported types for this class
@@ -23,12 +43,22 @@ class Poller:
     twitch = 0 # do we support twitch for this gametype?
     # 0 - not supported, 1 - optional, 2 - mandatory
     twitch_gametypes = {}
-    identity = None
+    identity_id = None
     # human-readable description of how to play this game.
     # Might be dictionary if description should vary
     # for different gametypes in same poller.
     description = None
     minutes = 0 # by default, poll as often as possible
+
+    @classproperty
+    def identity(cls):
+        return all_identities.get(cls.identity_id)
+    @classproperty
+    def identity_name(cls):
+        return cls.identity.name if cls.identity else None
+    @classproperty
+    def identity_check(cls):
+        return cls.identity.checker if cls.identity else lambda val: val
 
     @classmethod
     def findPoller(cls, gametype):
@@ -214,9 +244,7 @@ class FifaPoller(Poller, LimitedApi):
         'friendlies': 'Friendlies',
         'coop': 'Co-op',
     }
-    identity = 'ea_gamertag'
-    identity_name = 'XBox GamerTag'
-    identity_check = gamertag_field
+    identity_id = 'ea_gamertag'
     usemodes = True
     twitch = 1
     twitch_gametypes = {
@@ -309,9 +337,7 @@ class RiotPoller(Poller):
         'RANKED_TEAM_3x3': 'Team 3x3',
         'RANKED_TEAM_5x5': 'Team 5x5',
     }
-    identity = 'riot_summonerName'
-    identity_name = 'Riot Summoner Name ("name" or "region/name")'
-    identity_check = Riot.summoner_check
+    identity_id = 'riot_summonerName'
     sameregion = True
     description = """
         For this game betting is based on match outcome.
@@ -404,9 +430,7 @@ class Dota2Poller(Poller):
         'dota2': 'DOTA 2',
     }
     # no gamemodes for this game
-    identity = 'steam_id'
-    identity_name = 'STEAM ID (numeric or URL)'
-    identity_check = Steam.parse_id
+    identity_id = 'steam_id'
     description = """
         For this game betting is based on match outcome.
         If both players played for the same fraction (radiant/dire),
@@ -499,9 +523,7 @@ class CSGOPoller(Poller):
     gametypes = {
         'counter-strike-global-offensive': 'CounterStrike: Global Offensive',
     }
-    identity = 'steam_id'
-    identity_name = 'STEAM ID (numeric or URL)'
-    identity_check = Steam.parse_id
+    identity_id = 'steam_id'
     description = """
         For this game betting is based on match outcome.
         If both players played in the same team, game is considered draw.
@@ -584,9 +606,7 @@ class StarCraftPoller(Poller):
         'starcraft': 'Starcraft II',
     }
     # no gamemodes for this game
-    identity = 'starcraft_uid'
-    identity_name = 'StarCraft profile URL from battle.net or sc2ranks.com'
-    identity_check = StarCraft.check_uid
+    identity_id = 'starcraft_uid'
     sameregion = True
     description = """
         For this game betting is based on match outcome.
@@ -631,8 +651,7 @@ class TibiaPoller(Poller, LimitedApi):
     gametypes = {
         'tibia': 'Tibia',
     }
-    identity = 'tibia_character'
-    identity_name = 'Tibia Character name'
+    identity_id = 'tibia_character'
     description = """
         For Tibia, you bet on PvP battle outcome.
         After you and your friend make & accept bet on your Tibia character names,
@@ -732,12 +751,13 @@ class TibiaPoller(Poller, LimitedApi):
         return ret
 
     @classmethod
-    def identity_check(cls, val):
+    def identity_checker(cls, val):
         name, deaths = cls.fetch(val.strip())
         if not name:
             raise ValueError('Unknown character '+val)
         # TODO: also save world somewhere
         return name
+    add_identity(Identity(identity_id, 'Tibia Character name', identity_checker))
 
     def prepare(self):
         self.players = {}
@@ -791,9 +811,7 @@ class DummyPoller(Poller):
         'rocket-league': 'Rocket League',
 #        'diablo': 'Diablo III',
     }
-    identity = ''
-    identity_name = ''
-    identity_check = lambda val: val
+    identity_id = ''
 
     def pollGame(self, game):
         pass
@@ -802,9 +820,7 @@ class TestPoller(Poller):
     gametypes = {
         'test': 'Test',
     }
-    identity = ''
-    identity_name = ''
-    identity_check = lambda val: val
+    identity_id = ''
     twitch = 2
     twitch_gametypes = {
         'test': 'None', # to allow missing streams
