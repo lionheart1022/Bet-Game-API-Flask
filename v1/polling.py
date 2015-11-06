@@ -16,7 +16,7 @@ from .models import *
 class Identity(namedtuple('Identity', 'id name checker')):
     _all = {}
     def __init__(self, id, name, checker):
-        super.__init__(id, name, checker)
+        super().__init__(id, name, checker)
         self._all[id] = self
     @classmethod
     def get(cls, id):
