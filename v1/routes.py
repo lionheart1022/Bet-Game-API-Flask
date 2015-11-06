@@ -1278,8 +1278,12 @@ class GameResource(restful.Resource):
                 ),
                 data = dict(
                     game_id = game.id,
-                    creator = game.gamertag_creator,
-                    opponent = game.gamertag_opponent,
+                    creator = game.twitch_identity_creator
+                            if poller.twitch_identity else
+                            game.gamertag_creator,
+                    opponent = game.twitch_identity_opponent
+                            if poller.twitch_identity else
+                            game.gamertag_opponent,
                 ),
             )
             if ret.status_code not in (200, 201):
