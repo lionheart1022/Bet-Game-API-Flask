@@ -1213,6 +1213,8 @@ class GameResource(restful.Resource):
         game.gamertag_creator = args.gamertag_creator
         game.gamertag_opponent = args.gamertag_opponent
         game.twitch_handle = args.twitch_handle
+        game.twitch_identity_creator = args.twitch_identity_creator
+        game.twitch_identity_opponent = args.twitch_identity_opponent
         game.gametype = args.gametype
         game.gamemode = args.gamemode
         game.bet = args.bet
