@@ -680,6 +680,32 @@ def send_push(msg):
 
     return send_push_do(msg)
 
+def notify_chat(msg):
+    receivers = []
+    for d in msg.receiver.devices:
+        if d.push_token:
+            if len(d.push_token) == 64:
+                receivers.append(d.push_token)
+            else:
+                log.warning('Incorrect push token '+d.push_token)
+    if not receivers:
+        log.info('Not sending push to {} because no tokens available'.format(
+            msg.receiver.nickname
+        ))
+        return False
+    message = apns_clerk.Message(
+        receivers,
+        alert='Message from {}: {}'.format(
+            msg.sender.nickname,
+            msg.text,
+        ),
+        badge='increment',
+        content_available=1,
+        message=restful.marshal(
+            msg, ChatMessageResource.fields
+        ),
+    )
+    return send_push(message)
 def notify_users(game, nomail=False):
     """
     This method sends PUSH notifications about game state change

@@ -1422,6 +1422,9 @@ class ChatMessageResource(restful.Resource):
             abort('Please provide either text or attachment, or both')
 
         db.session.commit()
+
+        notify_chat(msg)
+
         return marshal(msg, self.fields)
 
     @require_auth
