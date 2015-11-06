@@ -1400,13 +1400,16 @@ class ChatMessageResource(restful.Resource):
         messages = messages.paginate(args.page, args.results_per_page,
                                      error_out=False).items
 
-        return marshal(
+        ret = marshal(
             dict(messages=messages),
             dict(messages=fields.List(fields.Nested(self.fields))),
+        )
+        ret.update(dict(
             num_results = total_count,
             total_pages = math.ceil(total_count/args.results_per_page),
             page = args.page,
-        )
+        ))
+        return ret
 
     @require_auth
     def post(self, user, player_id, id=None):
