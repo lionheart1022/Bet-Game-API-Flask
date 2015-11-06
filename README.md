@@ -649,7 +649,32 @@ Maximum file size is currently 32MB.
 
 This endpoint is also available as `POST /games/<id>/msg` for compatibility.
 
-### GET 
+
+## PUSH notifications
+Whenever an event happens in the system, it will send PUSH notification to related devices.
+For now there are 2 types of notifications: game-related and chat-related.
+Game-related notifications have the following format:
+
+```json
+{
+	"alert": text depending on event, e.g. "<somebody> invites you to compete",
+	"badge": "increment",
+	"content_available": 1,
+	"game": { Game resource }
+}
+```
+
+For chat-related notifications format is as follows:
+
+```json
+{
+	"alert": "Message from <sendername>: <msg text>",
+	"badge": "increment",
+	"content_available": 1,
+	"message": { Chat Message resource }
+}
+```
+
 
 Resources
 ---------
