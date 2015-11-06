@@ -548,12 +548,12 @@ Create game invitation.
 
 Arguments:
 
- * `opponent_id`: either nickname, gamertag or internal numeric id of opponent.
- * `gamertag_creator`: gamertag of the player for which invitation creator roots.
+* `opponent_id`: either nickname, gamertag or internal numeric id of opponent.
+* `gamertag_creator`: gamertag of the player for which invitation creator roots.
 	Optional, defaults to creator's own gamertag (if specified).
- * `gamertag_opponent`: gamertag of the player for which invitation opponent roots.
+* `gamertag_opponent`: gamertag of the player for which invitation opponent roots.
 	Optional, defaults to opponent's own gamertag (if specified).
- * `savetag`: optional. Controls updating creator's default identity for given gametype. Here are options:
+* `savetag`: optional. Controls updating creator's default identity for given gametype. Here are options:
     * `never` (default) - don't update
     * `replace` - always replace player's identity with passed one
     * `ignore_if_exists` - if player has no corresponding identity then save,
@@ -561,9 +561,18 @@ Arguments:
     * `fail_if_exists` - if player has no corresponding identity then save,
        else abort query (without creating game object).
        You can then ask user what to do and then resend query with either `never` or `replace`.
- * `gametype`: one of `supported` gametypes from `GET /gametypes` endpoint
- * `gamemode`: one of game modes allowed for chosen gametype according to `GET /gametypes`.
- * `bet`: numeric bet amount, should not exceed your balance.
+* `gametype`: one of `supported` gametypes from `GET /gametypes` endpoint
+* `gamemode`: one of game modes allowed for chosen gametype according to `GET /gametypes`.
+* `bet`: numeric bet amount, should not exceed your balance.
+* `twitch_handle`: either full URL to Twitch stream or its last part (handle).
+	Optional unless gametype requires it.
+* `twitch_identity_creator`: player identity (like gamertag) for twitch stream.
+	Prohibited if given gametype doesn't support it.
+	If not passed, defaults to creator's corresponding gamertag (if specified).
+* `twitch_identity_opponent`: player identity (like gamertag) for twitch stream.
+	Prohibited if given gametype doesn't support it.
+	If not passed, defaults to opponent's corresponding gamertag (if specified).
+ 
 
 When creating an invitation, corresponding amount of coins is immediately locked on user's account.
 These coins will be released when invitation is declined
