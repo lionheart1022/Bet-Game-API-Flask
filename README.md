@@ -768,6 +768,7 @@ Possible game states:
 }
 ```
 
+
 ### Chat message resource
 ```json
 {
