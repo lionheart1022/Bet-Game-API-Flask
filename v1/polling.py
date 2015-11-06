@@ -13,6 +13,11 @@ from .apis import *
 from .helpers import *
 from .models import *
 
+def fifa_field(val):
+    if len(val) != 3:
+        raise ValueError('Expected 3-letter team id, got {}'.format(val))
+    return val
+
 class Identity(namedtuple('Identity', 'id name checker')):
     _all = {}
     def __new__(cls, id, name, checker):
@@ -27,16 +32,16 @@ class Identity(namedtuple('Identity', 'id name checker')):
     @classproperty
     def all(cls):
         return cls._all.values()
-Identity('ea_gamertag', 'XBox GamerTag', gamertag_field),
-Identity('fifa_team', 'FIFA Team Name', None), # FIXME
+Identity('ea_gamertag', 'XBox GamerTag', gamertag_field)
+Identity('fifa_team', 'FIFA Team Name', fifa_field)
 Identity('riot_summonerName', 'Riot Summoner Name ("name" or "region/name")',
-            Riot.summoner_check),
-Identity('steam_id','STEAM ID (numeric or URL)', Steam.parse_id),
+            Riot.summoner_check)
+Identity('steam_id','STEAM ID (numeric or URL)', Steam.parse_id)
 Identity('starcraft_uid','StarCraft profile URL from battle.net or sc2ranks.com',
-            StarCraft.check_uid),
-#Identity('tibia_character','Tibia Character name',TibiaPoller.identity_check),
+            StarCraft.check_uid)
+#Identity('tibia_character','Tibia Character name',TibiaPoller.identity_check)
 # -- will be added in class definition
-#Identity('','',lambda x:x),
+#Identity('','',lambda x:x)
 
 
 ### Polling ###
