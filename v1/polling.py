@@ -61,6 +61,7 @@ class Poller:
             modes.update(sub.all_gamemodes)
         return modes
 
+
     @classmethod
     def gameStarted(cls, game):
         """

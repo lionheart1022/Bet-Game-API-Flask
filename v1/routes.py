@@ -1331,6 +1331,7 @@ class ChatMessageResource(restful.Resource):
         )
     @require_auth
     def get(self, user, player_id, id=None):
+        msg = None
         if id:
             msg = ChatMessage.query.get(id)
             if not msg:
