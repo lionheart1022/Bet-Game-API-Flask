@@ -18,7 +18,7 @@ class Identity(namedtuple('Identity', 'id name checker')):
     def __new__(cls, id, name, checker):
         if not checker:
             checker = lambda val: val
-        ret = super().__new__(id, name, checker)
+        ret = super().__new__(cls, id, name, checker)
         cls._all[id] = ret
         return ret
     @classmethod
