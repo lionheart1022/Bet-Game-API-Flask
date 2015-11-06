@@ -13,24 +13,21 @@ from .apis import *
 from .helpers import *
 from .models import *
 
-Identity = namedtuple('Identity', 'id name checker')
 all_identities = {}
-def add_identity(ident):
-    all_identities[ident.id] = ident
-    return ident
-for i in [
-    Identity('ea_gamertag', 'XBox GamerTag', gamertag_field),
-    Identity('fifa_team', 'FIFA Team Name', fifa_team),
-    Identity('riot_summonerName', 'Riot Summoner Name ("name" or "region/name")',
-                Riot.summoner_check),
-    Identity('steam_id','STEAM ID (numeric or URL)', Steam.parse_id),
-    Identity('starcraft_uid','StarCraft profile URL from battle.net or sc2ranks.com',
-                StarCraft.check_uid),
-    #Identity('tibia_character','Tibia Character name',TibiaPoller.identity_check),
-    # -- will be added in class definition
-    #Identity('','',lambda x:x),
-]:
-    add_identity(i)
+class Identity(namedtuple('Identity', 'id name checker')):
+    def __init__(self, id, name, checker):
+        super.__init__(id, name, checker)
+        all_identities[id] = self
+Identity('ea_gamertag', 'XBox GamerTag', gamertag_field),
+Identity('fifa_team', 'FIFA Team Name', fifa_team),
+Identity('riot_summonerName', 'Riot Summoner Name ("name" or "region/name")',
+            Riot.summoner_check),
+Identity('steam_id','STEAM ID (numeric or URL)', Steam.parse_id),
+Identity('starcraft_uid','StarCraft profile URL from battle.net or sc2ranks.com',
+            StarCraft.check_uid),
+#Identity('tibia_character','Tibia Character name',TibiaPoller.identity_check),
+# -- will be added in class definition
+#Identity('','',lambda x:x),
 
 
 ### Polling ###
@@ -42,8 +39,8 @@ class Poller:
     # region is stored as slash delimited prefix of gamertag.
     twitch = 0 # do we support twitch for this gametype?
     # 0 - not supported, 1 - optional, 2 - mandatory
-    twitch_gametypes = {}
     identity_id = None
+    twitch_identity_id = None
     # human-readable description of how to play this game.
     # Might be dictionary if description should vary
     # for different gametypes in same poller.
@@ -751,13 +748,13 @@ class TibiaPoller(Poller, LimitedApi):
         return ret
 
     @classmethod
-    def identity_checker(cls, val):
+    def identity_check(cls, val):
         name, deaths = cls.fetch(val.strip())
         if not name:
             raise ValueError('Unknown character '+val)
         # TODO: also save world somewhere
         return name
-    add_identity(Identity(identity_id, 'Tibia Character name', identity_checker))
+    Identity(identity_id, 'Tibia Character name', identity_check)
 
     def prepare(self):
         self.players = {}
