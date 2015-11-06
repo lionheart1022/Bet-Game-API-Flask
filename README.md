@@ -664,10 +664,11 @@ Resources
 	"bio": "player's biography, if specified",
 	"has_userpic": false,
 	"ea_gamertag": "DERP HACKER",
+	"fifa_team": "ABT",
 	"riot_summonerName": null,
 	"steam_id": null,
 	"starcraft_uid": null,
-	"tivia_character": null,
+	"tibia_character": null,
 	"devices": [ list of Device resources ],
 	"balance": 3.95, // current balance in coins
 	"balance_info": { Balance resource },
@@ -718,11 +719,11 @@ Doesn't include sensitive information like `balance` or `devices`.
 	"has_userpic": false,
 	
 	"ea_gamertag": "DERP HACKER",
+	"fifa_team": "ABT",
 	"riot_summonerName": null,
 	"steam_id": null,
 	"starcraft_uid": null,
-	"tivia_character": null,
-	... // some stats
+	"tibia_character": null,
 }
 ```
 
@@ -751,6 +752,9 @@ Possible game states:
 	"opponent": { Limited Player resource },
 	"gamertag_creator": "Creator Gamer Tag",
 	"gamertag_opponent": "Opponent Gamer Tag",
+	"twitch": 1, // see POST /game for options
+	"twitch_identity_creator": "Creator's Identity for Twitch Streamer",
+	"twitch_identity_opponent": "Opponent's Identity for Twitch Streamer",
 	"gametype": "xboxone-fifa15", // see POST /games for options
 	"gamemode": "friendlies", // or any other, see POST /games for details
 	"bet": 5.29, // bet amount
