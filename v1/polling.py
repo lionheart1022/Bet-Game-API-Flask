@@ -39,6 +39,7 @@ class Poller:
     # region is stored as slash delimited prefix of gamertag.
     twitch = 0 # do we support twitch for this gametype?
     # 0 - not supported, 1 - optional, 2 - mandatory
+    twitch_gametypes = {}
     identity_id = None
     twitch_identity_id = None
     # human-readable description of how to play this game.
@@ -56,6 +57,9 @@ class Poller:
     @classproperty
     def identity_check(cls):
         return cls.identity.checker if cls.identity else lambda val: val
+    @classproperty
+    def twitch_identity(cls):
+        return all_identities.get(cls.twitch_identity_id)
 
     @classmethod
     def findPoller(cls, gametype):
@@ -242,6 +246,7 @@ class FifaPoller(Poller, LimitedApi):
         'coop': 'Co-op',
     }
     identity_id = 'ea_gamertag'
+    twitch_identity_id = 'fifa_team'
     usemodes = True
     twitch = 1
     twitch_gametypes = {
