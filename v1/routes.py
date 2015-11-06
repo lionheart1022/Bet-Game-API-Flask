@@ -903,16 +903,21 @@ def gametypes():
     identities = {i.id: i.name for i in Identity.all}
     for poller in Poller.allPollers():
         for gametype, gametype_name in poller.gametypes.items():
-            if poller.identity:
+            if poller.identity or poller.twitch_identity:
                 data = dict(
                     id = gametype,
                     name = gametype_name,
                     supported = True,
                     gamemodes = poller.gamemodes,
-                    identity = poller.identity.id,
-                    identity_name = poller.identity.name,
+                    identity = poller.identity_id,
+                    identity_name = poller.identity_name,
                     twitch = poller.twitch,
+                    twitch_identity = None, # may be updated below
+                    twitch_identity_name = None,
                 )
+                if poller.twitch_identity:
+                    data['twitch_identity'] = poller.twitch_identity.id
+                    data['twitch_identity_name'] = poller.twitch_identity.name
                 if args.betcount:
                     data['betcount'], data['lastbet'] = \
                         counts.get(gametype, (0, None))
