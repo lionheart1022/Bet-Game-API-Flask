@@ -1368,6 +1368,8 @@ class ChatMessageResource(restful.Resource):
             if not msg.is_for(user):
                 raise Forbidden
         player = Player.find(player_id)
+        if not player:
+            raise NotFound('wrong player id')
         if user == player:
             if msg:
                 # don't check message's other party
@@ -1431,6 +1433,8 @@ class ChatMessageResource(restful.Resource):
             raise MethodNotAllowed
 
         player = Player.find(player_id)
+        if not player:
+            raise NotFound('wrong player id')
         if player == user:
             abort('You cannot send message to yourself')
 
@@ -1465,7 +1469,7 @@ class ChatMessageResource(restful.Resource):
             raise MethodNotAllowed
         player = Player.find(player_id)
         if not player:
-            raise NotFound
+            raise NotFound('wrong player id')
 
         msg = ChatMessage.query.get(id)
         if not msg:
