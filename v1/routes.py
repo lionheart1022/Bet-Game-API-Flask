@@ -1345,6 +1345,9 @@ class GameMessageResource(UploadableResource):
     '/players/<player_id>/messages',
     '/players/<player_id>/messages/',
     '/players/<player_id>/messages/<int:id>',
+    '/games/<int:game_id>/messages',
+    '/games/<int:game_id>/messages/',
+    '/games/<int:game_id>/messages/<int:id>',
 )
 class ChatMessageResource(restful.Resource):
     @classproperty
@@ -1353,13 +1356,28 @@ class ChatMessageResource(restful.Resource):
             id = fields.Integer,
             sender = fields.Nested(PlayerResource.fields()),
             receiver = fields.Nested(PlayerResource.fields()),
+            #game = fields.Nested(GameResource.fields),
             text = fields.String,
             time = fields.DateTime,
             has_attachment = fields.Boolean,
             viewed = fields.Boolean,
         )
     @require_auth
-    def get(self, user, player_id, id=None):
+    def get(self, user, game_id=None, player_id=None, id=None):
+        player = None
+        if player_id:
+            player = Player.find(player_id)
+            if not player:
+                raise NotFound('wrong player id')
+
+        game = None
+        if game_id:
+            game = Game.query.get(game_id)
+            if not game:
+                raise NotFound('wrong game id')
+            if user != game.creator and user != game.opponent:
+                abort('You cannot access this game', 403)
+
         msg = None
         if id:
             msg = ChatMessage.query.get(id)
@@ -1367,27 +1385,33 @@ class ChatMessageResource(restful.Resource):
                 raise NotFound
             if not msg.is_for(user):
                 raise Forbidden
-        player = Player.find(player_id)
-        if not player:
-            raise NotFound('wrong player id')
-        if user == player:
-            if msg:
-                # don't check message's other party
-                return marshal(msg, self.fields)
-            # TODO:
-            # SELECT * FROM messages
-            # WHERE is_for(user)
-            # GROUP BY other(user)
-            # ORDER BY time DESC
-            messages = ChatMessage.for_user(player)
-        else:
-            if msg:
-                if not msg.is_for(player):
-                    abort('Player ID mismatch')
-                return marshal(msg, self.fields)
-            messages = ChatMessage.for_users(player, user)
+            if player:
+                if user != player and not msg.is_for(player):
+                    abort('Player ID mismatch', 404)
+                # else don't check message's other party
+            elif game:
+                if msg.game != game:
+                    abort('Wrong msg id for this game', 404)
+            else:
+                raise ValueError('no player nor game')
+            return marshal(msg, self.fields)
 
         assert not id
+
+        if player:
+            if user == player:
+                # TODO:
+                # SELECT * FROM messages
+                # WHERE is_for(user)
+                # GROUP BY other(user)
+                # ORDER BY time DESC
+                messages = ChatMessage.for_user(player)
+            else:
+                messages = ChatMessage.for_users(player, user)
+        elif game:
+            messages = ChatMessage.query.filter_by(game_id=game.id)
+        else:
+            raise ValueError('no player nor game')
 
         parser = RequestParser()
         parser.add_argument('page', type=int, default=1)
