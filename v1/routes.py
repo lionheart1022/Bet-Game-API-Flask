@@ -1504,13 +1504,18 @@ class ChatMessageResource(restful.Resource):
         msg = ChatMessage.query.get(id)
         if not msg:
             raise NotFound
-        if not msg.is_for(user):
-            raise Forbidden
+        if msg.receiver_id != user.id:
+            raise Forbidden(
+                'You cannot patch message which is not addressed to you')
 
         if player_id:
             player = Player.find(player_id)
             if not player:
                 raise NotFound('invalid player id')
+            if player == user:
+                player = msg.other(user)
+            elif msg.other(user) != player:
+                abort('Wrong user id') # TODO do we need to check that at all?
         elif game_id:
             game = Game.query.get(game_id)
             if not game:
@@ -1520,12 +1525,6 @@ class ChatMessageResource(restful.Resource):
             player = game.other(user)
             if not player:
                 raise Forbidden('You cannot access this game')
-
-        if msg.other(user) != player:
-            abort('Wrong user id') # TODO do we need to check that at all?
-
-        if msg.receiver_id != user.id:
-            abort('You cannot patch message which is not addressed to you', 403)
 
         parser = RequestParser()
         parser.add_argument('viewed', type=boolean_field, required=True)
