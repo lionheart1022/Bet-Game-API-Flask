@@ -1183,8 +1183,10 @@ class GameResource(restful.Resource):
                           region1, region2))
 
         if poller.twitch == 2 and not args.twitch_handle:
-            abort('[twitch_handle]: is mandatory for this game type!',
+            abort('Please specify your twitch stream URL',
                   problem='twitch_handle')
+        if args.twitch_handle and not poller.twitch:
+            abort('Twitch streams are not yet supported for this gametype')
 
         if args.twitch_handle:
             if poller.twitch_identity:
@@ -1199,16 +1201,9 @@ class GameResource(restful.Resource):
                             role))
 
         if args.bet < 0.99:
-            abort('[bet]: too low amount', problem='bet')
+            abort('Bet is too low', problem='bet')
         if args.bet > user.available:
-            abort('[bet]: not enough coins', problem='coins')
-
-        if args.twitch_handle and not poller.twitch:
-            abort('Twitch streams are not yet supported for this gametype')
-        if poller.twitch == 2 and not args.twitch_handle:
-            abort('[twitch_handle] mandatory for this gametype',
-                  problem='twitch_handle')
-        # TODO: validate twitch handle, if any ?
+            abort('You don\'t have enough coins', problem='coins')
 
         game = Game()
         game.creator = user
