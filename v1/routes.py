@@ -1501,23 +1501,25 @@ class ChatMessageResource(restful.Resource):
     def patch(self, user, game_id=None, player_id=None, id=None):
         if not id:
             raise MethodNotAllowed
-        if player_id:
-            player = Player.find(player_id)
-            if not player:
-                raise NotFound('wrong player id')
-        elif game_id:
-            game = Game.query.get(game_id)
-            if not game:
-                raise NotFound('wrong game id')
-            player = game.other(user)
-            if not player:
-                raise Forbidden('You cannot access this game')
-
         msg = ChatMessage.query.get(id)
         if not msg:
             raise NotFound
         if not msg.is_for(user):
             raise Forbidden
+
+        if player_id:
+            player = Player.find(player_id)
+            if not player:
+                raise NotFound('invalid player id')
+        elif game_id:
+            game = Game.query.get(game_id)
+            if not game:
+                raise NotFound('invalid game id')
+            if game != msg.game:
+                raise NotFound('wrong game id')
+            player = game.other(user)
+            if not player:
+                raise Forbidden('You cannot access this game')
 
         if msg.other(user) != player:
             abort('Wrong user id') # TODO do we need to check that at all?
