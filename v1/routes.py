@@ -1452,21 +1452,34 @@ class ChatMessageResource(restful.Resource):
         return ret
 
     @require_auth
-    def post(self, user, player_id, id=None):
+    def post(self, user, game_id=None, player_id=None, id=None):
         if id:
             raise MethodNotAllowed
 
-        player = Player.find(player_id)
-        if not player:
-            raise NotFound('wrong player id')
-        if player == user:
-            abort('You cannot send message to yourself')
+        game = None
+        if player_id:
+            player = Player.find(player_id)
+            if not player:
+                raise NotFound('wrong player id')
+            if player == user:
+                abort('You cannot send message to yourself')
+        elif game_id:
+            game = Game.query.get(game_id)
+            if not game:
+                raise NotFound('wrong game id')
+            if user.id == game.creator_id:
+                player = game.opponent
+            elif user.id == game.opponent_id:
+                player = game.creator
+            else:
+                abort('You cannot access this game', 403)
 
         parser = RequestParser()
         parser.add_argument('text', required=False)
         args = parser.parse_args()
 
         msg = ChatMessage()
+        msg.game = game
         msg.sender = user
         msg.receiver = player
         msg.text = args.text
