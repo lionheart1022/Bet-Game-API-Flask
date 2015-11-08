@@ -1045,7 +1045,7 @@ class GameResource(restful.Resource):
                 raise NotFound
 
             # TODO: allow?
-            if user not in [game.creator, game.opponent]:
+            if not game.is_game_player(user):
                 raise Forbidden
 
             return marshal(game, self.fields)
@@ -1331,7 +1331,7 @@ class GameMessageResource(UploadableResource):
         game = Game.query.get(args['id'])
         if not game:
             raise NotFound
-        if user not in [game.creator, game.opponent]:
+        if not game.is_game_player(user):
             raise Forbidden
         if is_put and user != game.creator:
             raise Forbidden
@@ -1375,7 +1375,7 @@ class ChatMessageResource(restful.Resource):
             game = Game.query.get(game_id)
             if not game:
                 raise NotFound('wrong game id')
-            if user != game.creator and user != game.opponent:
+            if not game.is_game_player(user):
                 abort('You cannot access this game', 403)
 
         msg = None
