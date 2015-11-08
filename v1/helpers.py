@@ -644,7 +644,7 @@ def send_push(msg):
     # because working directory may vary (for observer)
     cert_file = os.path.dirname(__file__)+'/../apns.pem'
     conn = apns_session.get_connection(
-        'push_sandbox',
+        'push',
         cert_file=cert_file)
 
     def send_push_do(msg, tries=0):
@@ -663,7 +663,7 @@ def send_push(msg):
                 dev = Device.query.filter_by(push_token=token).first()
                 if dev:
                     log.warning('removing')
-                    db.session.delete(dev)
+             #       db.session.delete(dev)
                     db.session.commit()
 
             for code, error in ret.errors:
