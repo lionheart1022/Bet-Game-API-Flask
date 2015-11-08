@@ -672,7 +672,7 @@ def send_push(msg):
             if ret.needs_retry():
                 if tries < 10:
                     log.info('needs retry.. so will retry')
-                    return send_push(ret.retry, tries+1)
+                    return send_push_do(ret.retry, tries+1)
                 else:
                     log.warning('needs retry.. but max retries exceed')
                     return False
