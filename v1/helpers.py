@@ -644,7 +644,7 @@ def send_push(msg):
     # because working directory may vary (for observer)
     cert_file = os.path.dirname(__file__)+'/../apns.pem'
     conn = apns_session.get_connection(
-        'push',
+        'push_production',
         cert_file=cert_file)
 
     def send_push_do(msg, tries=0):
