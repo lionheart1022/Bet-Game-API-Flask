@@ -1467,12 +1467,9 @@ class ChatMessageResource(restful.Resource):
             game = Game.query.get(game_id)
             if not game:
                 raise NotFound('wrong game id')
-            if user.id == game.creator_id:
-                player = game.opponent
-            elif user.id == game.opponent_id:
-                player = game.creator
-            else:
-                abort('You cannot access this game', 403)
+            player = game.other(user)
+            if not player:
+                raise Forbidden('You cannot access this game', 403)
 
         parser = RequestParser()
         parser.add_argument('text', required=False)
@@ -1512,9 +1509,9 @@ class ChatMessageResource(restful.Resource):
             game = Game.query.get(game_id)
             if not game:
                 raise NotFound('wrong game id')
-            if not game.is_game_player(user):
-                raise Forbidden('You cannot access this game')
             player = game.other(user)
+            if not player:
+                raise Forbidden('You cannot access this game')
 
         msg = ChatMessage.query.get(id)
         if not msg:
