@@ -1501,12 +1501,20 @@ class ChatMessageResource(restful.Resource):
         return marshal(msg, self.fields)
 
     @require_auth
-    def patch(self, user, player_id, id=None):
+    def patch(self, user, game_id=None, player_id=None, id=None):
         if not id:
             raise MethodNotAllowed
-        player = Player.find(player_id)
-        if not player:
-            raise NotFound('wrong player id')
+        if player_id:
+            player = Player.find(player_id)
+            if not player:
+                raise NotFound('wrong player id')
+        elif game_id:
+            game = Game.query.get(game_id)
+            if not game:
+                raise NotFound('wrong game id')
+            if not game.is_game_player(user):
+                raise Forbidden('You cannot access this game')
+            player = game.other(user)
 
         msg = ChatMessage.query.get(id)
         if not msg:

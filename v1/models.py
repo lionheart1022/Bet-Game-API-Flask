@@ -336,6 +336,15 @@ class Game(db.Model):
     def has_message(self):
         from .routes import GameMessageResource
         return bool(GameMessageResource.findfile(self))
+    @hybrid_method
+    def is_game_player(self, player):
+        return (player.id == self.creator_id) | (player.id == self.opponent_id)
+    def other(self, player):
+        if player.id == self.creator_id:
+            return self.opponent
+        if player.id == self.opponent_id:
+            return self.creator
+        return None
 
 
 class ChatMessage(db.Model):
