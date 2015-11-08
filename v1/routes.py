@@ -264,7 +264,7 @@ class PlayerResource(restful.Resource):
             raise MethodNotAllowed
 
         if Player.find(id) != user:
-            abort('You cannot edit other player\'s info', 403)
+            abort('You cannot edit another player\'s info', 403)
 
         args = self.parser.partial.parse_args()
 
@@ -279,7 +279,7 @@ class PlayerResource(restful.Resource):
                 # TODO: use special token for password recovery?..
                 if args.old_password:
                     if not check_password(args.old_password, user.password):
-                        abort('Old password doesn\'t match')
+                        abort('Previous password don\'t match')
 
         hadmail = bool(user.email)
 
@@ -303,10 +303,10 @@ class PlayerResource(restful.Resource):
 
         player = Player.find(id)
         if not player:
-            abort('Unknown nickname, gamertag or email', 404)
+            abort('Incorrect login or password', 404)
 
         if not check_password(args.password, player.password):
-            abort('Password incorrect', 403)
+            abort('Incorrect login or password', 403)
 
         datadog('Player regular login', 'nickname: {}'.format(player.nickname))
         dd_stat.increment('user.login')
@@ -1121,7 +1121,7 @@ class GameResource(restful.Resource):
 
         poller = Poller.findPoller(args.gametype)
         if not poller or poller == DummyPoller:
-            abort('Game type {} is not supported yet'.format(args.gametype))
+            abort('Support for this game is coming soon!')
 
         if poller.gamemodes:
             gmparser = RequestParser()
@@ -1153,11 +1153,11 @@ class GameResource(restful.Resource):
                 if field:
                     args[typ+'_'+who] = getattr(args[who], field)
                 if not args[typ+'_'+who]:
-                    abort('You didn\'t specify {} {typ}, and '
-                          '{}don\'t have default one configured.'.format(*msgf, typ=typ))
+                    abort('Please specify {} {typ}!'.format(
+                        *msgf, typ=typ))
                 return False # was not passed
 
-        if check_gamertag('creator', ('your', '')) and gamertag_field:
+        if check_gamertag('creator', ('your',)) and gamertag_field:
             if args.savetag == 'replace':
                 repl = True
             elif args.savetag == 'never':
@@ -1171,7 +1171,7 @@ class GameResource(restful.Resource):
                           problem='savetag')
             if repl:
                 setattr(args.creator, gamertag_field, args.gamertag_creator)
-        check_gamertag('opponent', ('opponent\'s', 'they '))
+        check_gamertag('opponent', ('your opponent\'s',))
 
         if poller.sameregion:
             # additional check for regions
@@ -1188,9 +1188,9 @@ class GameResource(restful.Resource):
 
         if args.twitch_handle:
             if poller.twitch_identity:
-                check_gamertag('creator', ('your',''),
+                check_gamertag('creator', ('your',),
                             'twitch_identity', poller.twitch_identity.id)
-                check_gamertag('opponent', ('opponent\'s','they '),
+                check_gamertag('opponent', ('your opponent\'s',),
                             'twitch_identity', poller.twitch_identity.id)
             else:
                 for role in 'creator', 'opponent':
