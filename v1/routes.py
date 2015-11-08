@@ -1243,15 +1243,19 @@ class GameResource(restful.Resource):
         user = check_auth()
         if user == game.creator:
             if args.state not in ['cancelled']:
-                abort('Game invitation creator can only cancel it')
+                abort('Only {} can accept or decline this challenge'.format(
+                    game.opponent.nickname,
+                ))
         elif user == game.opponent:
             if args.state not in ['accepted', 'declined']:
-                abort('Game invitation opponent cannot cancel it')
+                abort('Only {} can cancel this challenge'.format(
+                    game.creator.nickname,
+                ))
         else:
-            abort('You cannot change this invitation', 403)
+            abort('You cannot access this challenge', 403)
 
         if game.state != 'new':
-            abort('This game is already {}'.format(game.state))
+            abort('This challenge is already {}'.format(game.state))
 
         if args.state == 'accepted' and game.bet > user.available:
             abort('Not enough coins', problem='coins')
