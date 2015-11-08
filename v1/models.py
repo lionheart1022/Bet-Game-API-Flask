@@ -344,6 +344,8 @@ class ChatMessage(db.Model):
     sender = db.relationship(Player, foreign_keys='ChatMessage.sender_id')
     receiver_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
     receiver = db.relationship(Player, foreign_keys='ChatMessage.receiver_id')
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'), index=True)
+    game = db.relationship(Game)
     text = db.Column(db.Text)
     time = db.Column(db.DateTime, default=datetime.utcnow)
     has_attachment = db.Column(db.Boolean, default=False)
