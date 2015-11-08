@@ -1522,8 +1522,7 @@ class ChatMessageResource(restful.Resource):
                 raise NotFound('invalid game id')
             if game != msg.game:
                 raise NotFound('wrong game id')
-            player = game.other(user)
-            if not player:
+            if not game.is_game_player(user):
                 raise Forbidden('You cannot access this game')
 
         parser = RequestParser()

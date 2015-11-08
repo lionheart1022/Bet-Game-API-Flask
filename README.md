@@ -657,6 +657,20 @@ Maximum file size is currently 32MB.
 This endpoint is also available as `POST /games/<id>/msg` for compatibility.
 
 
+### GET /games/<id>/messages
+Counterpart of `GET /players/<id>/messages` for per-bet messages
+
+### GET /games/<id>/messages/<id>
+Get single message for given game
+
+### POST /games/<id>/messages
+Send new per-bet message, see `POST /players/<id>/messages` for details.
+Message receiver will be your opponent for this game.
+
+### PATCH /games/<id>/messages/<id>
+Mark chat message as read.
+
+
 ## PUSH notifications
 Whenever an event happens in the system, it will send PUSH notification to related devices.
 For now there are 2 types of notifications: game-related and chat-related.
