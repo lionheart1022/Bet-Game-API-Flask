@@ -1498,7 +1498,7 @@ class ChatMessageResource(restful.Resource):
 class ChatMessageAttachmentResource(UploadableResource):
     PARAM = 'attachment'
     SUBDIR = 'attachments'
-    ALLOWED = ['mp4','m4a','png','jpg']
+    ALLOWED = ['mp4','m4a','mov','png','jpg']
     @require_auth
     def get_entity(self, args, is_put, user):
         player = Player.find(args['player_id'])
