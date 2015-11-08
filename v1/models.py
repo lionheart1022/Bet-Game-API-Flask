@@ -339,12 +339,19 @@ class Game(db.Model):
     @hybrid_method
     def is_game_player(self, player):
         return (player.id == self.creator_id) | (player.id == self.opponent_id)
+    @hybrid_method
     def other(self, player):
         if player.id == self.creator_id:
             return self.opponent
         if player.id == self.opponent_id:
             return self.creator
         return None
+    @other.expression
+    def other(cls, player):
+        return case([
+            (player.id == cls.creator_id, cls.opponent),
+            (player.id == cls.opponent_id, cls.creator),
+        ], else_ = None)
 
 
 class ChatMessage(db.Model):
