@@ -1535,6 +1535,7 @@ class ChatMessageResource(restful.Resource):
 
 @api.resource(
     '/players/<player_id>/messages/<int:id>/attachment'
+    '/games/<int:game_id>/messages/<int:id>/attachment',
 )
 class ChatMessageAttachmentResource(UploadableResource):
     PARAM = 'attachment'
@@ -1542,16 +1543,27 @@ class ChatMessageAttachmentResource(UploadableResource):
     ALLOWED = ['mp4','m4a','mov','png','jpg']
     @require_auth
     def get_entity(self, args, is_put, user):
-        player = Player.find(args['player_id'])
-        if not player:
-            raise NotFound
         msg = ChatMessage.query.get(args['id'])
         if not msg:
             raise NotFound
+
         if not msg.is_for(user):
             raise Forbidden
-        if player != user and not msg.is_for(player):
-            abort('Player ID mismatch')
+
+        if 'player_id' in args:
+            player = Player.find(args['player_id'])
+            if not player:
+                raise NotFound
+            if player != user and not msg.is_for(player):
+                abort('Player ID mismatch')
+        elif 'game_id' in args:
+            game = Game.query.get(args['game_id'])
+            if not game:
+                raise NotFound
+            if not game.is_game_player(user):
+                raise Forbidden('You cannot access this game')
+        else:
+            raise ValueError('no ids')
         return msg
     @classmethod
     def onupload(cls, entity, ext):
