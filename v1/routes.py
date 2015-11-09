@@ -1535,7 +1535,7 @@ class ChatMessageResource(restful.Resource):
         return marshal(msg, self.fields)
 
 @api.resource(
-    '/players/<player_id>/messages/<int:id>/attachment'
+    '/players/<player_id>/messages/<int:id>/attachment',
     '/games/<int:game_id>/messages/<int:id>/attachment',
 )
 class ChatMessageAttachmentResource(UploadableResource):
