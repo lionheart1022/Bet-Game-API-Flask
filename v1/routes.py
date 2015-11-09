@@ -1407,6 +1407,7 @@ class ChatMessageResource(restful.Resource):
                 messages = ChatMessage.for_user(player)
             else:
                 messages = ChatMessage.for_users(player, user)
+            messages = messages.filter_by(game_id=None)
         elif game:
             messages = ChatMessage.query.filter_by(game_id=game.id)
         else:
