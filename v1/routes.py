@@ -1260,29 +1260,31 @@ class GameResource(restful.Resource):
         poller = Poller.findPoller(game.gametype)
 
         if args.state == 'accepted':
-            if args.gamertag_opponent:
-                if(game.gamertag_opponent and
-                   game.gamertag_opponent != args.gamertag_opponent):
-                    log.warning('Game {}: changing opponent from {} to {}'.format(
-                        game.id, game.gamertag_opponent, args.gamertag_opponent))
-                # update it now, for gameStarted to use it
-                game.gamertag_opponent = args.gamertag_opponent
-            elif not game.gamertag_opponent:
-                abort('Please provide your {}!'.format(poller.identity.name))
-
-            if poller.twitch_identity:
-                if args.twitch_identity_opponent:
-                    if(game.twitch_identity_opponent and
-                    game.twitch_identity_opponent != args.twitch_identity_opponent):
-                        log.warning('Game {}: changing twitch oppo from {} to {}'.format(
-                            game.id, game.twitch_identity_opponent,
-                            args.twitch_identity_opponent))
-                    game.twitch_identity_opponent = args.twitch_identity_opponent
-                elif not game.twitch_identity_opponent:
-                    abort('Please provide your {}!'.format(poller.twitch_identity.name))
-            elif args.twitch_identity_opponent:
-                abort('This game doesn\'t support secondary identity {}'.format(
-                    poller.twitch_identity.name))
+            for name, identity in (
+                ('gamertag', poller.identity),
+                ('twitch_identity', poller.twitch_identity),
+            ):
+                argname = '{}_opponent'.format(name)
+                if not identity:
+                    if args[argname]:
+                        abort('This game doesn\'t support{} identity {}'.format(
+                            '' if name == 'gamertag' else ' secondary',
+                            poller.twitch_identity.name))
+                    continue
+                if args[argname]:
+                    if getattr(game, argname) != args[argname]:
+                        log.warning(
+                            'Game {}: changing {} opponent identity '
+                            'from {} to {}'.format(
+                                game.id,
+                                'primary' if name == 'gamertag' else 'secondary',
+                                getattr(game, argname),
+                                args[argname],
+                            )
+                        )
+                    setattr(game, argname, args[argname])
+                elif not getattr(game, argname):
+                    abort('Please provide your {}!'.format(poller.identity.name))
 
         # now all checks are done, perform actual logic
 
