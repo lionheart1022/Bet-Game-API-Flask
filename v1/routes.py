@@ -1145,7 +1145,7 @@ class GameResource(restful.Resource):
                 for role in 'creator', 'opponent':
                     if args['{}_{}'.format(name,role)]:
                         abort('[{}_{}]: not supported for this game type'.format(
-                            name, role))
+                            name, role), problem=argname)
                 continue
             for role, ruser in (
                 ('creator', user),
@@ -1156,13 +1156,13 @@ class GameResource(restful.Resource):
                     try:
                         args[argname] = identity.checker(args[argname])
                     except ValueError as e:
-                        abort('[{}]: {}'.format(argname, e))
+                        abort('[{}]: {}'.format(argname, e), problem=argname)
                 else:
                     args[argname] = getattr(ruser, identity.id)
                     if role == 'creator' and not args[argname]: # not provided
                         abort('Please specify your {}'.format(
                             identity.name,
-                        ))
+                        ), problem=argname)
         # Update creator's identity if requested
         if had_creatag and poller.identity:
             if args.savetag == 'replace':
@@ -1269,7 +1269,7 @@ class GameResource(restful.Resource):
                     if args[argname]:
                         abort('This game doesn\'t support{} identity {}'.format(
                             '' if name == 'gamertag' else ' secondary',
-                            poller.twitch_identity.name))
+                            poller.twitch_identity.name), problem=argname)
                     continue
                 if args[argname]:
                     if getattr(game, argname) != args[argname]:
@@ -1284,7 +1284,8 @@ class GameResource(restful.Resource):
                         )
                     setattr(game, argname, args[argname])
                 elif not getattr(game, argname):
-                    abort('Please provide your {}!'.format(poller.identity.name))
+                    abort('Please provide your {}!'.format(poller.identity.name),
+                          problem=argname)
 
             # Perform sameregion check
             if poller.sameregion:
