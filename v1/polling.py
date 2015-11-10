@@ -847,6 +847,13 @@ class TestPoller(Poller):
     def pollGame(self, game):
         pass
 
+# validation
+for poller in Poller.allPollers():
+    if poller.identity_id and not poller.identity:
+        raise ValueError('Bad identity id: '+poller.identity_id)
+    if poller.twitch_identity_id and not poller.twitch_identity:
+        raise ValueError('Bad twitch identity id: '+poller.identity_id)
+
 def poll_all():
     log.info('Polling started')
 
