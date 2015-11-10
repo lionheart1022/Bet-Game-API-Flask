@@ -1286,6 +1286,17 @@ class GameResource(restful.Resource):
                 elif not getattr(game, argname):
                     abort('Please provide your {}!'.format(poller.identity.name))
 
+            # Perform sameregion check
+            if poller.sameregion:
+                # additional check for regions
+                region1 = args['gamertag_creator'].split('/',1)[0]
+                region2 = args['gamertag_opponent'].split('/',1)[0]
+                if region1 != region2:
+                    abort('You and your opponent should be in the same region; '
+                        'but actually you are in {} and your opponent is in {}'.format(
+                            region2, region1))
+
+
         # now all checks are done, perform actual logic
 
         if args.state == 'accepted':
