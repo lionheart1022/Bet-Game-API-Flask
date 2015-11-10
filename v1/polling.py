@@ -114,6 +114,9 @@ class Poller:
         Default implementation does nothing,
         but subclass may want to save some information about current game state
         in the passed game object.
+
+        This method may be called more than once for single game,
+        but game will be actually started only after last call.
         """
         pass
     def games(self, gametype, gamemode=None):
