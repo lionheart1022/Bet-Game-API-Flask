@@ -1266,13 +1266,25 @@ class GameResource(restful.Resource):
 
         if args.state == 'accepted':
             if args.gamertag_opponent:
-                if game.gamertag_opponent != args.gamertag_opponent:
+                if(game.gamertag_opponent and
+                   game.gamertag_opponent != args.gamertag_opponent):
                     log.warning('Game {}: changing opponent from {} to {}'.format(
                         game.id, game.gamertag_opponent, args.gamertag_opponent))
                 # update it now, for gameStarted to use it
                 game.gamertag_opponent = args.gamertag_opponent
             elif not game.gamertag_opponent:
                 abort('Please provide your {}!'.format(poller.identity.name))
+
+            if poller.twitch_identity:
+                if args.twitch_identity_opponent:
+                    if(game.twitch_identity_opponent and
+                    game.twitch_identity_opponent != args.twitch_identity_opponent):
+                        log.warning('Game {}: changing twitch oppo from {} to {}'.format(
+                            game.id, game.twitch_identity_opponent,
+                            args.twitch_identity_opponent))
+                    game.twitch_identity_opponent = args.twitch_identity_opponent
+                elif not game.twitch_identity_opponent:
+                    abort('Please provide your {}!'.format(poller.twitch_identity.name))
 
         # now all checks are done, perform actual logic
 
