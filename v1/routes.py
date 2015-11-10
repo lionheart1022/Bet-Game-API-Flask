@@ -1153,8 +1153,12 @@ class GameResource(restful.Resource):
                 if field:
                     args[typ+'_'+who] = getattr(args[who], field)
                 if not args[typ+'_'+who]:
-                    abort('Please specify {} {typ}!'.format(
-                        *msgf, typ=typ))
+                    idname = getattr(poller,
+                                     'identity'
+                                     if typ == 'gamertag' else
+                                     typ).name
+                    abort('Please specify {} {idname}!'.format(
+                        *msgf, idname=idname))
                 return False # was not passed
 
         if check_gamertag('creator', ('your',)) and gamertag_field:
@@ -1167,8 +1171,8 @@ class GameResource(restful.Resource):
             elif args.savetag == 'fail_if_exists':
                 repl = True
                 if getattr(args.creator, gamertag_field) != args.gamertag_creator:
-                    abort('Gamertag already set and is different!',
-                          problem='savetag')
+                    abort('{} is already set and is different!'.format(
+                        poller.identity.name), problem='savetag')
             if repl:
                 setattr(args.creator, gamertag_field, args.gamertag_creator)
         check_gamertag('opponent', ('your opponent\'s',))
