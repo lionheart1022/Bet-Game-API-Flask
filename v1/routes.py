@@ -1234,6 +1234,8 @@ class GameResource(restful.Resource):
         parser.add_argument('state', choices=[
             'accepted', 'declined', 'cancelled'
         ], required=True)
+        parser.add_argument('gamertag_opponent', required=False)
+        parser.add_argument('twitch_identity_opponent', required=False)
         args = parser.parse_args()
 
         game = Game.query.get(id)
@@ -1260,9 +1262,22 @@ class GameResource(restful.Resource):
         if args.state == 'accepted' and game.bet > user.available:
             abort('Not enough coins', problem='coins')
 
+        poller = Poller.findPoller(game.gametype)
+
+        if args.state == 'accepted':
+            if args.gamertag_opponent:
+                if game.gamertag_opponent != args.gamertag_opponent:
+                    log.warning('Game {}: changing opponent from {} to {}'.format(
+                        game.id, game.gamertag_opponent, args.gamertag_opponent))
+                # update it now, for gameStarted to use it
+                game.gamertag_opponent = args.gamertag_opponent
+            elif not game.gamertag_opponent:
+                abort('Please provide your {}!'.format(poller.identity.name))
+
+        # now all checks are done, perform actual logic
+
         if args.state == 'accepted':
             try:
-                poller = Poller.findPoller(game.gametype)
                 poller.gameStarted(game)
             except Exception as e:
                 log.exception('Error in gameStarted for {}: {}'.format(
