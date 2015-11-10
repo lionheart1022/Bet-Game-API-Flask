@@ -1111,16 +1111,6 @@ class GameResource(restful.Resource):
                             required=True)
         parser.add_argument('bet', type=float, required=True)
         return parser
-    @classmethod
-    def identityparser(cls, poller, with_crea=True):
-        roles = ['creator', 'opponent'] if with_crea else ['opponent']
-        parser = RequestParser()
-        for identity in filter(None, [poller.identity, poller.twitch_identity]):
-            for role in roles:
-                parser.add_argument('{}_{}'.format(identity.id, role),
-                                    type=identity.checker,
-                                    required=False)
-        return parser
 
     @require_auth
     def post(self, user, id=None):
@@ -1133,9 +1123,6 @@ class GameResource(restful.Resource):
         poller = Poller.findPoller(args.gametype)
         if not poller or poller == DummyPoller:
             abort('Support for this game is coming soon!')
-
-        # parse identity-related args
-        args.update(self.identityparser(poller, False).parse_args())
 
         if poller.gamemodes:
             gmparser = RequestParser()
