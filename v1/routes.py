@@ -1134,53 +1134,55 @@ class GameResource(restful.Resource):
         if args.opponent == user:
             abort('You cannot compete with yourself')
 
-        for identity in filter(None, [poller.identity, poller.twitch_identity]):
-            pass #TODO
-
-        gamertag_field = poller.identity_id
-
-        args.creator = user # to simplify checking
-        def check_gamertag(who, msgf,
-                           typ='gamertag', field=gamertag_field):
-            if args[typ+'_'+who]:
-                # Checking method might convert data somehow,
-                # so it is mandatory to call it.
-                checker = poller.identity_check
-                if isinstance(checker, str): # resolve it here
-                    checker = globals()[checker]
-                try:
-                    args[typ+'_'+who] = checker(args[typ+'_'+who])
-                except ValueError as e:
-                    abort('[{}_{}]: {}'.format(typ, who, e))
-                return True # was passed
-            else:
-                if field:
-                    args[typ+'_'+who] = getattr(args[who], field)
-                if not args[typ+'_'+who]:
-                    idname = getattr(poller,
-                                     'identity'
-                                     if typ == 'gamertag' else
-                                     typ).name
-                    abort('Please specify {} {idname}!'.format(
-                        *msgf, idname=idname))
-                return False # was not passed
-
-        if check_gamertag('creator', ('your',)) and gamertag_field:
+        # check passed identities
+        # and pre-load them from user profiles if possible
+        identities = {
+            'gamertag': poller.identity,
+            'twitch_identity': poller.twitch_identity,
+        }
+        roles = {
+            'creator': user,
+            'opponent': args.opponent,
+        }
+        had_creatag = args.gamertag_creator
+        for name, identity in identities.items():
+            if not identity:
+                for role in 'creator', 'opponent':
+                    if args['{}_{}'.format(name,role)]:
+                        abort('[{}_{}]: not supported for this game type'.format(
+                            name, role))
+                continue
+            for role, ruser in roles.items():
+                argname = '{}_{}'.format(name, role)
+                if args[argname]:
+                    try:
+                        args[argname] = identity.checker(args[argname])
+                    except ValueError as e:
+                        abort('[{}]: {}'.format(argname, e))
+                else:
+                    args[argname] = getattr(ruser, identity.id)
+                    if not args[argname]: # not provided
+                        abort('Please specify {} {}'.format(
+                            'your' if role == 'creator' else 'your opponent\'s',
+                            identity.name,
+                        ))
+        # Update creator's identity if requested
+        if had_creatag and poller.identity:
             if args.savetag == 'replace':
                 repl = True
             elif args.savetag == 'never':
                 repl = False
             elif args.savetag == 'ignore_if_exists':
-                repl = not getattr(args.creator, gamertag_field)
+                repl = not getattr(user, poller.identity.id)
             elif args.savetag == 'fail_if_exists':
                 repl = True
-                if getattr(args.creator, gamertag_field) != args.gamertag_creator:
+                if getattr(user, poller.identity.id) != args.gamertag_creator:
                     abort('{} is already set and is different!'.format(
                         poller.identity.name), problem='savetag')
             if repl:
-                setattr(args.creator, gamertag_field, args.gamertag_creator)
-        check_gamertag('opponent', ('your opponent\'s',))
+                setattr(user, poller.identity.id, args.gamertag_creator)
 
+        # Perform sameregion check
         if poller.sameregion:
             # additional check for regions
             region1 = args['gamertag_creator'].split('/',1)[0]
@@ -1195,18 +1197,6 @@ class GameResource(restful.Resource):
                   problem='twitch_handle')
         if args.twitch_handle and not poller.twitch:
             abort('Twitch streams are not yet supported for this gametype')
-
-        if args.twitch_handle:
-            if poller.twitch_identity:
-                check_gamertag('creator', ('your',),
-                            'twitch_identity', poller.twitch_identity.id)
-                check_gamertag('opponent', ('your opponent\'s',),
-                            'twitch_identity', poller.twitch_identity.id)
-            else:
-                for role in 'creator', 'opponent':
-                    if args['twitch_identity_'+role]:
-                        abort('[twitch_identity_{}]: not supported for this game type'.format(
-                            role))
 
         if args.bet < 0.99:
             abort('Bet is too low', problem='bet')
