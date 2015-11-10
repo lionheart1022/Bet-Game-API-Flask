@@ -1771,3 +1771,23 @@ def debug_datadog():
     datadog('Debug', 'Debug received')
     dd_stat.increment('player.registered')
     return ''
+@app.route('/debug/money')
+@require_auth
+def debug_money(user):
+    # Allow this endpoint only for users whose first transaction was "other"
+    tran = user.transactions.first()
+    if tran.type != 'other':
+        raise Forbidden
+
+    SUM = 100
+    user.balance += SUM
+    db.session.add(Transaction(
+        player = user,
+        type = 'deposit',
+        sum = SUM,
+        balance = user.balance,
+        comment = 'Debugging income',
+    ))
+    db.session.commit()
+    return jsonify(success=True)
+
