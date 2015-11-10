@@ -265,7 +265,7 @@ class FifaPoller(Poller, LimitedApi):
     identity_id = 'ea_gamertag'
     twitch_identity_id = 'fifa_team'
     usemodes = True
-    twitch = 1
+    twitch = 2
     twitch_gametypes = {
         'fifa14-xboxone': 'FIFA 14',
         'fifa15-xboxone': 'FIFA 15',
