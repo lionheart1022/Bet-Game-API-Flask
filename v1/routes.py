@@ -1136,23 +1136,21 @@ class GameResource(restful.Resource):
 
         # check passed identities
         # and pre-load them from user profiles if possible
-        identities = {
-            'gamertag': poller.identity,
-            'twitch_identity': poller.twitch_identity,
-        }
-        roles = {
-            'creator': user,
-            'opponent': args.opponent,
-        }
         had_creatag = args.gamertag_creator
-        for name, identity in identities.items():
+        for name, identity in (
+            ('gamertag', poller.identity),
+            ('twitch_identity', poller.twitch_identity),
+        ):
             if not identity:
                 for role in 'creator', 'opponent':
                     if args['{}_{}'.format(name,role)]:
                         abort('[{}_{}]: not supported for this game type'.format(
                             name, role))
                 continue
-            for role, ruser in roles.items():
+            for role, ruser, is_crea in (
+                ('creator', user, True),
+                ('opponent', args.opponent, False),
+            ):
                 argname = '{}_{}'.format(name, role)
                 if args[argname]:
                     try:
@@ -1163,7 +1161,7 @@ class GameResource(restful.Resource):
                     args[argname] = getattr(ruser, identity.id)
                     if not args[argname]: # not provided
                         abort('Please specify {} {}'.format(
-                            'your' if role == 'creator' else 'your opponent\'s',
+                            'your' if is_crea else 'your opponent\'s',
                             identity.name,
                         ))
         # Update creator's identity if requested
