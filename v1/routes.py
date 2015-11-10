@@ -1285,6 +1285,9 @@ class GameResource(restful.Resource):
                     game.twitch_identity_opponent = args.twitch_identity_opponent
                 elif not game.twitch_identity_opponent:
                     abort('Please provide your {}!'.format(poller.twitch_identity.name))
+            elif args.twitch_identity_opponent:
+                abort('This game doesn\'t support secondary identity {}'.format(
+                    poller.twitch_identity.name))
 
         # now all checks are done, perform actual logic
 
