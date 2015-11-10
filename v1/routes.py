@@ -1147,9 +1147,9 @@ class GameResource(restful.Resource):
                         abort('[{}_{}]: not supported for this game type'.format(
                             name, role))
                 continue
-            for role, ruser, is_crea in (
-                ('creator', user, True),
-                ('opponent', args.opponent, False),
+            for role, ruser in (
+                ('creator', user),
+                ('opponent', args.opponent),
             ):
                 argname = '{}_{}'.format(name, role)
                 if args[argname]:
@@ -1159,9 +1159,8 @@ class GameResource(restful.Resource):
                         abort('[{}]: {}'.format(argname, e))
                 else:
                     args[argname] = getattr(ruser, identity.id)
-                    if not args[argname]: # not provided
-                        abort('Please specify {} {}'.format(
-                            'your' if is_crea else 'your opponent\'s',
+                    if role == 'creator' and not args[argname]: # not provided
+                        abort('Please specify your {}'.format(
                             identity.name,
                         ))
         # Update creator's identity if requested
