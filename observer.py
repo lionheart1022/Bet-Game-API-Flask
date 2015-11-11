@@ -679,8 +679,9 @@ class FifaHandler(Handler):
             log.info('draw detected')
             return 'draw', True, details
 
-        cl = self.stream.creator.casefold()
-        ol = self.stream.opponent.casefold()
+        cl, ol = map(lambda u: u.casefold().translate({
+            ord(n): '@' for n in '0123456789'
+        }), (self.stream.creator, self.stream.opponent))
         log.debug('cl: {}, ol: {}'.format(cl, ol))
         creator = opponent = None
         if cl == team1l:
