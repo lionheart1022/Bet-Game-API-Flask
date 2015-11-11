@@ -882,6 +882,11 @@ def gametypes():
     parser = RequestParser()
     parser.add_argument('betcount', type=boolean_field, default=False)
     parser.add_argument('latest', type=boolean_field, default=False)
+    parser.add_argument('filter')
+    parser.add_argument('filt_op',
+                        choices=['startswith', 'contains'],
+                        default='startswith',
+                        )
     args = parser.parse_args()
 
     counts = {}
@@ -945,6 +950,16 @@ def gametypes():
                     name = gametype_name,
                     supported = False,
                 ))
+    if args.filter:
+        args.filter = args.filter.lower()
+        gamedata = filter(
+            # search string in name or title
+            lambda item: getattr(item['name'].lower(),
+                                 args.filt_op)(args.filter)
+            or getattr(getattr(item, 'subtitle', '').lower(),
+                       args.filt_op)(args.filter),
+            gamedata,
+        )
     ret = dict(
         gametypes = gamedata,
         identities = identities,
