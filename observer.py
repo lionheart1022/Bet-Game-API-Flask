@@ -257,7 +257,6 @@ class Handler:
         if tgtype == 'None':
             tgtype = None
         cinfo = Twitch.channel(self.stream.handle)
-        log.debug(str(cinfo)); return True
         if cinfo['game'] != tgtype:
             log.info('Stream {}: expected game {}, got {} - will wait'.format(
                 self.stream.handle, tgtype, cinfo['game']))
