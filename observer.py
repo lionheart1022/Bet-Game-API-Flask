@@ -317,7 +317,8 @@ class Handler:
                 self.stream.state = 'failed'
                 db.session.commit()
                 # mark it as Done anyway
-                self.done('failed', datetime.utcnow().timestamp())
+                self.done('failed', datetime.utcnow().timestamp(),
+                          'Watching failed due to internal error')
             except Exception: # stream was deleted?
                 log.exception('Failed to mark stream as done-anyway')
         except eventlet.greenlet.GreenletExit:
