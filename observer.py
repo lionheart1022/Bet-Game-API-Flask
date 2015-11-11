@@ -671,7 +671,7 @@ class FifaHandler(Handler):
                 return None
             # TODO: penalties
         if not self.__approaching:
-            log.info('Probably unexpected line (time %s but not approaching)'%time)
+            log.info('Probably unexpected line (time %s but not approaching)'%str(time))
             return None
 
         # Now we suppose we have correct result
