@@ -593,7 +593,16 @@ class FifaHandler(Handler):
                     return None
                 log.debug('Team names not recognized: '+line)
                 return None # we will not handle such line for now
+            if ':' not in time:
+                log.debug('Time not recognized: '+line)
+                return None
+            time = tuple(map(int, time.split(':'))) # (hh, mm)
+            if time[0] < 0 or time[1] < 0:
+                log.debug('Negative time: '+line)
+                return None
             score1, score2 = map(int, (score1, score2))
+            if len(team1) != 3 or len(team2) != 3:
+                log.debug('Bad team names, expected 3 chars: '+line)
 
             details = '{} vs {}: {} - {}'.format(
                 team1, team2,
