@@ -608,68 +608,68 @@ class FifaHandler(Handler):
         #if 'Impossible to recognize who won' in line:
         #    log.warning('Couldn\'t get result, skipping')
         #    return None #'draw'
-        if line.endswith('in-game') and 'non in-game' not in line:
+        if not line.endswith('in-game') or 'non in-game' in line:
+            return None
             # FIXME penalties
-            parts = line.split()
-            _, time, team1, score1, _m, team2, score2, *_ = parts
-            if _m != '-':
-                log.debug('Line not recognized: '+line)
-                return None
-            if team1 == '@@@' or team2 == '@@@':
-                log.debug('Teams not recognized: '+line)
-                return None
-            if ':' not in time:
-                log.debug('Time not recognized: '+line)
-                return None
-            time = tuple(map(int, time.split(':'))) # (hh, mm) - may raise ValueErr for 0:1:2 or x:y
-            if time[0] < 0 or time[1] < 0:
-                log.debug('Negative time: '+line)
-                return None
-            score1, score2 = map(int, (score1, score2))
-            if score1 < 0 or score2 < 0:
-                log.debug('Negative scores: '+line)
-            if len(team1) != 3 or len(team2) != 3:
-                log.debug('Bad team names, expected 3 chars: '+line)
+        parts = line.split()
+        _, time, team1, score1, _m, team2, score2, *_ = parts
+        if _m != '-':
+            log.debug('Line not recognized: '+line)
+            return None
+        if team1 == '@@@' or team2 == '@@@':
+            log.debug('Teams not recognized: '+line)
+            return None
+        if ':' not in time:
+            log.debug('Time not recognized: '+line)
+            return None
+        time = tuple(map(int, time.split(':'))) # (hh, mm) - may raise ValueErr for 0:1:2 or x:y
+        if time[0] < 0 or time[1] < 0:
+            log.debug('Negative time: '+line)
+            return None
+        score1, score2 = map(int, (score1, score2))
+        if score1 < 0 or score2 < 0:
+            log.debug('Negative scores: '+line)
+        if len(team1) != 3 or len(team2) != 3:
+            log.debug('Bad team names, expected 3 chars: '+line)
 
-            details = '{} vs {}: {} - {}'.format(
-                team1, team2,
-                score1, score2,
-            )
+        details = '{} vs {}: {} - {}'.format(
+            team1, team2,
+            score1, score2,
+        )
 
-            log.info('Got score data. Teams {} / {}, scores {} / {}'.format(
-                team1, team2, score1, score2))
+        log.info('Got score data. Teams {} / {}, scores {} / {}'.format(
+            team1, team2, score1, score2))
 
-            if score1 == score2:
-                log.info('draw detected')
-                return 'draw', True, details
+        if score1 == score2:
+            log.info('draw detected')
+            return 'draw', True, details
 
-            cl = self.stream.creator.lower()
-            ol = self.stream.opponent.lower()
-            log.debug('cl: {}, ol: {}'.format(cl, ol))
-            creator = opponent = None
-            if cl == nick1:
-                creator = 1
-            elif cl == nick2:
-                creator = 2
-            if ol == nick1:
-                opponent = 1
-            elif ol == nick2:
-                opponent = 2
-            if not creator and not opponent:
-                log.warning('Wrong gamertags / good gamertag not detected! '
-                            'Defaulting to draw.')
-                return 'draw', False, 'Gamertags don\'t match -> draw... '+details
-            if not creator:
-                creator = 1 if opponent == 2 else 2
+        cl = self.stream.creator.lower()
+        ol = self.stream.opponent.lower()
+        log.debug('cl: {}, ol: {}'.format(cl, ol))
+        creator = opponent = None
+        if cl == nick1:
+            creator = 1
+        elif cl == nick2:
+            creator = 2
+        if ol == nick1:
+            opponent = 1
+        elif ol == nick2:
+            opponent = 2
+        if not creator and not opponent:
+            log.warning('Wrong gamertags / good gamertag not detected! '
+                        'Defaulting to draw.')
+            return 'draw', False, 'Gamertags don\'t match -> draw... '+details
+        if not creator:
+            creator = 1 if opponent == 2 else 2
 
-            if score1 > score2:
-                winner = 1
-            else:
-                winner = 2
-            return('creator' if winner == creator else 'opponent',
-                   True,
-                   details)
-        return None
+        if score1 > score2:
+            winner = 1
+        else:
+            winner = 2
+        return('creator' if winner == creator else 'opponent',
+                True,
+                details)
 class TestHandler(Handler):
     gametypes = [
         'test',
