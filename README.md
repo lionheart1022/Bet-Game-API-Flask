@@ -796,11 +796,13 @@ Possible game states:
 	"id": 15, // internal id
 	"creator": { Limited Player resource },
 	"opponent": { Limited Player resource },
-	"gamertag_creator": "Creator Gamer Tag",
-	"gamertag_opponent": "Opponent Gamer Tag",
+	"gamertag_creator": "Creator's primary identity",
+	"gamertag_opponent": "Opponent's primary identity",
+	"identity_name": "EA GamerTag", // value of corresponding gametype's identity_name
 	"twitch": 1, // see POST /game for options
 	"twitch_identity_creator": "Creator's Identity for Twitch Streamer",
 	"twitch_identity_opponent": "Opponent's Identity for Twitch Streamer",
+	"twitch_identity_name": "Fifa Team", // value of corresponding gametype's twitch_identity_name
 	"gametype": "xboxone-fifa15", // see POST /games for options
 	"gamemode": "friendlies", // or any other, see POST /games for details
 	"bet": 5.29, // bet amount
