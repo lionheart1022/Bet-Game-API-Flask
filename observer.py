@@ -577,15 +577,22 @@ class FifaHandler(Handler):
             return 'offline'
             # TODO: maybe consider this as game-end?
 
-        if 'Impossible to recognize who won' in line:
-            log.warning('Couldn\'t get result, skipping')
-            return None #'draw'
-        if line.startswith('in-game'):
+        #if 'Impossible to recognize who won' in line:
+        #    log.warning('Couldn\'t get result, skipping')
+        #    return None #'draw'
+        if '[ocr] in-game' in line:
             parts = line.split()
-            team1, score1, _m, team2, score2 = parts[-5:]
+            _, _, time, team1, score1, _m, team2, score2, *_ = parts
             if _m != '-':
-                log.warning('Unexpected line, part[-3] != -: '+line)
-                return None
+                # maybe team names are not recognized yet?
+                # shift right
+                score2, _m, score1 = _m, score1, team1
+                team1 = team2 = ''
+                if _m != '-':
+                    log.debug('Line not recognized: '+line)
+                    return None
+                log.debug('Team names not recognized: '+line)
+                return None # we will not handle such line for now
             score1, score2 = map(int, (score1, score2))
 
             details = '{} vs {}: {} - {}'.format(
