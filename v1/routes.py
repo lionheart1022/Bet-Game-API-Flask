@@ -882,12 +882,17 @@ def gametypes():
     parser = RequestParser()
     parser.add_argument('betcount', type=boolean_field, default=False)
     parser.add_argument('latest', type=boolean_field, default=False)
+    parser.add_argument('identities', type=boolean_field, default=None)
     parser.add_argument('filter')
     parser.add_argument('filt_op',
                         choices=['startswith', 'contains'],
                         default='startswith',
                         )
     args = parser.parse_args()
+    if args.identities == None:
+        # dynamic default
+        args.identities = False if args.filter else True
+    log.debug(args.identities)
 
     counts = {}
     if args.betcount:
