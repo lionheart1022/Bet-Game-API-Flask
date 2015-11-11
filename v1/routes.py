@@ -1768,6 +1768,9 @@ def debug_echo():
         repr(request.get_data()),
         repr(request.form),
     )
+@app.route('/debug/raise')
+def debug_raise():
+    raise Forbidden('Hello World!')
 @app.route('/debug/datadog')
 def debug_datadog():
     datadog('Debug', 'Debug received')
