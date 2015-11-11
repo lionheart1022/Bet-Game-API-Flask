@@ -465,7 +465,7 @@ class Handler:
     def check(self, line):
         """
         To be overriden.
-        Accepts one line from script\'s output;
+        Takes one line from script\'s output;
         returns tuple: outcome, is_strong, details.
         For 'offline' and None outcomes can return just outcome.
         If outcome is weak, it will only be considered if there are stronger outcomes.
@@ -490,7 +490,7 @@ class FifaOldHandler(Handler):
         'fifa14-xboxone',
         'fifa15-xboxone',
     ]
-    #gametypes = []
+    gametypes = []
     path = 'fifastreamer'
     env = '../../env2'
     process = 'python2 -u fifa_streamer.py "http://twitch.tv/{handle}"'
@@ -569,7 +569,7 @@ class FifaHandler(Handler):
         'fifa14-xboxone',
         'fifa15-xboxone',
     ]
-    gametypes = []
+#    gametypes = []
     path = 'fifanewstreamer'
     process = './ocr_test "http://twitch.tv/{handle}" -debug -skip 10'
 
