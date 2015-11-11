@@ -386,8 +386,14 @@ class Handler:
                 # force stop this process and retry in 30 seconds
                 # (will be done in watch_tc)
                 return 'offline'
+            if outcome == 'abandon':
+                # abandon previously retrieved data
+                results = []
+                first_res = None
+                self.stream.state = 'watching' # roll back from 'found'
+                continue
 
-            if outcome is not None:
+            if outcome is not None and outcome != 'done':
                 if not isinstance(result, tuple):
                     log.warning('Invalid outcome, no details available: '+str(result))
                     result = (result, False, None) # consider it weak
@@ -398,6 +404,8 @@ class Handler:
 
             # consider game done when either got quorum results
             # or maxdelta passed since first result
+            # (in case they are enabled for this particular streamer)
+            # or when outcome is 'done'
             log.debug('have for now: r: {}, '
                       'now: {}, '
                       'fr: {}, '
@@ -407,8 +415,11 @@ class Handler:
                           first_res,
                           (first_res + self.maxdelta) if first_res else '..',
                       ))
-            if results and (len(results) >= self.quorum or
-                            datetime.utcnow() > first_res + self.maxdelta):
+            if results and (
+                (outcome == 'done') or
+                (self.quorum and len(results) >= self.quorum) or
+                (self.maxdelta and datetime.utcnow() > first_res + self.maxdelta)
+            ):
                 # FIXME: this clause is executed only on next line,
                 # so if we got 3 results (<quorum) and none after that
                 # then we will wait until next line,
@@ -572,6 +583,10 @@ class FifaHandler(Handler):
 #    gametypes = []
     path = 'fifanewstreamer'
     process = './ocr_test "http://twitch.tv/{handle}" -debug -skip 10'
+
+    # disable quorum-based mechanics
+    quorum = None
+    maxdelta = None
 
     def started(self):
         self.__lasttime = None
