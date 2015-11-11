@@ -34,7 +34,11 @@ def make_json_error(ex):
     if hasattr(ex, 'data'):
         response = jsonify(**ex.data)
     else:
-        response = jsonify(error_code = code, error = http_status_message(code))
+        response = jsonify(
+            error_code = code,
+            error = ex.__dict__.get('description')
+                or http_status_message(code),
+        )
     response.status_code = code
     return response
 for code in default_exceptions.keys():

@@ -1770,7 +1770,7 @@ def debug_echo():
     )
 @app.route('/debug/raise')
 def debug_raise():
-    abort('Hello World', Forbidden)
+    raise Forbidden('Hello World!')
 @app.route('/debug/datadog')
 def debug_datadog():
     datadog('Debug', 'Debug received')
