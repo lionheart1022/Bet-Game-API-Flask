@@ -36,13 +36,14 @@ def make_json_error(ex):
     else:
         response = jsonify(
             error_code = code,
-            error = ex.__dict__.get('description')
+            error = ex.__dict__.get('description') # __dict__ to avoid using classwide default
                 or http_status_message(code),
         )
     response.status_code = code
     return response
 for code in default_exceptions.keys():
-    app.error_handler_spec[None][code] = make_json_error
+    # apply decorator
+    app.errorhandler(code)(make_json_error)
 
 
 def init_app(app=app):
