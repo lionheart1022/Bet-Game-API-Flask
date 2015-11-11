@@ -574,7 +574,7 @@ class FifaHandler(Handler):
     process = './ocr_test "http://twitch.tv/{handle}" -debug -skip 10'
 
     def started(self):
-        self.__stat = None
+        self.__lasttime = None
 
     def check(self, line):
         log.debug('checking line: '+line)
