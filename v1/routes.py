@@ -953,12 +953,12 @@ def gametypes():
                     supported = False,
                 ))
     if args.filter:
-        args.filter = args.filter.lower()
+        args.filter = args.filter.casefold()
         gamedata = list(filter(
             # search string in name or title
-            lambda item: getattr(item['name'].lower(),
+            lambda item: getattr(item['name'].casefold(),
                                  args.filt_op)(args.filter)
-            or getattr(getattr(item, 'subtitle', '').lower(),
+            or getattr(getattr(item, 'subtitle', '').casefold(),
                        args.filt_op)(args.filter),
             gamedata,
         ))
