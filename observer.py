@@ -479,9 +479,10 @@ class Handler:
 
 class FifaOldHandler(Handler):
     gametypes = [
-        'fifa14-xboxone__',
-        'fifa15-xboxone__',
+        'fifa14-xboxone',
+        'fifa15-xboxone',
     ]
+    #gametypes = []
     path = 'fifastreamer'
     env = '../../env2'
     process = 'python2 -u fifa_streamer.py "http://twitch.tv/{handle}"'
@@ -560,6 +561,7 @@ class FifaHandler(Handler):
         'fifa14-xboxone',
         'fifa15-xboxone',
     ]
+    gametypes = []
     path = 'fifanewstreamer'
     process = './ocr_test "http://twitch.tv/{handle}" -debug -skip 10'
 
@@ -576,11 +578,15 @@ class FifaHandler(Handler):
             # stream possibly went offline
             return 'offline'
             # TODO: maybe consider this as game-end?
+        if 'HTTP connection closed' in line or 'Stream ended' in line:
+            # stream went offline
+            return 'offline'
 
         #if 'Impossible to recognize who won' in line:
         #    log.warning('Couldn\'t get result, skipping')
         #    return None #'draw'
         if '[ocr] in-game' in line:
+            # FIXME penalties
             parts = line.split()
             _, _, time, team1, score1, _m, team2, score2, *_ = parts
             if _m != '-':
