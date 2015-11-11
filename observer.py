@@ -608,20 +608,16 @@ class FifaHandler(Handler):
         #if 'Impossible to recognize who won' in line:
         #    log.warning('Couldn\'t get result, skipping')
         #    return None #'draw'
-        if '[ocr] in-game' in line:
+        if line.endswith('in-game') and 'non in-game' not in line:
             # FIXME penalties
             parts = line.split()
-            _, _, time, team1, score1, _m, team2, score2, *_ = parts
+            _, time, team1, score1, _m, team2, score2, *_ = parts
             if _m != '-':
-                # maybe team names are not recognized yet?
-                # shift right
-                score2, _m, score1 = _m, score1, team1
-                team1 = team2 = ''
-                if _m != '-':
-                    log.debug('Line not recognized: '+line)
-                    return None
-                log.debug('Team names not recognized: '+line)
-                return None # we will not handle such line for now
+                log.debug('Line not recognized: '+line)
+                return None
+            if team1 == '@@@' or team2 == '@@@':
+                log.debug('Teams not recognized: '+line)
+                return None
             if ':' not in time:
                 log.debug('Time not recognized: '+line)
                 return None
