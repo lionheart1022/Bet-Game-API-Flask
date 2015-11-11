@@ -265,16 +265,24 @@ class Handler:
         # TODO: check if it is online
 
         return True
-    def wait_for_correct_game(self):
+    def wait_for_correct_game(self, minutes=None):
         log.info('Waiting for correct game')
+        waits = 0
         while not self.check_current_game():
-            eventlet.sleep(30) # check every 30 seconds
+            eventlet.sleep(60) # check every minute
+            waits += 1
+            if tries and waits > minutes:
+                log.info('Abandoning waiting')
+                return False
         log.info('Correct game detected')
+        return True
 
     def watch_tc(self):
         log.info('watch_tc started')
         try:
-            self.wait_for_correct_game()
+            if not self.wait_for_correct_game(minutes=60): # 1 hour
+                raise Exception('Wrong game is set for too long, abandoning '+
+                                self.stream.handle)
             result = self.watch()
             waits = 0
             while result == 'offline':
