@@ -957,14 +957,14 @@ def gametypes():
                 ))
     if args.filter:
         args.filter = args.filter.lower()
-        gamedata = filter(
+        gamedata = list(filter(
             # search string in name or title
             lambda item: getattr(item['name'].lower(),
                                  args.filt_op)(args.filter)
             or getattr(getattr(item, 'subtitle', '').lower(),
                        args.filt_op)(args.filter),
             gamedata,
-        )
+        ))
     ret = dict(
         gametypes = gamedata,
         identities = identities,
