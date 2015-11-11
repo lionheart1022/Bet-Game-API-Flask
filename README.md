@@ -446,7 +446,10 @@ List available game types.
 
 * `betcount`: whether to include count of bets (i.e. popularity)
   and last bet time for each gametype; defaults to `false`
-* `latest`: whether to include `latest` list
+* `latest`: whether to include `latest` list; defaults to `false`
+* `identities`: whether to include list of all available identities. Defaults to `true` *but is forced to `false` if `filter` is provided*.
+* `filter`: text to search in `name` or `subtitle` of games. Will not apply filtering by default. Search is case-insensitive.
+* `filt_op`: filtering operation, either `startswith`, `contains` or `endswith`. Defaults to `startswith`.
 
 Will return the following detials about each game type:
 
