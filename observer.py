@@ -589,7 +589,7 @@ class FifaHandler(Handler):
     maxdelta = None
 
     def started(self):
-        self.__lasttime = None
+        self.__approaching = False
 
     def check(self, line):
         log.debug('checking line: '+line)
@@ -611,6 +611,7 @@ class FifaHandler(Handler):
         if not line.endswith('in-game') or 'non in-game' in line:
             return None
             # FIXME penalties
+
         parts = line.split()
         _, time, team1, score1, _m, team2, score2, *_ = parts
         if _m != '-':
@@ -622,42 +623,71 @@ class FifaHandler(Handler):
         if ':' not in time:
             log.debug('Time not recognized: '+line)
             return None
-        time = tuple(map(int, time.split(':'))) # (hh, mm) - may raise ValueErr for 0:1:2 or x:y
+        time = tuple(map(int, time.split(':'))) # (hh, mm) - may in theory raise ValueErr for 0:1:2 or x:y
         if time[0] < 0 or time[1] < 0:
             log.debug('Negative time: '+line)
             return None
         score1, score2 = map(int, (score1, score2))
         if score1 < 0 or score2 < 0:
             log.debug('Negative scores: '+line)
+            return None
         if len(team1) != 3 or len(team2) != 3:
             log.debug('Bad team names, expected 3 chars: '+line)
+            return None
+        team1l, team2l = map(lambda t: t.casefold(), (team1, team2))
 
         details = '{} vs {}: {} - {}'.format(
             team1, team2,
             score1, score2,
         )
 
-        log.info('Got score data. Teams {} / {}, scores {} / {}'.format(
+        log.debug('Got score data. Teams {} / {}, scores {} / {}'.format(
             team1, team2, score1, score2))
+
+        # TODO: probably pre-handle & remember team names here
+        # to check if stream went wrong
+
+        if time[0] < 88:
+            return None # too early anyway
+        if time[0] in [88, 89]:
+            log.debug('Approaching 90! %s' % time)
+            self.__approaching = True
+            return None
+        if time[0] > 91:
+            if time[0] < 100 and self.__approaching:
+                return 'abandon'
+            if time[0] < 118:
+                return None # too early again
+            if time[0] in [118, 119]:
+                log.debug('Approaching 120! %s' % time)
+                self.__approaching = True
+                return None
+            # TODO: penalties
+        if not self.__approaching:
+            log.info('Probably unexpected line (time %s but not approaching)'%time)
+            return None
+
+        # Now we suppose we have correct result
+        # so calculate it
 
         if score1 == score2:
             log.info('draw detected')
             return 'draw', True, details
 
-        cl = self.stream.creator.lower()
-        ol = self.stream.opponent.lower()
+        cl = self.stream.creator.casefold()
+        ol = self.stream.opponent.casefold()
         log.debug('cl: {}, ol: {}'.format(cl, ol))
         creator = opponent = None
-        if cl == nick1:
+        if cl == team1l:
             creator = 1
-        elif cl == nick2:
+        elif cl == team2l:
             creator = 2
-        if ol == nick1:
+        if ol == team1l:
             opponent = 1
-        elif ol == nick2:
+        elif ol == team2l:
             opponent = 2
         if not creator and not opponent:
-            log.warning('Wrong gamertags / good gamertag not detected! '
+            log.warning('Wrong team names / good team name not detected! '
                         'Defaulting to draw.')
             return 'draw', False, 'Gamertags don\'t match -> draw... '+details
         if not creator:
@@ -866,12 +896,12 @@ class StreamResource(restful.Resource):
             # stream already exists; add this game to it as a supplementary game
             new = False
 
-            if args.creator.lower() == stream.creator.lower():
-                if args.opponent.lower() != stream.opponent.lower():
+            if args.creator.casefold() == stream.creator.casefold():
+                if args.opponent.casefold() != stream.opponent.casefold():
                     abort('Duplicate stream ID with wrong opponent nickname', 409)
                 game = args.game_id
-            elif args.opponent.lower() == stream.creator.lower():
-                if args.creator.lower() != stream.opponent.lower():
+            elif args.opponent.casefold() == stream.creator.casefold():
+                if args.creator.casefold() != stream.opponent.casefold():
                     abort('Duplicate stream ID with wrong reverse oppo nickname', 409)
                 game = -args.game_id # reversed result
             else:
