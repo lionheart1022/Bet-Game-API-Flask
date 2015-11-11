@@ -586,7 +586,7 @@ class FifaHandler(Handler):
 
     # disable quorum-based mechanics
     quorum = None
-    maxdelta = None
+    maxdelta = timedelta(minutes=5)
 
     def started(self):
         self.__approaching = False
@@ -603,14 +603,17 @@ class FifaHandler(Handler):
             # TODO: maybe consider this as game-end?
         if 'HTTP connection closed' in line or 'Stream ended' in line:
             # stream went offline
-            return 'offline'
+            return 'done'
 
         #if 'Impossible to recognize who won' in line:
         #    log.warning('Couldn\'t get result, skipping')
         #    return None #'draw'
         if not line.endswith('in-game') or 'non in-game' in line:
+            if self.__approaching and 'non in-game' in line:
+                # FIXME for now consider this  state a proper game-end
+                return 'done'
             return None
-            # FIXME penalties
+        # FIXME penalties
 
         parts = line.split()
         _, time, team1, score1, _m, team2, score2, *_ = parts
