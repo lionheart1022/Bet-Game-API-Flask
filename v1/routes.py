@@ -882,17 +882,15 @@ def gametypes():
     parser = RequestParser()
     parser.add_argument('betcount', type=boolean_field, default=False)
     parser.add_argument('latest', type=boolean_field, default=False)
-    parser.add_argument('identities', type=boolean_field, default=None)
+    parser.add_argument('identities', type=boolean_field, default=True)
     parser.add_argument('filter')
     parser.add_argument('filt_op',
                         choices=['startswith', 'contains'],
                         default='startswith',
                         )
     args = parser.parse_args()
-    if args.identities == None:
-        # dynamic default
-        args.identities = False if args.filter else True
-    log.debug(args.identities)
+    if args.filter:
+        args.identities = False
 
     counts = {}
     if args.betcount:
@@ -912,7 +910,6 @@ def gametypes():
         times = bta # in proper order
 
     gamedata = []
-    identities = {i.id: i.name for i in Identity.all}
     for poller in Poller.allPollers():
         for gametype, gametype_name in poller.gametypes.items():
             if poller.identity or poller.twitch_identity:
@@ -965,10 +962,12 @@ def gametypes():
                        args.filt_op)(args.filter),
             gamedata,
         ))
+
     ret = dict(
         gametypes = gamedata,
-        identities = identities,
     )
+    if args.identities:
+        ret['identities'] = {i.id: i.name for i in Identity.all}
     if args.latest:
         ret['latest'] = [
             dict(
