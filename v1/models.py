@@ -333,6 +333,25 @@ class Game(db.Model):
     finish_date = db.Column(db.DateTime, nullable=True)
 
     @property
+    def identity_name(self):
+        if not self.gametype:
+            return None
+        from .polling import Poller
+        poller = Poller.findPoller(self.gametype)
+        if not poller.identity:
+            return None
+        return poller.identity.name
+    @property
+    def twitch_identity_name(self):
+        if not self.gametype:
+            return None
+        from .polling import Poller
+        poller = Poller.findPoller(self.gametype)
+        if not poller.twitch_identity:
+            return None
+        return poller.twitch_identity.name
+
+    @property
     def has_message(self):
         from .routes import GameMessageResource
         return bool(GameMessageResource.findfile(self))
