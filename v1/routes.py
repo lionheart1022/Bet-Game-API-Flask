@@ -916,6 +916,7 @@ def gametypes():
                 data = dict(
                     id = gametype,
                     name = gametype_name,
+                    subtitle = poller.subtitle,
                     supported = True,
                     gamemodes = poller.gamemodes,
                     identity = poller.identity_id,

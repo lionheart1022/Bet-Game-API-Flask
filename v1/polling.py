@@ -60,6 +60,7 @@ class Poller:
     # Might be dictionary if description should vary
     # for different gametypes in same poller.
     description = None
+    subtitle = None
     minutes = 0 # by default, poll as often as possible
 
     @classproperty
