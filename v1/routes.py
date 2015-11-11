@@ -954,6 +954,8 @@ def gametypes():
                 ))
     if args.filter:
         args.filter = args.filter.casefold()
+        if args.filt_op == 'contains':
+            args.filt_op = '__contains__'
         gamedata = list(filter(
             # search string in name or title
             lambda item: getattr(item['name'].casefold(),
