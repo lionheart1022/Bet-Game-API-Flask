@@ -637,7 +637,9 @@ class FifaHandler(Handler):
         if len(team1) != 3 or len(team2) != 3:
             log.debug('Bad team names, expected 3 chars: '+line)
             return None
-        team1l, team2l = map(lambda t: t.casefold(), (team1, team2))
+        team1l, team2l = map(lambda t: t.casefold().translate({
+            ord(n): '@' for n in '0123456789'
+        }), (team1, team2))
 
         details = '{} vs {}: {} - {}'.format(
             team1, team2,
