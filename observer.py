@@ -354,6 +354,9 @@ class Handler:
         results = []
         first_res = None
         log.info('waiting for output')
+
+        self.started()
+
         for line in sub.stdout:
             log.info('got line '+str(line))
             line = line.strip().decode()
@@ -449,6 +452,8 @@ class Handler:
 
         # TODO: clean sub?
 
+    def started(self):
+        pass
     def check(self, line):
         """
         To be overriden.
@@ -472,10 +477,10 @@ class Handler:
         )
         log.debug('Result sent.')
 
-class FifaHandler(Handler):
+class FifaOldHandler(Handler):
     gametypes = [
-        'fifa14-xboxone',
-        'fifa15-xboxone',
+        'fifa14-xboxone__',
+        'fifa15-xboxone__',
     ]
     path = 'fifastreamer'
     env = '../../env2'
@@ -518,6 +523,78 @@ class FifaHandler(Handler):
 
             log.info('Got score data. Nicks {} / {}, scores {} / {}'.format(
                 nick1, nick2, score1, score2))
+
+            if score1 == score2:
+                log.info('draw detected')
+                return 'draw', True, details
+
+            cl = self.stream.creator.lower()
+            ol = self.stream.opponent.lower()
+            log.debug('cl: {}, ol: {}'.format(cl, ol))
+            creator = opponent = None
+            if cl == nick1:
+                creator = 1
+            elif cl == nick2:
+                creator = 2
+            if ol == nick1:
+                opponent = 1
+            elif ol == nick2:
+                opponent = 2
+            if not creator and not opponent:
+                log.warning('Wrong gamertags / good gamertag not detected! '
+                            'Defaulting to draw.')
+                return 'draw', False, 'Gamertags don\'t match -> draw... '+details
+            if not creator:
+                creator = 1 if opponent == 2 else 2
+
+            if score1 > score2:
+                winner = 1
+            else:
+                winner = 2
+            return('creator' if winner == creator else 'opponent',
+                   True,
+                   details)
+        return None
+class FifaHandler(Handler):
+    gametypes = [
+        'fifa14-xboxone',
+        'fifa15-xboxone',
+    ]
+    path = 'fifanewstreamer'
+    process = './ocr_test "http://twitch.tv/{handle}" -debug -skip 10'
+
+    def started(self):
+        self.__stat = None
+
+    def check(self, line):
+        log.debug('checking line: '+line)
+
+        if 'error: No streams found on this URL' in line:
+            # stream is offline
+            return 'offline'
+        if 'Failed to read the frame from the stream' in line:
+            # stream possibly went offline
+            return 'offline'
+            # TODO: maybe consider this as game-end?
+
+        if 'Impossible to recognize who won' in line:
+            log.warning('Couldn\'t get result, skipping')
+            return None #'draw'
+        if line.startswith('in-game'):
+            parts = line.split()
+            team1, score1, _m, team2, score2 = parts[-5:]
+            if _m != '-':
+                log.warning('Unexpected line, part[-3] != -: '+line)
+                return None
+            score1, score2 = map(int, (score1, score2))
+
+            details = '{} vs {}: {} - {}'.format(
+                team1, team2,
+                score1, score2,
+            )
+
+            log.info('Got score data. Teams {} / {}, scores {} / {}'.format(
+                team1, team2, score1, score2))
 
             if score1 == score2:
                 log.info('draw detected')
