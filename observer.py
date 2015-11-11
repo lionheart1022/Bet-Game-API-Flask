@@ -599,7 +599,7 @@ class FifaHandler(Handler):
             return 'offline'
         if 'Failed to read the frame from the stream' in line:
             # stream possibly went offline
-            return 'offline'
+            return 'done'
             # TODO: maybe consider this as game-end?
         if 'HTTP connection closed' in line or 'Stream ended' in line:
             # stream went offline
