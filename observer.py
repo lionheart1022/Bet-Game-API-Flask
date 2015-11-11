@@ -583,7 +583,7 @@ class FifaHandler(Handler):
     ]
 #    gametypes = []
     path = 'fifanewstreamer'
-    process = './ocr_test -debug -skip 30 "http://youtube.com/watch?v={handle}"'
+    process = './ocr_test -debug -skip 30 "http://twitch.tv/{handle}"'
 
     # disable quorum-based mechanics
     quorum = None
