@@ -960,7 +960,7 @@ def gametypes():
             # search string in name or title
             lambda item: getattr(item['name'].casefold(),
                                  args.filt_op)(args.filter)
-            or getattr(getattr(item, 'subtitle', '').casefold(),
+            or getattr(item.get('subtitle', '').casefold(),
                        args.filt_op)(args.filter),
             gamedata,
         ))
