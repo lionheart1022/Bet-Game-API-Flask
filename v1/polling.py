@@ -15,7 +15,7 @@ from .models import *
 
 with open(os.path.dirname(__file__)+'/../fifa_teams.csv') as teamsfile:
     fifa_details = {
-        abbr: name for name,abbr in
+        name: abbr for name,abbr in
         map(lambda x: x.strip().split(','), teamsfile)
     }
 def fifa_field(val):
@@ -24,7 +24,7 @@ def fifa_field(val):
             log.warning('Unknown team id: '+val)
         return val
     # not 3-char, do reverse lookup
-    rev = {v.casefold(): k for k, v in fifa_details.items()}
+    rev = {k.casefold(): v for k, v in fifa_details.items()}
     out = rev.get(val.casefold())
     if not out:
         raise ValueError('Expected 3-letter team id or known team name, got {}'.format(val))

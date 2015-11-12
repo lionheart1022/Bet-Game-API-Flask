@@ -574,8 +574,8 @@ Note that you should allow user to enter not-listed short values as well.
 			"id": "fifa_team",
 			"name": "FIFA Team Name",
 			"choices": {
-				"MUN": "Manchester United",
-				"MON": "Monaco",
+				"Manchester United": "MUN",
+				"Monaco": "MON",
 				...
 			}
 		},
