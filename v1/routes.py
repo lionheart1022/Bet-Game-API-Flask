@@ -1029,6 +1029,21 @@ def gametype_image(id):
     img_file.seek(0)
     return send_file(img_file, mimetype='image/png')
 
+@app.route('/identities', methods=['GET'])
+def identities():
+    os.path.dirname(__file__)
+    return jsonify(
+        identities = [
+            dict(
+                id: i.id,
+                name: i.name,
+                details: i.details,
+            ) for i in Identity.all,
+        ],
+    )
+@app.route('/identities/<idname>', methods=['GET'])
+def identity_details(idname):
+    pass
 
 # Games
 @api.resource(

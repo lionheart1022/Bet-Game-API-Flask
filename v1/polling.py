@@ -17,13 +17,18 @@ def fifa_field(val):
     if len(val) != 3:
         raise ValueError('Expected 3-letter team id, got {}'.format(val))
     return val
+with open(os.path.dirname(__file__)+'/../fifa_teams.csv') as teamsfile:
+    fifa_details = {
+        abbr: name for name,abbr in
+        map(lambda x: x.strip().split(','), teamsfile)
+    }
 
-class Identity(namedtuple('Identity', 'id name checker')):
+class Identity(namedtuple('Identity', 'id name checker details')):
     _all = {}
-    def __new__(cls, id, name, checker):
+    def __new__(cls, id, name, checker, details=None):
         if not checker:
             checker = lambda val: val
-        ret = super().__new__(cls, id, name, checker)
+        ret = super().__new__(cls, id, name, checker, details)
         cls._all[id] = ret
         return ret
     @classmethod
@@ -33,7 +38,7 @@ class Identity(namedtuple('Identity', 'id name checker')):
     def all(cls):
         return cls._all.values()
 Identity('ea_gamertag', 'XBox GamerTag', gamertag_field)
-Identity('fifa_team', 'FIFA Team Name', fifa_field)
+Identity('fifa_team', 'FIFA Team Name', fifa_field, fifa_details)
 Identity('riot_summonerName', 'Riot Summoner Name ("name" or "region/name")',
             Riot.summoner_check)
 Identity('steam_id','STEAM ID (numeric or URL)', Steam.parse_id)
