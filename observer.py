@@ -623,7 +623,8 @@ class FifaHandler(Handler):
         if not line.endswith('in-game') or 'non in-game' in line:
             if self.__approaching and 'non in-game' in line:
                 # FIXME for now consider this  state a proper game-end
-                return 'done'
+                #return 'done'
+                log.warning('approaching and stopped')
             return None
         # FIXME penalties
 
