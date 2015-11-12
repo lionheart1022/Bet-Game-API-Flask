@@ -250,9 +250,10 @@ class Handler:
             log.warning('Trying to kill subprocess but it is already dead {}'.format(
                 exitcode))
             return
+        pgid = os.getpgid(sub.pid)
         log.info('Killing subprocess')
-        sub.terminate()
-        eventlet.spawn_after(3, sub.kill)
+        os.killpg(pgid, signal.SIGTERM)
+        eventlet.spawn_after(3, os.killpg, pgid, signal.SIGKILL)
 
     def check_current_game(self):
         '''Check if the game currently playing on the stream
