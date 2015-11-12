@@ -385,7 +385,6 @@ class Handler:
         self.started()
 
         for line in sub.stdout:
-            log.info('got line '+str(line))
             line = line.strip().decode()
             try:
                 result = self.check(line)
