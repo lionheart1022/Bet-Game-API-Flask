@@ -1841,7 +1841,7 @@ def debug_allgames():
 $(function() {
     $('body').on('click', 'a[data-id]', function(e) {
         e.preventDefault();
-        var id = $(this).attr('id'),
+        var id = $(this).data('id'),
             winner = $(this).attr('class');
         $.ajax({
             type: 'POST',
