@@ -552,6 +552,33 @@ Arguments and behaviour is the same as for `GET /gametypes/<type>/image` endpoin
 Background images are generally different from cover images, have better resolution, 
 and exist only for supported games.
 
+### GET /identities
+Returns list of all supported identities, like `identities` field of `GET /gametypes` but with more details.
+For some identities it may include `choices` object which maps possible identity values to human-readable values.
+Note that you should allow user to enter not-listed short values as well.
+
+```json
+{
+	"identities": [
+		{
+			"id": "fifa_team",
+			"name": "FIFA Team Name",
+			"choices": {
+				"MUN": "Manchester United",
+				"MON": "Monaco",
+				...
+			}
+		},
+		{
+			"id": "ea_gamertag",
+			"name": "XBox GamerTag",
+			"choices": null
+		},
+		...
+	]
+}
+```
+
 
 ### POST /games
 Create game invitation.
