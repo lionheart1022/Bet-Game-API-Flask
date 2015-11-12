@@ -420,8 +420,8 @@ class Handler:
                 if self.onlylastresult:
                     results = []
                 results.append(result) # tuple
-                if not last_res:
-                    last_res = datetime.utcnow()
+                #if not last_res:
+                last_res = datetime.utcnow()
 
             # consider game done when either got quorum results
             # or maxdelta passed since first result
