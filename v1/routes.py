@@ -1847,7 +1847,6 @@ $(function() {
             type: 'POST',
             url: '/v1/debug/f@keg@me/'+id+'/'+winner,
             success: function(ret) {
-                alert('Done');
                 $('span[data-id='+id+'].actions').addClass('finished');
                 $('span[data-id='+id+'].state').text('finished');
                 $('span[data-id='+id+'].winner').text(winner);
