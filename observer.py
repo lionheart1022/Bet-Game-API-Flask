@@ -225,6 +225,7 @@ class Handler:
         self.stream = stream
         self.handle = stream.handle
         self.gametype = stream.gametype
+        self.sub = None
 
     def start(self):
         log.info('spawning handler')
@@ -238,9 +239,20 @@ class Handler:
 
         # if subprocess is still alive, kill it
         if hasattr(self, 'sub') and self.sub.poll() is None: # still running?
-            log.info('Killing subprocess')
-            self.sub.terminate()
-            eventlet.spawn_after(3, self.sub.kill)
+            self.murderchild(self.sub)
+    def murderchild(self, sub=None):
+        sub = sub or self.sub
+        if not sub:
+            log.warning('Trying to kill subprocess but no one present')
+            return
+        exitcode = sub.poll()
+        if exitcode is not None:
+            log.warning('Trying to kill subprocess but it is already dead {}'.format(
+                exitcode))
+            return
+        log.info('Killing subprocess')
+        sub.terminate()
+        eventlet.spawn_after(3, sub.kill)
 
     def check_current_game(self):
         '''Check if the game currently playing on the stream
@@ -324,6 +336,9 @@ class Handler:
             # do nothing (just perform `finally` block) but don't print traceback
             log.info('Watcher aborted for handle '+self.handle)
         finally:
+            # kill subprocess if any
+            if self.sub and self.sub.poll() == None:
+                self.murderchild(self.sub)
             # mark that this stream has stopped
             # stream may be already deleted from db, so use saved handle
             # FIXME: for some reason this will be called twice for streams
@@ -344,7 +359,8 @@ class Handler:
             os.chdir(self.path)
         cmd = 'exec ' + self.process.format(handle = self.stream.handle)
         if self.env:
-            cmd = 'VIRTUAL_ENV_DISABLE_PROMPT=1 . {}/bin/activate; {}'.format(self.env, cmd)
+            cmd = 'VIRTUAL_ENV_DISABLE_PROMPT=1 . {}/bin/activate; {}'.format(
+                self.env, cmd)
         log.info('starting process...')
         sub = self.sub = subprocess.Popen(
             cmd,
@@ -353,6 +369,7 @@ class Handler:
             shell = True, # interpret ';'-separated commands
             stdout = subprocess.PIPE, # intercept it!
             stderr = subprocess.STDOUT, # intercept it as well
+            preexec_fn = os.setsid,
         )
         log.info('process started')
 
@@ -427,8 +444,7 @@ class Handler:
                 # which may be not soon.
 
                 # kill the process as we don't need more results
-                sub.terminate()
-                # will kill() later, after done() - to avoid delaying it
+                self.murderchild(sub)
 
                 break # don't handle remaining output
 
@@ -464,13 +480,6 @@ class Handler:
         # handle result
         db.session.commit()
         self.done(outcome, first_res.timestamp(), details)
-
-        # if process didn't stop itself yet, kill it as we don't need it anymore
-        if sub.poll() is None:
-            eventlet.sleep(3)
-            sub.kill()
-
-        # TODO: clean sub?
 
     def started(self):
         pass
