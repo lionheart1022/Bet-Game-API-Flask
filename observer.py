@@ -434,8 +434,7 @@ class Handler:
                           first_res,
                           (first_res + self.maxdelta) if first_res else '..',
                       ))
-            if results and (
-                (outcome == 'done') or
+            if (outcome == 'done') or results and (
                 (self.quorum and len(results) >= self.quorum) or
                 (self.maxdelta and datetime.utcnow() > first_res + self.maxdelta)
             ):
