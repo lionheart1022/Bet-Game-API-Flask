@@ -1347,9 +1347,10 @@ class GameResource(restful.Resource):
                     continue
                 if args[argname]:
                     try:
-                        identity.checker(args[argname]):
+                        identity.checker(args[argname])
                     except ValueError as e:
-                        abort('Invalid {}: {}'.format(identity.name, e), problem=argname)
+                        abort('Invalid {}: {}'.format(identity.name, e),
+                              problem=argname)
                     if getattr(game, argname) != args[argname]:
                         log.warning(
                             'Game {}: changing {} opponent identity '
