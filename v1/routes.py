@@ -1833,6 +1833,68 @@ def debug_money(user):
     db.session.commit()
     return jsonify(success=True)
 
+@app.route('/debug/@llg@mes')
+def debug_allgames():
+    games = Game.query.order_by(Game.id.desc())
+
+    return """<html><head><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script>
+$(function() {
+    $(body).on('click', 'a[data-id]', function(e) {
+        e.preventDefault();
+        var id = $(this).attr('id'),
+            winner = $(this).attr('class');
+        $.ajax({
+            type: 'POST',
+            url: '/v1/debug/f@keg@me/'+id+'/'+winner,
+            success: function(ret) {
+                alert('Done');
+                $('span[data-id='+id+'].state').text('finished');
+                $('span[data-id='+id+'].winner').text(winner);
+            },
+            failure: function(ret) {
+                alert(ret.error);
+            },
+        });
+    });
+});
+</script></head><body>""" + '\n\n'.join([
+        """
+<h1>Game id: {id}</h1>
+crea: {creator}
+<br/>
+oppo: {opponent}
+<br/>
+stream: <a href="http://twitch.tv/{twitch_handle}">{twitch_handle}</a>
+<br/>
+team_crea: {twitch_identity_creator}
+<br/>
+team_oppo: {twitch_identity_opponent}
+<br/>
+when created: {create_date}
+<br/>
+bet: {bet}
+<br/>
+state: <span data-id="{id}" class="state">{state}</span>
+<br/>
+winner: <span data-id="{id}" class="winner">{winner}</span> - set to
+<a data-id="{id}" class="creator">creator</a>,
+<a data-id="{id}" class="opponent">opponent</a>,
+<a data-id="{id}" class="draw">draw</a>
+<br/>
+<br/>
+        """.format(
+            id = game.id,
+            creator = game.creator.nickname,
+            opponent = game.opponent.nickname,
+            twitch_handle = game.twitch_handle,
+            twitch_identity_creator = game.twitch_identity_creator,
+            twitch_identity_opponent = game.twitch_identity_opponent,
+            create_date = game.create_date,
+            bet = game.bet,
+            state = game.state,
+            winner = game.winner,
+        ) for game in games
+    ])
 @app.route('/debug/f@keg@me/<int:id>/<winner>')
 def fake_result(id, winner):
     game = Game.query.get(id)
