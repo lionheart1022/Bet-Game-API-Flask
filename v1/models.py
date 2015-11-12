@@ -340,6 +340,15 @@ class Game(db.Model):
     finish_date = db.Column(db.DateTime, nullable=True)
 
     @property
+    def identity_id(self):
+        if not self.gametype:
+            return None
+        from .polling import Poller
+        poller = Poller.findPoller(self.gametype)
+        if not poller.identity:
+            return None
+        return poller.identity.id
+    @property
     def identity_name(self):
         if not self.gametype:
             return None
@@ -348,6 +357,16 @@ class Game(db.Model):
         if not poller.identity:
             return None
         return poller.identity.name
+    @property
+    def twitch_identity_id(self):
+        if not self.gametype:
+            return None
+        from .polling import Poller
+        poller = Poller.findPoller(self.gametype)
+        if not poller.twitch_identity:
+            return None
+        return poller.twitch_identity.id
+
     @property
     def twitch_identity_name(self):
         if not self.gametype:
