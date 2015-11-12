@@ -1896,7 +1896,7 @@ span.new, span.finished, span.declined {
             id = game.id,
             creator = game.creator.nickname,
             opponent = game.opponent.nickname,
-            twitch_handle = game.twitch_handle,
+            twitch_handle = game.twitch_handle or '',
             twitch_identity_creator = game.twitch_identity_creator,
             twitch_identity_opponent = game.twitch_identity_opponent,
             create_date = game.create_date,
