@@ -123,7 +123,7 @@ class PlayerResource(restful.Resource):
             if args.push_token:
                 # remove that token from other devices
                 Device.query.filter(
-                    Device.player != user,
+                    Device.player != player,
                     Device.push_token == args.push_token,
                 ).delete()
         dev.last_login = datetime.utcnow()
