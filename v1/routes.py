@@ -453,7 +453,7 @@ class PlayerResource(restful.Resource):
             # if not found - get current one (which most likely has no token)
             dev = Device.query.get(g.device_id)
             if dev.push_token:
-                abort('This device already have push token specified')
+                abort('This device already has push token specified')
             dev.push_token = args.push_token
 
         # update last login as it may be another device object
@@ -471,8 +471,23 @@ class PlayerResource(restful.Resource):
         if not g.device_id:
             abort('No device id in auth token, please auth again', problem='token')
 
+        parser = RequestParser()
+        parser.add_argument('push_token',
+                            type=hex_field(64), # = 32 bytes
+                            required=True)
+        args = parser.parse_args()
+
         # get current device (which most likely has push token)
-        dev = Device.query.get(g.device_id)
+        dev = None
+        if args.push_token:
+            dev = Device.query.filter_by(
+                player = user,
+                push_token = args.push_token
+            ).first()
+        if not dev:
+            dev = Device.query.get(g.device_id)
+        if not dev:
+            abort('No device record found')
         if not dev.push_token:
             abort('This device is already without push token')
 

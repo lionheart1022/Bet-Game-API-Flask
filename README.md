@@ -283,6 +283,16 @@ Will return error if you already specified push token on login/registration.
 Also will return error if there is no device id in auth token,
 which may happen if token was issued before this endpoint was implemented.
 
+### POST /players/<nick>/logout
+Revoke current device's push token.
+Parameters:
+
+* `push_token` - optional, you should provide it unless you provided push token during login.
+The reason is that if you provided push token initially, the server will assign it with your auth token.
+And if you provided push token later using `/players/me/pushtoken` endpoint then server doesn't know which token corresponds to your device.
+
+Returns `{"success": true}` unless error happens.
+
 ### POST /federated_login
 Federated login via Facebook or Twitter.
 
