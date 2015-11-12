@@ -871,3 +871,4 @@ Possible game states:
 	"viewed": false, // `false` means "unread" message state
 }
 ```
+
