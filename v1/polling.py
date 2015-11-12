@@ -19,7 +19,7 @@ with open(os.path.dirname(__file__)+'/../fifa_teams.csv') as teamsfile:
         map(lambda x: x.strip().split(','), teamsfile)
     }
 def fifa_field(val):
-    if len(val) == 3:
+    if len(val) in 2,3:
         if val not in fifa_details:
             log.warning('Unknown team id: '+val)
         return val
