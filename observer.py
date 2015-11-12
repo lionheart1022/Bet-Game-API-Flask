@@ -669,8 +669,9 @@ class FifaHandler(Handler):
             log.debug('Approaching 90! {}'.format(time))
             self.__approaching = True
             return None
-        if time[0] > 91:
+        if time[0] > 90:
             if time[0] < 100 and self.__approaching:
+                self.__approaching = False
                 return 'abandon'
             if time[0] < 118:
                 return None # too early again
@@ -681,7 +682,7 @@ class FifaHandler(Handler):
             # TODO: penalties
         if not self.__approaching:
             log.info('Probably unexpected line (time {} but not approaching)'.format(time))
-            return None
+            #return None
 
         # Now we suppose we have correct result
         # so calculate it
