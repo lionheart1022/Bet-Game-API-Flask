@@ -13,15 +13,22 @@ from .apis import *
 from .helpers import *
 from .models import *
 
-def fifa_field(val):
-    if len(val) != 3:
-        raise ValueError('Expected 3-letter team id, got {}'.format(val))
-    return val
 with open(os.path.dirname(__file__)+'/../fifa_teams.csv') as teamsfile:
     fifa_details = {
         abbr: name for name,abbr in
         map(lambda x: x.strip().split(','), teamsfile)
     }
+def fifa_field(val):
+    if len(val) == 3:
+        if val not in fifa_details:
+            log.warning('Unknown team id: '+val)
+        return val
+    # not 3-char, do reverse lookup
+    rev = {v.casefold(): k for k, v in fifa_details.items()}
+    out = rev.get(val.casefold())
+    if not out:
+        raise ValueError('Expected 3-letter team id or known team name, got {}'.format(val))
+    return out
 
 class Identity(namedtuple('Identity', 'id name checker choices')):
     _all = {}
