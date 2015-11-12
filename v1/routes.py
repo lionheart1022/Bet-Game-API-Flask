@@ -1835,7 +1835,7 @@ def debug_money(user):
 
 @app.route('/debug/@llg@mes')
 def debug_allgames():
-    games = Game.query.order_by(Game.id.desc())
+    games = Game.query.filter_by(state='accepted').order_by(Game.id.desc())
 
     return """<html><head><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script>
 $(function() {
