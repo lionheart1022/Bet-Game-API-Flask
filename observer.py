@@ -393,7 +393,7 @@ class Handler:
                 log.exception('Error during checking line!')
                 result = None # just skip this line
             else:
-                log.info('Got line result: %s'%str(result))
+                log.info('Got line result: {}'.format(result))
 
             if isinstance(result, tuple):
                 outcome = result[0]
@@ -451,7 +451,8 @@ class Handler:
 
         # now that process is stopped, handle results found
         if not results:
-            log.warning('process failed with status %s, considering draw' % str(sub.poll()))
+            log.warning('process failed with status {}, considering draw'.format(
+                sub.poll()))
             results = [('failed', True,
                         'Observer terminated without returning any result! '
                         'Please contact support.')]
@@ -477,7 +478,7 @@ class Handler:
         result = pairs[0][0]
         outcome, strong, details = result # decode it
 
-        log.debug('got result: %s' % repr(result))
+        log.debug('got result: {}'.format(result))
         # handle result
         db.session.commit()
         self.done(outcome, first_res.timestamp(), details)
@@ -666,7 +667,7 @@ class FifaHandler(Handler):
         if time[0] < 88:
             return None # too early anyway
         if time[0] in [88, 89]:
-            log.debug('Approaching 90! %s' % str(time))
+            log.debug('Approaching 90! {}'.format(time))
             self.__approaching = True
             return None
         if time[0] > 91:
@@ -675,12 +676,12 @@ class FifaHandler(Handler):
             if time[0] < 118:
                 return None # too early again
             if time[0] in [118, 119]:
-                log.debug('Approaching 120! %s' % str(time))
+                log.debug('Approaching 120! {}'.format(time))
                 self.__approaching = True
                 return None
             # TODO: penalties
         if not self.__approaching:
-            log.info('Probably unexpected line (time %s but not approaching)'%str(time))
+            log.info('Probably unexpected line (time {} but not approaching)'.format(time))
             return None
 
         # Now we suppose we have correct result
@@ -812,7 +813,7 @@ def stream_done(stream, winner, timestamp, details=None):
                     winner = 'creator' if winner == 'opponent' else 'opponent'
                 Poller.gameDone(game, winner, int(timestamp), details)
         else:
-            log.error('Invalid game ID: %d' % stream.game_id)
+            log.error('Invalid game ID: {}'.format(stream.game_id))
 
     # and anyway issue DELETE request, because this stream is unneeded anymore
 
