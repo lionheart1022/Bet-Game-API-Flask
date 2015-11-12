@@ -1037,7 +1037,7 @@ def identities():
             dict(
                 id = i.id,
                 name = i.name,
-                details = i.details,
+                choices = i.choices,
             ) for i in Identity.all
         ],
     )

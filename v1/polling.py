@@ -23,12 +23,12 @@ with open(os.path.dirname(__file__)+'/../fifa_teams.csv') as teamsfile:
         map(lambda x: x.strip().split(','), teamsfile)
     }
 
-class Identity(namedtuple('Identity', 'id name checker details')):
+class Identity(namedtuple('Identity', 'id name checker choices')):
     _all = {}
-    def __new__(cls, id, name, checker, details=None):
+    def __new__(cls, id, name, checker, choices=None):
         if not checker:
             checker = lambda val: val
-        ret = super().__new__(cls, id, name, checker, details)
+        ret = super().__new__(cls, id, name, checker, chioces)
         cls._all[id] = ret
         return ret
     @classmethod
