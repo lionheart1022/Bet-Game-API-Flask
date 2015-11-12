@@ -238,7 +238,7 @@ class Handler:
         # which will remove us from pool
 
         # if subprocess is still alive, kill it
-        if hasattr(self, 'sub') and self.sub.poll() is None: # still running?
+        if self.sub and self.sub.poll() is None: # still running?
             self.murderchild(self.sub)
     def murderchild(self, sub=None):
         sub = sub or self.sub

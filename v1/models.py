@@ -281,6 +281,9 @@ class Player(db.Model):
                 for identity in cls._identities
             ])
         )
+    def __repr__(self):
+        return '<Player id={} nickname={} balance={}>'.format(
+            self.id, self.nickname, self.balance)
 
 
 class Transaction(db.Model):
@@ -297,6 +300,8 @@ class Transaction(db.Model):
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'), nullable=True)
     game = db.relationship('Game', backref=db.backref('transaction', uselist=False))
     comment = db.Column(db.Text)
+    def __repr__(self):
+        return '<Transaction id={} sum={}>'.format(self.id, self.sum)
 
 
 class Device(db.Model):
@@ -305,6 +310,8 @@ class Device(db.Model):
     player = db.relationship(Player, backref='devices')
     push_token = db.Column(db.String(128), nullable=True)
     last_login = db.Column(db.DateTime, default=datetime.utcnow)
+    def __repr__(self):
+        return '<Device id={}>'.format(self.id)
 
 
 class Game(db.Model):
@@ -372,6 +379,8 @@ class Game(db.Model):
             (player.id == cls.opponent_id, cls.creator),
         ], else_ = None)
 
+    def __repr__(self):
+        return '<Game id={} state={}>'.format(self.id, self.state)
 
 class ChatMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -407,6 +416,8 @@ class ChatMessage(db.Model):
             cls.sender_id.in_([a.id, b.id]),
             cls.receiver_id.in_([a.id, b.id]),
         )
+    def __repr__(self):
+        return '<ChatMessage id={} text={}>'.format(self.id, self.text)
 
 class Beta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -425,6 +436,8 @@ class Beta(db.Model):
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
     flags = db.Column(db.Text, default='') # probably json
     backup = db.Column(db.Text)
+    def __repr__(self):
+        return '<Beta id={}>'.format(self.id)
 
 
 def fast_count_noexec(query):
