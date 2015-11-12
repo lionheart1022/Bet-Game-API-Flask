@@ -462,6 +462,26 @@ class PlayerResource(restful.Resource):
         db.session.commit()
         return jsonify(success=True)
 
+    @app.route('/players/<id>/logout', methods=['POST'])
+    @require_auth
+    def logout(user, id):
+        if Player.find(id) != user:
+            raise Forbidden
+
+        if not g.device_id:
+            abort('No device id in auth token, please auth again', problem='token')
+
+        # get current device (which most likely has push token)
+        dev = Device.query.get(g.device_id)
+        if not dev.push_token:
+            abort('This device is already without push token')
+
+        dev.push_token = None
+        # TODO: delete device itself?
+        db.session.commit()
+
+        return jsonify(success=True)
+
     @app.route('/players/<id>/recent_opponents')
     @require_auth
     def recent_opponents(user, id):
