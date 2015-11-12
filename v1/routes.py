@@ -119,6 +119,13 @@ class PlayerResource(restful.Resource):
             dev.player = player
             dev.push_token = args.push_token
             db.session.add(dev)
+
+            if args.push_token:
+                # remove that token from other devices
+                Device.query.filter(
+                    Device.player != user,
+                    Device.push_token == args.push_token,
+                ).delete()
         dev.last_login = datetime.utcnow()
 
         db.session.commit() # to create device id
@@ -455,6 +462,12 @@ class PlayerResource(restful.Resource):
             if dev.push_token:
                 abort('This device already has push token specified')
             dev.push_token = args.push_token
+
+            # and remove that token from other devices
+            Device.query.filter(
+                Device.player != user,
+                Device.push_token == args.push_token,
+            ).delete()
 
         # update last login as it may be another device object
         # than one that was used for actual login
