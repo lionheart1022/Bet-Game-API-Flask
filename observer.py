@@ -656,7 +656,7 @@ class FifaHandler(Handler):
         if time[0] < 88:
             return None # too early anyway
         if time[0] in [88, 89]:
-            log.debug('Approaching 90! %s' % time)
+            log.debug('Approaching 90! %s' % str(time))
             self.__approaching = True
             return None
         if time[0] > 91:
@@ -665,7 +665,7 @@ class FifaHandler(Handler):
             if time[0] < 118:
                 return None # too early again
             if time[0] in [118, 119]:
-                log.debug('Approaching 120! %s' % time)
+                log.debug('Approaching 120! %s' % str(time))
                 self.__approaching = True
                 return None
             # TODO: penalties

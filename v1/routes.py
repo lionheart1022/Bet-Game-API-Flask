@@ -1833,3 +1833,13 @@ def debug_money(user):
     db.session.commit()
     return jsonify(success=True)
 
+@app.route('/debug/f@keg@me/<int:id>/<winner>')
+def fake_result(id, winner):
+    game = Game.query.get(id)
+    if not game:
+        raise NotFound
+#    if winner not in
+    if game.state != 'accepted':
+        abort('Unexpected game state '+game.state)
+#    j
+
