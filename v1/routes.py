@@ -1035,9 +1035,9 @@ def identities():
     return jsonify(
         identities = [
             dict(
-                id: i.id,
-                name: i.name,
-                details: i.details,
+                id = i.id,
+                name = i.name,
+                details = i.details,
             ) for i in Identity.all,
         ],
     )
