@@ -1862,33 +1862,36 @@ $(function() {
 span.new, span.finished, span.declined {
     display: none;
 }
-</style></head><body>""" + '\n\n'.join([
+</style></head><body><table>
+<tr>
+    <th>Game ID</th>
+    <th>Creator</th>
+    <th>Opponent</th>
+    <th>Stream</th>
+    <th>When created</th>
+    <th>Bet</th>
+    <th>State</th>
+    <th>Winner</th>
+</tr>
+""" + '\n\n'.join([
         """
-<h1>Game id: {id}</h1>
-crea: {creator}
-<br/>
-oppo: {opponent}
-<br/>
-stream: <a href="http://twitch.tv/{twitch_handle}">{twitch_handle}</a>
-<br/>
-team_crea: {twitch_identity_creator}
-<br/>
-team_oppo: {twitch_identity_opponent}
-<br/>
-when created: {create_date}
-<br/>
-bet: {bet}
-<br/>
-state: <span data-id="{id}" class="state">{state}</span>
-<br/>
-winner: <span data-id="{id}" class="winner">{winner}</span>
+<tr>
+    <th>{id}</th>
+    <th>{creator} / {twitch_identity_creator}</th>
+    <th>{opponent} / {twitch_identity_opponent}</th>
+    <th><a href="http://twitch.tv/{twitch_handle}">{twitch_handle}</a></th>
+    <th>{create_date}</th>
+    <th>{bet}</th>
+    <th><span data-id="{id}" class="state">{state}</span>
+    <th>
+<span data-id="{id}" class="winner">{winner}</span>
 <span data-id="{id}" class="actions {state}">- set to
     <a href="#" data-id="{id}" class="creator">creator</a>,
     <a href="#" data-id="{id}" class="opponent">opponent</a>,
     <a href="#" data-id="{id}" class="draw">draw</a>
 </span>
-<br/>
-<br/>
+    </th>
+<tr/>
         """.format(
             id = game.id,
             creator = game.creator.nickname,
