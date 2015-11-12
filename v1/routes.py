@@ -1839,7 +1839,7 @@ def debug_allgames():
 
     return """<html><head><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script>
 $(function() {
-    $(body).on('click', 'a[data-id]', function(e) {
+    $('body').on('click', 'a[data-id]', function(e) {
         e.preventDefault();
         var id = $(this).attr('id'),
             winner = $(this).attr('class');
