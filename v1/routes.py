@@ -1852,7 +1852,7 @@ $(function() {
                 $('span[data-id='+id+'].state').text('finished');
                 $('span[data-id='+id+'].winner').text(winner);
             },
-            failure: function(ret) {
+            error: function(ret) {
                 alert(ret.error);
             },
         });
