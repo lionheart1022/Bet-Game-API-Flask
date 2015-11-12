@@ -375,7 +375,7 @@ class Handler:
                 log.exception('Error during checking line!')
                 result = None # just skip this line
             else:
-                log.info('Got line result: %s'%result)
+                log.info('Got line result: %s'%str(result))
 
             if isinstance(result, tuple):
                 outcome = result[0]
