@@ -1877,9 +1877,9 @@ bet: {bet}
 state: <span data-id="{id}" class="state">{state}</span>
 <br/>
 winner: <span data-id="{id}" class="winner">{winner}</span> - set to
-<a herf="#" data-id="{id}" class="creator">creator</a>,
-<a herf="#" data-id="{id}" class="opponent">opponent</a>,
-<a herf="#" data-id="{id}" class="draw">draw</a>
+<a href="#" data-id="{id}" class="creator">creator</a>,
+<a href="#" data-id="{id}" class="opponent">opponent</a>,
+<a href="#" data-id="{id}" class="draw">draw</a>
 <br/>
 <br/>
         """.format(
