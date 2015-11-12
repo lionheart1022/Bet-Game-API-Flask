@@ -1838,8 +1838,12 @@ def fake_result(id, winner):
     game = Game.query.get(id)
     if not game:
         raise NotFound
-#    if winner not in
+    if winner not in ('creator', 'opponent', 'draw'):
+        abort('Bad winner '+winner)
     if game.state != 'accepted':
         abort('Unexpected game state '+game.state)
-#    j
-
+    poller = Poller.findPoller(game.gametype)
+    if not poller:
+        abort('No poller found for gt '+game.gametype)
+    poller.gameDone(game, winner, datetime.utcnow())
+    return jsonify(success=True)
