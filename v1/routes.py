@@ -1041,9 +1041,6 @@ def identities():
             ) for i in Identity.all
         ],
     )
-@app.route('/identities/<idname>', methods=['GET'])
-def identity_details(idname):
-    pass
 
 # Games
 @api.resource(
@@ -1905,7 +1902,7 @@ span.new, span.finished, span.declined {
         ) for game in games
     ])
 @app.route('/debug/f@keg@me/<int:id>/<winner>', methods=['POST'])
-def fake_result(id, winner):
+def debug_fake_result(id, winner):
     game = Game.query.get(id)
     if not game:
         raise NotFound
