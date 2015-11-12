@@ -474,7 +474,7 @@ class PlayerResource(restful.Resource):
         parser = RequestParser()
         parser.add_argument('push_token',
                             type=hex_field(64), # = 32 bytes
-                            required=True)
+                            required=False)
         args = parser.parse_args()
 
         # get current device (which most likely has push token)
