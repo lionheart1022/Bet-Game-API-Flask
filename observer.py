@@ -379,7 +379,7 @@ class Handler:
 
         # and now the main loop starts
         results = []
-        first_res = None
+        last_res = None
         log.info('waiting for output')
 
         self.started()
@@ -407,7 +407,7 @@ class Handler:
             if outcome == 'abandon':
                 # abandon previously retrieved data
                 results = []
-                first_res = None
+                last_res = None
                 self.stream.state = 'watching' # roll back from 'found'
                 continue
 
@@ -417,8 +417,8 @@ class Handler:
                     result = (result, False, None) # consider it weak
                 self.stream.state = 'found'
                 results.append(result) # tuple
-                if not first_res:
-                    first_res = datetime.utcnow()
+                if not last_res:
+                    last_res = datetime.utcnow()
 
             # consider game done when either got quorum results
             # or maxdelta passed since first result
@@ -426,16 +426,16 @@ class Handler:
             # or when outcome is 'done'
             log.debug('have for now: r: {}, '
                       'now: {}, '
-                      'fr: {}, '
+                      'lr: {}, '
                       'md: {}'.format(
                           results,
                           datetime.utcnow(),
-                          first_res,
-                          (first_res + self.maxdelta) if first_res else '..',
+                          last_res,
+                          (last_res + self.maxdelta) if last_res else '..',
                       ))
             if (outcome == 'done') or results and (
                 (self.quorum and len(results) >= self.quorum) or
-                (self.maxdelta and datetime.utcnow() > first_res + self.maxdelta)
+                (self.maxdelta and datetime.utcnow() > last_res + self.maxdelta)
             ):
                 # FIXME: this clause is executed only on next line,
                 # so if we got 3 results (<quorum) and none after that
@@ -456,7 +456,7 @@ class Handler:
                         'Please contact support.')]
             # FIXME: maybe better restart it?
             self.stream.state = 'failed'
-            first_res = datetime.utcnow()
+            last_res = datetime.utcnow()
         log.debug('results list: '+str(results))
 
         # if there is any strong result, drop all weak ones
@@ -479,7 +479,7 @@ class Handler:
         log.debug('got result: {}'.format(result))
         # handle result
         db.session.commit()
-        self.done(outcome, first_res.timestamp(), details)
+        self.done(outcome, last_res.timestamp(), details)
 
     def started(self):
         pass
