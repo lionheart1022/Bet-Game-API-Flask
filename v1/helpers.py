@@ -708,26 +708,36 @@ def notify_chat(msg):
         ),
     )
     return send_push(message)
-def notify_users(game, nomail=False):
+def notify_users(game, nomail=False, players=None, msg=None):
     """
     This method sends PUSH notifications about game state change
     to all interested users.
     It will also send congratulations email to game winner.
     """
-    msg = {
-        'new': '{} invites you to compete'.format(game.creator.nickname),
-        'cancelled': '{} cancelled their invitation'.format(game.creator.nickname),
-        'accepted': '{} accepted your invitation, start playing now!'
-            .format(game.opponent.nickname),
-        'declined': '{} declined your invitation'.format(game.opponent.nickname),
-        'finished': 'Game finished, coins moved',
-    }[game.state]
+    if not players:
+        if game.state == 'finished' and game.winner in ['creator','opponent']:
+            # special handling
+            winner = game.creator if game.winner == 'creator' else game.opponent
+            looser = game.other(winner)
+            notify_users(game, nomail, [winner],
+                         'Congratulations, you won the game!')
+            notify_users(game, nomail, [looser],
+                         'Sorry, you lost the game...')
+            return
+        msg = {
+            'new': '{} invites you to compete'.format(game.creator.nickname),
+            'cancelled': '{} cancelled their invitation'.format(game.creator.nickname),
+            'accepted': '{} accepted your invitation, start playing now!'
+                .format(game.opponent.nickname),
+            'declined': '{} declined your invitation'.format(game.opponent.nickname),
+            'finished': 'Your drew. Better luck next time!',
+        }[game.state]
 
-    players = []
-    if game.state in ['new', 'cancelled', 'finished']:
-        players.append(game.opponent)
-    if game.state in ['accepted', 'declined', 'finished']:
-        players.append(game.creator)
+        players = []
+        if game.state in ['new', 'cancelled', 'finished']:
+            players.append(game.opponent)
+        if game.state in ['accepted', 'declined', 'finished']:
+            players.append(game.creator)
     receivers = []
     for p in players:
         for d in p.devices:
