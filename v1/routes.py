@@ -489,7 +489,10 @@ class PlayerResource(restful.Resource):
         if not dev:
             abort('No device record found')
         if not dev.push_token:
-            abort('This device is already without push token')
+            return jsonify(
+                success=False,
+                reason='This device is already without push token',
+            )
 
         dev.push_token = None
         # TODO: delete device itself?
