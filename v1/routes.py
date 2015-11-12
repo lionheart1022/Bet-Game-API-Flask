@@ -1857,7 +1857,11 @@ $(function() {
         });
     });
 });
-</script></head><body>""" + '\n\n'.join([
+</script><style>
+span.new, span.finished, span.declined {
+    display: none;
+}
+</style></head><body>""" + '\n\n'.join([
         """
 <h1>Game id: {id}</h1>
 crea: {creator}
@@ -1876,10 +1880,12 @@ bet: {bet}
 <br/>
 state: <span data-id="{id}" class="state">{state}</span>
 <br/>
-winner: <span data-id="{id}" class="winner">{winner}</span> - set to
-<a href="#" data-id="{id}" class="creator">creator</a>,
-<a href="#" data-id="{id}" class="opponent">opponent</a>,
-<a href="#" data-id="{id}" class="draw">draw</a>
+winner: <span data-id="{id}" class="winner">{winner}</span>
+<span class="{state}">- set to
+    <a href="#" data-id="{id}" class="creator">creator</a>,
+    <a href="#" data-id="{id}" class="opponent">opponent</a>,
+    <a href="#" data-id="{id}" class="draw">draw</a>
+</span>
 <br/>
 <br/>
         """.format(
