@@ -765,7 +765,7 @@ def abort_stream(stream):
 
 def abort_all(*args):
     # FIXME: does it work at all?
-    for stream in pool.values():
+    for stream in list(pool.values()): # we create copy as abort() will remove stream from pool
         # this considers we already got game result from somewhere -
         # or will restart soon
         stream.abort()
