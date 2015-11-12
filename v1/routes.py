@@ -1862,7 +1862,7 @@ $(function() {
 span.new, span.finished, span.declined {
     display: none;
 }
-</style></head><body><table>
+</style></head><body><table border=1>
 <tr>
     <th>Game ID</th>
     <th>Creator</th>
