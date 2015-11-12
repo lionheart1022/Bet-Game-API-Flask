@@ -211,6 +211,7 @@ class Handler:
     process = None
     quorum = 5 # min results, or
     maxdelta = timedelta(seconds=10)
+    onlylastresult = False
 
     @classmethod
     def find(cls, gametype):
@@ -416,6 +417,8 @@ class Handler:
                     log.warning('Invalid outcome, no details available: '+str(result))
                     result = (result, False, None) # consider it weak
                 self.stream.state = 'found'
+                if self.onlylastresult:
+                    results = []
                 results.append(result) # tuple
                 if not last_res:
                     last_res = datetime.utcnow()
@@ -597,6 +600,7 @@ class FifaHandler(Handler):
     # disable quorum-based mechanics
     quorum = None
     maxdelta = timedelta(minutes=1)
+    onlylastresult = True
 
     def started(self):
         self.__approaching = False
