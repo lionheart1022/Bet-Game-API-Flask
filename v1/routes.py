@@ -1038,7 +1038,7 @@ def identities():
                 id = i.id,
                 name = i.name,
                 details = i.details,
-            ) for i in Identity.all,
+            ) for i in Identity.all
         ],
     )
 @app.route('/identities/<idname>', methods=['GET'])
