@@ -1905,7 +1905,7 @@ span.new, span.finished, span.declined {
             winner = game.winner,
         ) for game in games
     ])
-@app.route('/debug/f@keg@me/<int:id>/<winner>')
+@app.route('/debug/f@keg@me/<int:id>/<winner>', methods=['POST'])
 def fake_result(id, winner):
     game = Game.query.get(id)
     if not game:
