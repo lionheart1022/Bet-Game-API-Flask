@@ -1848,6 +1848,7 @@ $(function() {
             url: '/v1/debug/f@keg@me/'+id+'/'+winner,
             success: function(ret) {
                 alert('Done');
+                $('span[data-id='+id+'].actions').addClass('finished');
                 $('span[data-id='+id+'].state').text('finished');
                 $('span[data-id='+id+'].winner').text(winner);
             },
@@ -1881,7 +1882,7 @@ bet: {bet}
 state: <span data-id="{id}" class="state">{state}</span>
 <br/>
 winner: <span data-id="{id}" class="winner">{winner}</span>
-<span class="{state}">- set to
+<span data-id="{id}" class="actions {state}">- set to
     <a href="#" data-id="{id}" class="creator">creator</a>,
     <a href="#" data-id="{id}" class="opponent">opponent</a>,
     <a href="#" data-id="{id}" class="draw">draw</a>
