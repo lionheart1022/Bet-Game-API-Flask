@@ -1852,8 +1852,8 @@ $(function() {
                 $('span[data-id='+id+'].state').text('finished');
                 $('span[data-id='+id+'].winner').text(winner);
             },
-            error: function(ret) {
-                alert(ret.error);
+            error: function(xhr) {
+                alert(xhr.responseJSON.error);
             },
         });
     });
