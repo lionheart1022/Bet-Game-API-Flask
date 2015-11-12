@@ -664,12 +664,13 @@ class FifaHandler(Handler):
         # TODO: probably pre-handle & remember team names here
         # to check if stream went wrong
 
+        strong = True
         if time[0] < 88:
             return None # too early anyway
         if time[0] in [88, 89]:
             log.debug('Approaching 90! {}'.format(time))
             self.__approaching = True
-            return None
+            strong = False # and append result
         if time[0] > 91:
             if time[0] < 100 and self.__approaching:
                 return 'abandon'
@@ -678,7 +679,7 @@ class FifaHandler(Handler):
             if time[0] in [118, 119]:
                 log.debug('Approaching 120! {}'.format(time))
                 self.__approaching = True
-                return None
+                strong = False
             # TODO: penalties
         if not self.__approaching:
             log.info('Probably unexpected line (time {} but not approaching)'.format(time))
@@ -716,7 +717,7 @@ class FifaHandler(Handler):
         else:
             winner = 2
         return('creator' if winner == creator else 'opponent',
-                True,
+                strong,
                 details)
 class TestHandler(Handler):
     gametypes = [
