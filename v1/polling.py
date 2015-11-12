@@ -240,9 +240,10 @@ class Poller:
         if game.twitch_handle:
             try:
                 ret = requests.delete(
-                    '{}/streams/{}'.format(
+                    '{}/streams/{}/{}'.format(
                         config.OBSERVER_URL,
                         game.twitch_handle,
+                        game.gametype,
                     ),
                 )
                 log.info('Deleting watcher: %d' % ret.status_code)
