@@ -339,33 +339,22 @@ class Game(db.Model):
     details = db.Column(db.Text, nullable=True)
     finish_date = db.Column(db.DateTime, nullable=True)
 
-    @property
-    def identity_id(self):
-        if not self.gametype:
-            return None
-        from .polling import Poller
-        poller = Poller.findPoller(self.gametype)
-        if not poller.identity:
-            return None
-        return poller.identity.id
-    @property
-    def identity_name(self):
-        if not self.gametype:
-            return None
-        from .polling import Poller
-        poller = Poller.findPoller(self.gametype)
-        if not poller.identity:
-            return None
-        return poller.identity.name
-    @property
-    def twitch_identity_id(self):
-        if not self.gametype:
-            return None
-        from .polling import Poller
-        poller = Poller.findPoller(self.gametype)
-        if not poller.twitch_identity:
-            return None
-        return poller.twitch_identity.id
+    def _make_identity_getter(kind, prop):
+        def _getter(self):
+            if not self.gametype:
+                return None
+            from .polling import Poller
+            poller = Poller.findPoller(self.gametype)
+            identity = getattr(poller, kind)
+            if not identity:
+                return None
+            return getattr(identity, prop)
+        _getter.__name__ = '_'.join((kind,prop))
+        return _getter
+    for kind in 'identity', 'twitch_identity':
+        for prop in 'id', 'name':
+            locals()['_'.join((kind, prop))] = _make_identity_getter(kind, prop)
+    del _make_identity_getter
 
     @property
     def twitch_identity_name(self):
