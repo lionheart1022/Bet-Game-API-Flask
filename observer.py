@@ -597,7 +597,7 @@ class FifaHandler(Handler):
 
     # disable quorum-based mechanics
     quorum = None
-    maxdelta = timedelta(minutes=5)
+    maxdelta = timedelta(minutes=1)
 
     def started(self):
         self.__approaching = False
