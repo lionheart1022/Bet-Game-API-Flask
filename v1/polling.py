@@ -73,6 +73,7 @@ class Poller:
     # for different gametypes in same poller.
     description = None
     subtitle = None
+    category = None
     minutes = 0 # by default, poll as often as possible
 
     @classproperty

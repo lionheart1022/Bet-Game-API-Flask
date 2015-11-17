@@ -465,6 +465,8 @@ Will return the following detials about each game type:
 
 * `id` - internal identifier used for that gametype
 * `name` - human-readable name of gametype
+* `subtitle` - subtitle for the game, may be `null`
+* `category` - human-readable category name
 * `description` - textual description of how to bet and play that specific game.
   Might be `null` if not provided / not required.
   This field may consist of multiple paragraphs divided by `\n` endline character.

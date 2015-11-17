@@ -968,6 +968,7 @@ def gametypes():
                     id = gametype,
                     name = gametype_name,
                     subtitle = poller.subtitle,
+                    category = poller.category,
                     supported = True,
                     gamemodes = poller.gamemodes,
                     identity = poller.identity_id,
