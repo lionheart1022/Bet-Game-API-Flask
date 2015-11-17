@@ -277,6 +277,12 @@ class FifaPoller(Poller, LimitedApi):
         'friendlies': 'Friendlies',
         'coop': 'Co-op',
     }
+    subtitle = {
+        'fifa14-xboxone': '14',
+        'fifa15-xboxone': '15',
+        'fifa16-xboxone': '16',
+    }
+    category = 'Sport'
     identity_id = 'ea_gamertag'
     twitch_identity_id = 'fifa_team'
     usemodes = True
@@ -371,6 +377,8 @@ class RiotPoller(Poller):
         'RANKED_TEAM_3x3': 'Team 3x3',
         'RANKED_TEAM_5x5': 'Team 5x5',
     }
+    subtitle = 'The Game'
+    category = 'Action'
     identity_id = 'riot_summonerName'
     sameregion = True
     description = """
@@ -558,6 +566,8 @@ class CSGOPoller(Poller):
         'counter-strike-global-offensive': 'CounterStrike: Global Offensive',
     }
     identity_id = 'steam_id'
+    subtitle = 'Global Offensive'
+    category = 'Action'
     description = """
         For this game betting is based on match outcome.
         If both players played in the same team, game is considered draw.
