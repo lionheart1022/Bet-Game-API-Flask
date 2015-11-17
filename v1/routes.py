@@ -927,6 +927,7 @@ def balance_withdraw(user):
               success=False, dry_run=False)
 
 
+_gamedata_cache = None
 # Game types
 @app.route('/gametypes', methods=['GET'])
 def gametypes():
@@ -960,33 +961,21 @@ def gametypes():
                .all())
         times = bta # in proper order
 
-    gamedata = []
-    for poller in Poller.allPollers():
-        for gametype, gametype_name in poller.gametypes.items():
-            if poller.identity or poller.twitch_identity:
+    global _gamedata_cache
+    if _gamedata_cache:
+        gamedata = _gamedata_cache.copy()
+    else:
+        gamedata = []
+        for poller in Poller.allPollers():
+            for gametype, gametype_name in poller.gametypes.items():
+                _getsub = lambda f: f[gametype] if isinstance(f,dict) else f
                 data = dict(
                     id = gametype,
                     name = gametype_name,
-                    subtitle = poller.subtitle,
-                    category = poller.category,
-                    supported = True,
-                    gamemodes = poller.gamemodes,
-                    identity = poller.identity_id,
-                    identity_name = poller.identity_name,
-                    twitch = poller.twitch,
-                    twitch_identity = None, # may be updated below
-                    twitch_identity_name = None,
+                    subtitle = _getsub(poller.subtitle),
+                    category = _getsub(poller.category),
+                    description = _getsub(poller.description),
                 )
-                if poller.twitch_identity:
-                    data['twitch_identity'] = poller.twitch_identity.id
-                    data['twitch_identity_name'] = poller.twitch_identity.name
-                if args.betcount:
-                    data['betcount'], data['lastbet'] = \
-                        counts.get(gametype, (0, None))
-                if isinstance(poller.description, dict):
-                    data['description'] = poller.description[gametype]
-                else:
-                    data['description'] = poller.description
                 if data['description']:
                     # strip enclosing whites,
                     # then replace single \n's with spaces
@@ -998,13 +987,28 @@ def gametypes():
                         )),
                         data['description'].strip().split('\n\n')
                     ))
+                if poller.identity or poller.twitch_identity:
+                    data.update(dict(
+                        supported = True,
+                        gamemodes = poller.gamemodes,
+                        identity = poller.identity_id,
+                        identity_name = poller.identity_name,
+                        twitch = poller.twitch,
+                        twitch_identity = None, # may be updated below
+                        twitch_identity_name = None,
+                    ))
+                    if poller.twitch_identity:
+                        data['twitch_identity'] = poller.twitch_identity.id
+                        data['twitch_identity_name'] = poller.twitch_identity.name
+                    if args.betcount:
+                        data['betcount'], data['lastbet'] = \
+                            counts.get(gametype, (0, None))
+                else: # DummyPoller
+                    data.update((dict(
+                        supported = False,
+                    ))
                 gamedata.append(data)
-            else: # DummyPoller
-                gamedata.append(dict(
-                    id = gametype,
-                    name = gametype_name,
-                    supported = False,
-                ))
+        _gamedata_cache = gamedata.copy()
     if args.filter:
         args.filter = args.filter.casefold()
         if args.filt_op == 'contains':
