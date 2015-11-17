@@ -1004,7 +1004,7 @@ def gametypes():
                         data['betcount'], data['lastbet'] = \
                             counts.get(gametype, (0, None))
                 else: # DummyPoller
-                    data.update((dict(
+                    data.update(dict(
                         supported = False,
                     ))
                 gamedata.append(data)
