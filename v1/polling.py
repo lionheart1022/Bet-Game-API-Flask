@@ -839,6 +839,7 @@ class DummyPoller(Poller):
     gametypes = {
         'battlefield-4': 'Battlefield 4',
         'call-of-duty-advanced-warfare': 'Call Of Duty - Advanced Warfare',
+        'call-of-duty-black-ops-3': 'Call Of Duty - Black Ops III',
         'destiny': 'Destiny',
         'grand-theft-auto-5': 'Grand Theft Auto V',
         'minecraft': 'Minecraft',
@@ -846,6 +847,15 @@ class DummyPoller(Poller):
 #        'diablo': 'Diablo III',
     }
     identity_id = ''
+    category = {
+        'minecraft': 'Action',
+        'rocket-league': 'Action',
+    }
+    subtitle = {
+        'grand-theft-auto': 'V',
+        'call-of-duty-advanced-warfare': 'Advanced Warfare',
+        'call-of-duty-black-ops-3': 'Black Ops III',
+    }
 
     def pollGame(self, game):
         pass

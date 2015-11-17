@@ -968,7 +968,7 @@ def gametypes():
         gamedata = []
         for poller in Poller.allPollers():
             for gametype, gametype_name in poller.gametypes.items():
-                _getsub = lambda f: f[gametype] if isinstance(f,dict) else f
+                _getsub = lambda f: f.get(gametype) if isinstance(f,dict) else f
                 data = dict(
                     id = gametype,
                     name = gametype_name,
