@@ -471,6 +471,7 @@ class Dota2Poller(Poller):
     gametypes = {
         'dota2': 'DOTA 2',
     }
+    subtitle = '2'
     # no gamemodes for this game
     identity_id = 'steam_id'
     description = """
@@ -649,6 +650,7 @@ class StarCraftPoller(Poller):
     gametypes = {
         'starcraft': 'Starcraft II',
     }
+    subtitle = 'II'
     # no gamemodes for this game
     identity_id = 'starcraft_uid'
     sameregion = True
