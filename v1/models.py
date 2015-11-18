@@ -353,6 +353,9 @@ class Game(db.Model):
         return _getter
     for kind in 'identity', 'twitch_identity':
         for prop in 'id', 'name':
+            # I know it is not good to modify locals(),
+            # but it works here (as we are not in function).
+            # At least it works in python 3.4/3.5
             locals()['_'.join((kind, prop))] = _make_identity_getter(kind, prop)
     del _make_identity_getter
 

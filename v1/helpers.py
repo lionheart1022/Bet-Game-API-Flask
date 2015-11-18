@@ -425,46 +425,6 @@ def gamertag_force_field(val):
         g.gamertag_force = True
     return val
 
-gamertag_cache = {}
-def gamertag_field(nick):
-    if nick.lower() in gamertag_cache:
-        if gamertag_cache[nick.lower()]:
-            return gamertag_cache[nick.lower()]
-        raise ValueError('Unknown gamertag: '+nick)
-
-    url = 'https://www.easports.com/fifa/api/'\
-        'fifa15-xboxone/match-history/friendlies/{}'.format(quote(nick))
-    try:
-        # FIXME
-        # EA Sports is now almost down, so don't validate gamertag
-        return nick
-        # FIXME
-        ret = requests.get(url)
-        if ret.status_code == 404:
-            # don't cache not-registered nicks as they can appear in future
-            #gamertag_cache[nick.lower()] = None
-            raise ValueError(
-                'Gamertag {} seems to be unknown '
-                'for FIFA game servers'.format(nick))
-        data = ret.json()['data']
-        # normalized gamertag (with correct capitalizing)
-        # if no data then cannot know correct capitalizing; return as is
-        goodnick = data[0]['self']['user_info'][0] if data else nick
-        gamertag_cache[nick.lower()] = goodnick
-        return goodnick
-    except ValueError:
-        log.warning('json error: '+str(ret))
-        if getattr(g, 'gamertag_force', False):
-            return nick
-        raise
-    except Exception as e: # json failure or missing key
-        log.error('Failed to validate gamertag '+nick, exc_info=True)
-        if 'ret' in locals():
-            log.error(ret)
-        log.error('Allowing it...')
-        #raise ValueError('Couldn\'t validate this gamertag: {}'.format(nick))
-        return nick
-
 def encrypt_password(val):
     """
     Check password for weakness, and convert it to its hash.

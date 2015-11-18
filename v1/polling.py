@@ -13,23 +13,6 @@ from .apis import *
 from .helpers import *
 from .models import *
 
-with open(os.path.dirname(__file__)+'/../fifa_teams.csv') as teamsfile:
-    fifa_details = {
-        name: abbr for name,abbr in
-        map(lambda x: x.strip().split(','), teamsfile)
-    }
-def fifa_field(val):
-    if len(val) in (2,3):
-        if val not in fifa_details:
-            log.warning('Unknown team id: '+val)
-        return val
-    # not 3-char, do reverse lookup
-    rev = {k.casefold(): v for k, v in fifa_details.items()}
-    out = rev.get(val.casefold())
-    if not out:
-        raise ValueError('Expected 3-letter team id or known team name, got {}'.format(val))
-    return out
-
 class Identity(namedtuple('Identity', 'id name checker choices')):
     _all = {}
     def __new__(cls, id, name, checker, choices=None):
@@ -44,16 +27,12 @@ class Identity(namedtuple('Identity', 'id name checker choices')):
     @classproperty
     def all(cls):
         return cls._all.values()
-Identity('ea_gamertag', 'XBox GamerTag', gamertag_field)
-Identity('fifa_team', 'FIFA Team Name', fifa_field, fifa_details)
 Identity('riot_summonerName', 'Riot Summoner Name ("name" or "region/name")',
             Riot.summoner_check)
 Identity('steam_id','STEAM ID (numeric or URL)', Steam.parse_id)
 Identity('starcraft_uid','StarCraft profile URL from battle.net or sc2ranks.com',
             StarCraft.check_uid)
-#Identity('tibia_character','Tibia Character name',TibiaPoller.identity_check)
-# -- will be added in class definition
-#Identity('','',lambda x:x)
+# ea_gamertag, fifa_team, tibia_character - will be added in classes
 
 
 ### Polling ###
@@ -295,6 +274,69 @@ class FifaPoller(Poller, LimitedApi):
         'fifa16-xboxone': 'FIFA 16',
     }
     minutes = 30 # poll at most each 30 minutes
+
+    gamertag_cache = {}
+    @classmethod
+    def gamertag_checker(cls, nick):
+        if nick.lower() in cls.gamertag_cache:
+            if cls.gamertag_cache[nick.lower()]:
+                return cls.gamertag_cache[nick.lower()]
+            raise ValueError('Unknown gamertag: '+nick)
+
+        url = 'https://www.easports.com/fifa/api/'\
+            'fifa15-xboxone/match-history/friendlies/{}'.format(quote(nick))
+        try:
+            # FIXME
+            # EA Sports is now almost down, so don't validate gamertag
+            return nick
+            # FIXME
+            ret = requests.get(url)
+            if ret.status_code == 404:
+                # don't cache not-registered nicks as they can appear in future
+                #cls.gamertag_cache[nick.lower()] = None
+                raise ValueError(
+                    'Gamertag {} seems to be unknown '
+                    'for FIFA game servers'.format(nick))
+            data = ret.json()['data']
+            # normalized gamertag (with correct capitalizing)
+            # if no data then cannot know correct capitalizing; return as is
+            goodnick = data[0]['self']['user_info'][0] if data else nick
+            cls.gamertag_cache[nick.lower()] = goodnick
+            return goodnick
+        except ValueError:
+            log.warning('json error: '+str(ret))
+            if getattr(g, 'gamertag_force', False):
+                return nick
+            raise
+        except Exception as e: # json failure or missing key
+            log.error('Failed to validate gamertag '+nick, exc_info=True)
+            if 'ret' in locals():
+                log.error(ret)
+            log.error('Allowing it...')
+            #raise ValueError('Couldn\'t validate this gamertag: {}'.format(nick))
+            return nick
+    with open(os.path.dirname(__file__)+'/../fifa_teams.csv') as teamsfile:
+        fifa_teams = {
+            name: abbr for name,abbr in
+            map(lambda x: x.strip().split(','), teamsfile)
+        }
+    @classmethod
+    def fifa_team_checker(cls, val):
+        if len(val) in (2,3):
+            if val not in cls.fifa_teams:
+                log.warning('Unknown team id: '+val)
+            return val
+        # not 3-char, do reverse lookup
+        rev = {k.casefold(): v for k, v in cls.fifa_teams.items()}
+        out = rev.get(val.casefold())
+        if not out:
+            raise ValueError('Expected 3-letter team id or known team name, got {}'.format(val))
+        return out
+    Identity('ea_gamertag', 'XBox GamerTag', gamertag_checker)
+    Identity('fifa_team', 'FIFA Team Name', fifa_team_checker,
+             fifa_teams)
+    del gamertag_checker
+    del fifa_team_checker
 
     def prepare(self):
         self.gamertags = {}
