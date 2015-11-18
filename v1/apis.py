@@ -519,34 +519,13 @@ class WilliamHill:
     class WilliamHillError(Exception):
         pass
     BASE = 'https://sandbox.whapi.com/v1/'
-    @classmethod
-    def request(cls, session, method, url, *args, **kwargs):
-        try:
-            ret = session.request(method, cls.BASE+url, *args, **kwargs)
-            jret = ret.json()
-        except ValueError: # not a json?
-            return dict(
-                error = 'No JSON available',
-            )
-        if 'whoFaults' in jret:
-            fault = jret['whoFaults']
-            return dict(
-                error = fault.get('faultString') or '(no fault description)',
-                error_code = fault.get('faultCode'),
-                error_name = fault.get('faultName'),
-            )
-        return jret
-    @classmethod
-    def mksession(cls):
-        s = requests.Session()
-        s.headers.update({
+    def __init__(self, ticket=None, username=None, password=None):
+        self.session = requests.Session()
+        self.session.headers.update({
             'Accept': 'application/vnd.who.Sportsbook+json;v=1;charset=utf-8',
             'who-apiKey': config.WH_KEY,
             'who-secret': config.WH_SECRET,
         })
-        return s
-    def __init__(self, ticket=None, username=None, password=None):
-        self.session = self.mksession()
         if username:
             # login
             ret = self.request(
@@ -566,5 +545,19 @@ class WilliamHill:
             self.session.headers.update({
                 'who-ticket': ticket,
             })
-    def call(self, method, url, *args, **kwargs):
-        return self.request(self.session, method, url, *args, **kwargs)
+    def request(self, method, url, *args, **kwargs):
+        try:
+            ret = self.session.request(method, cls.BASE+url, *args, **kwargs)
+            jret = ret.json()
+        except ValueError: # not a json?
+            return dict(
+                error = 'No JSON available',
+            )
+        if 'whoFaults' in jret:
+            fault = jret['whoFaults']
+            return dict(
+                error = fault.get('faultString') or '(no fault description)',
+                error_code = fault.get('faultCode'),
+                error_name = fault.get('faultName'),
+            )
+        return jret
