@@ -555,6 +555,7 @@ class WilliamHill:
             )
         if 'whoFaults' in jret:
             fault = jret['whoFaults']
+            fault = fault[0] if len(fault) > 0 else {}
             return dict(
                 error = fault.get('faultString') or '(no fault description)',
                 error_code = fault.get('faultCode'),
