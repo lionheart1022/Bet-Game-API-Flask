@@ -547,7 +547,7 @@ class WilliamHill:
             })
     def request(self, method, url, *args, **kwargs):
         try:
-            ret = self.session.request(method, cls.BASE+url, *args, **kwargs)
+            ret = self.session.request(method, self.BASE+url, *args, **kwargs)
             jret = ret.json()
         except ValueError: # not a json?
             return dict(
