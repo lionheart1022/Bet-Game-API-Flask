@@ -9,6 +9,7 @@ from secret import TWITTER_API_KEY, TWITTER_API_SECRET
 #from secret import ADMIN_USERS
 from secret import PAYPAL_CLIENT, PAYPAL_SECRET, PAYPAL_SANDBOX
 from secret import MAILGUN_KEY
+from secret import WH_KEY, WH_SECRET
 try:
     from secret import LOCAL
 except ImportError:
