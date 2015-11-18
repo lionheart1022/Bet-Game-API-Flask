@@ -265,6 +265,8 @@ class Poller:
         Returns True if given game was successfully processed.
         """
         raise NotImplementedError
+
+
 class FifaPoller(Poller, LimitedApi):
     gametypes = {
         'fifa14-xboxone': 'FIFA14',
@@ -843,6 +845,7 @@ class TibiaPoller(Poller, LimitedApi):
                     # else - killed each other but this was killed first
                 return self.gameDone(game, user.other.role, user.losedate)
         return False
+
 
 class DummyPoller(Poller):
     """
