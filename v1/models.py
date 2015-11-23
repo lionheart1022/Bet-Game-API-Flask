@@ -169,7 +169,13 @@ class Player(db.Model):
     def popularity(cls):
         return (
             db.select([func.count(Game.id)])
-            .where(Game.state == 'accepted')
+            .where(
+                Game.state == 'accepted',
+                cls.id.in_([
+                    Game.creator_id,
+                    Game.opponent_id,
+                ]),
+            )
             .label('popularity')
         )
         return cls.games.filter(
