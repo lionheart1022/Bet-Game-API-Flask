@@ -164,6 +164,14 @@ class PlayerResource(restful.Resource):
                       )], []),
                 required=False,
             )
+            parser.add_argument('gametype',
+                                choices=Poller.all_gametypes,
+                                required=False)
+            parser.add_argument('period',
+                                required=False,
+                                choices=[
+                                    'today', 'yesterday', 'week', 'month',
+                                ])
             #parser.add_argument('names_only', type=boolean_field)
             args = parser.parse_args()
 
@@ -1089,6 +1097,7 @@ def identities():
             ) for i in Identity.all
         ],
     )
+
 
 # Games
 @api.resource(
