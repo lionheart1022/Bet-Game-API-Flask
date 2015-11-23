@@ -192,13 +192,18 @@ class Player(db.Model):
     @hybrid_property
     def popularity_today(self):
         now = datetime.utcnow()
-        daystart = now.replace(
-            hour=0, minute=0, second=0, microsecond=0)
-        # if less than 1 hour passed then return yesterday's statistics
-        if now - daystart < timedelta(hours=1):
-            daystart -= timedelta(days=1)
+        dayago = now - timedelta(days=1)
         return self.popularity_impl(
-            Game.date_accepted >= daystart,
+            Game.date_accepted >= dayago,
+        )
+    @hybrid_property
+    def popularity_yesterday(self):
+        now = datetime.utcnow()
+        dayago = now - timedelta(days=1)
+        day2ago = dayago - timedelta(days=1)
+        return self.popularity_impl(
+            Game.date_accepted >= day2ago,
+            Game.date_accepted < dayago,
         )
 
     _leadercache = {} # is a class field
