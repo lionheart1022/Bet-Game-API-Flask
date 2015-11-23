@@ -164,22 +164,7 @@ class Player(db.Model):
 
     @hybrid_property
     def popularity(self):
-        return fast_count(self.games.filter(Game.state == 'accepted'))
-    @popularity.expression
-    def popularity(cls):
-        return (
-            db.select([func.count(Game.id)])
-            .where(
-                db.and_(
-                    cls.id.in_([
-                        Game.creator_id,
-                        Game.opponent_id,
-                    ]),
-                    Game.state == 'accepted',
-                )
-            )
-            .label('popularity')
-        )
+        return self.popularity2()
     @hybrid_method
     def popularity2(self, *filters):
         return fast_count(
