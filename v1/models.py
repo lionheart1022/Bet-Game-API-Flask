@@ -172,7 +172,11 @@ class Player(db.Model):
             .where(Game.state == 'accepted')
             .label('popularity')
         )
-        return cls.games.filter(Game.state == 'accepted').with_entities(func.count('*'))
+        return cls.games.filter(
+            Game.state == 'accepted'
+        ).with_entities(
+            func.count('*')
+        )
 
     _leadercache = {} # is a class field
     _leadercachetime = None
