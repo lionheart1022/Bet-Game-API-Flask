@@ -276,8 +276,10 @@ class FifaPoller(Poller, LimitedApi):
     minutes = 30 # poll at most each 30 minutes
 
     gamertag_cache = {}
-    @classmethod
-    def gamertag_checker(cls, nick):
+    def gamertag_checker(nick):
+        # don't use @classmethod
+        # because they will not work until class is fully defined
+        cls = FifaPoller
         if nick.lower() in cls.gamertag_cache:
             if cls.gamertag_cache[nick.lower()]:
                 return cls.gamertag_cache[nick.lower()]
@@ -320,8 +322,8 @@ class FifaPoller(Poller, LimitedApi):
             name: abbr for name,abbr in
             map(lambda x: x.strip().split(','), teamsfile)
         }
-    @classmethod
-    def fifa_team_checker(cls, val):
+    def fifa_team_checker(val):
+        cls = FifaPoller
         if len(val) in (2,3):
             if val not in cls.fifa_teams:
                 log.warning('Unknown team id: '+val)
