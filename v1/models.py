@@ -189,34 +189,37 @@ class Player(db.Model):
     @hybrid_property
     def popularity(self):
         return self.popularity_impl() # without filters
+    @hybrid_method
+    def popularity_since(self, since, till=None):
+        filters = [
+            Game.date_accepted >= since,
+        ]
+        if till:
+            filters.append(
+                Game.date_accepted < till,
+            )
+        return self.popularity_impl(*filters)
     @hybrid_property
     def popularity_today(self):
-        now = datetime.utcnow()
-        dayago = now - timedelta(days=1)
-        return self.popularity_impl(
-            Game.date_accepted >= dayago,
+        return self.popularity_since(
+            datetime.utcnow() - timedelta(days=1),
         )
     @hybrid_property
     def popularity_yesterday(self):
         now = datetime.utcnow()
-        dayago = now - timedelta(days=1)
-        day2ago = dayago - timedelta(days=1)
-        return self.popularity_impl(
-            Game.date_accepted >= day2ago,
-            Game.date_accepted < dayago,
+        return self.popularity_since(
+            now - timedelta(days=1),
+            now - timedelta(days=2),
         )
     @hybrid_property
     def popularity_week(self):
-        now = datetime.utcnow()
-        weekago = now - timedelta(weeks=1)
-        return self.popularity_impl(
-            Game.date_accepted >= weekago,
+        return self.popularity_since(
+            now - timedelta(weeks=1),
         )
     @hybrid_property
     def popularity_month(self):
-        since = datetime.utcnow() - timedelta(days=30)
-        return self.popularity_impl(
-            Game.date_accepted >= since,
+        return self.popularity_since(
+            now - timedelta(days=30),
         )
 
     _leadercache = {} # is a class field
