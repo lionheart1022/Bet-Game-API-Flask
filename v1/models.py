@@ -180,6 +180,30 @@ class Player(db.Model):
             )
             .label('popularity')
         )
+    @hybrid_method
+    def popularity2(self, *filters):
+        return fast_count(
+            self.games.filter(
+                Game.state == 'accepted',
+                *filters,
+            )
+        )
+    @popularity2.expression
+    def popularity2(cls, *filters):
+        return (
+            db.select([func.count(Game.id)])
+            .where(
+                db.and_(
+                    cls.id.in_([
+                        Game.creator_id,
+                        Game.opponent_id,
+                    ]),
+                    Game.state == 'accepted',
+                    *filters,
+                )
+            )
+            .label('popularity')
+        )
 
     _leadercache = {} # is a class field
     _leadercachetime = None
