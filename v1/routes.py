@@ -203,9 +203,9 @@ class PlayerResource(restful.Resource):
                         else:
                             raise ValueError('unknown period '+args.period)
                         now = datetime.utcnow()
-                        filters.append(Game.date_accepted >= now-since)
+                        filters.append(Game.accept_date >= now-since)
                         if till:
-                            filters.append(Game.date_accepted < now-till)
+                            filters.append(Game.accept_date < now-till)
                     orders.append(getattr(Player, ordername+'_impl')(*filters))
                 else:
                     orders.append(getattr(Player, ordername))
