@@ -226,6 +226,8 @@ class PlayerResource(restful.Resource):
 
             query = query.limit(20)
 
+            log.debug(str(query))
+
             return jsonify(
                 players = fields.List(
                     fields.Nested(
