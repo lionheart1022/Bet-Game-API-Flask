@@ -182,7 +182,33 @@ class PlayerResource(restful.Resource):
 
             orders = []
             if args.order:
-                orders.append(getattr(Player, args.order.lstrip('-')))
+                ordername = args.order.lstrip('-')
+                if hasattr(Player, ordername+'_impl'):
+                    # this parameter depends on games,
+                    # so calculate and apply corresponding filters
+                    filters = []
+                    if args.gametype:
+                        filters.append(Game.gametype == args.gametype)
+                    if args.period:
+                        till = None
+                        if args.period == 'today':
+                            since = timedelta(days=1)
+                        elif args.period == 'yesterday':
+                            since = timedelta(days=2)
+                            till = timedelta(days=1)
+                        elif args.period == 'week':
+                            since = timedelta(weeks=1)
+                        elif args.period == 'month':
+                            since = timedelta(days=30)
+                        else:
+                            raise ValueError('unknown period '+args.period)
+                        now = datetime.utcnow()
+                        filters.append(Game.date_accepted >= now-since)
+                        if till:
+                            filters.append(Game.date_accepted < now-till)
+                    orders.append(getattr(Player, ordername+'_impl')(*filters))
+                else:
+                    orders.append(getattr(Player, ordername))
                 # special handling for order by winrate:
                 if args.order.endswith('winrate'):
                     # sort also by game count
