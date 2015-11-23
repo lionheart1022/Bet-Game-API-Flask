@@ -842,14 +842,14 @@ class TibiaPoller(Poller, LimitedApi):
             playername, ret))
         return ret
 
-    @classmethod
-    def identity_check(cls, val):
-        name, deaths = cls.fetch(val.strip())
+    def identity_check(val):
+        name, deaths = TibiaPoller.fetch(val.strip())
         if not name:
             raise ValueError('Unknown character '+val)
         # TODO: also save world somewhere
         return name
     Identity(identity_id, 'Tibia Character name', identity_check)
+    del identity_check
 
     def prepare(self):
         self.players = {}
