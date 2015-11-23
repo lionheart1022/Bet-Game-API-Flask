@@ -24,6 +24,7 @@ from .apis import *
 from .polling import *
 from .helpers import MyRequestParser as RequestParser # instead of system one
 from .main import app, db, api, before_first_request
+
 # Players
 @api.resource(
     '/players',
