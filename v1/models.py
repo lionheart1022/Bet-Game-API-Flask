@@ -49,18 +49,26 @@ class Player(db.Model):
         return Game.query.filter(
             (Game.creator_id == self.id) | # OR
             (Game.opponent_id == self.id))
+    @hybrid_method
+    def gamecount_impl(self, *filters):
+        return fast_count(self.games.filter(*filters))
+    @gamecount_impl.expression
+    def gamecount_impl(cls, *filters):
+        return (
+            cls.games
+            .filter(*filters)
+            .with_entities(func.count('*'))
+            .as_scalar()
+        )
     @hybrid_property
     def gamecount(self):
-        return fast_count(self.games)
-    @gamecount.expression
-    def gamecount(cls):
-        return cls.games.with_entities(func.count('*')).as_scalar()
-    @hybrid_property
-    def winrate(self):
+        return self.gamecount_impl()
+    @hybrid_method
+    def winrate_impl(self, *filters):
         # FIXME: rewrite in sql?
         count = 0
         wins = 0
-        for game in self.games:
+        for game in self.games.filter(*filters):
             if game.state != 'finished':
                 continue
             count += 1
@@ -73,11 +81,14 @@ class Player(db.Model):
             # no finished games, no data
             return None
         return wins / count
-    @winrate.expression
-    def winrate(cls):
+    @winrate_impl.expression
+    def winrate_impl(cls, *filters):
         mygames = (
             db.select([func.count(Game.id)])
-            .where(Game.state == 'finished')
+            .where(db.and_(
+                Game.state == 'finished',
+                *filters
+            ))
         )
         count = (
             mygames
@@ -117,6 +128,9 @@ class Player(db.Model):
             (won + draw) / count
         )
 
+    @hybrid_property
+    def winrate(self):
+        return self.winrate_impl()
     #@hybrid_method
     def winratehist(self, days=None, weeks=None, months=None):
         count = days or weeks or months
