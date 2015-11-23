@@ -173,7 +173,7 @@ By default, it returns all players registered, but output can be filtered.
   Also player `id` is always used as last key to ensure stable ordering.
   If you choose descending ordering, `id` will also sort descending.
   If you don't specify any ordering, players will be sorted by `id` ascending.
-* `results_per_page` defaults to 10, max is 50
+* `results_per_page` defaults to 20, max is 50
 * `page` - which page to return, defaults to 1
 
 Result:

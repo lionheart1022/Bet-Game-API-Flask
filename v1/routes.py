@@ -165,7 +165,7 @@ class PlayerResource(restful.Resource):
             )
             #parser.add_argument('names_only', type=boolean_field)
             parser.add_argument('page', type=int, default=1)
-            parser.add_argument('results_per_page', type=int, default=10)
+            parser.add_argument('results_per_page', type=int, default=20)
             args = parser.parse_args()
             # cap
             if args.results_per_page > 50:
