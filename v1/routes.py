@@ -1028,15 +1028,16 @@ def gametypes():
                     if poller.twitch_identity:
                         data['twitch_identity'] = poller.twitch_identity.id
                         data['twitch_identity_name'] = poller.twitch_identity.name
-                    if args.betcount:
-                        data['betcount'], data['lastbet'] = \
-                            counts.get(gametype, (0, None))
                 else: # DummyPoller
                     data.update(dict(
                         supported = False,
                     ))
                 gamedata.append(data)
         _gamedata_cache = gamedata.copy()
+    if args.betcount:
+        for data in gamedata:
+            data['betcount'], data['lastbet'] = \
+                counts.get(data['id'], (0, None))
     if args.filter:
         args.filter = args.filter.casefold()
         if args.filt_op == 'contains':
