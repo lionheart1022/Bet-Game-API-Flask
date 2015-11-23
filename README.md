@@ -155,6 +155,8 @@ Retrieve list of players.
 This query is paginated.
 By default, it returns all players registered, but output can be filtered.
 
+This endpoint returns at most first 20 results.
+
 *Arguments*:
 
 * `filter` - text against which any of player identities should match for that player to be included.
@@ -173,8 +175,6 @@ By default, it returns all players registered, but output can be filtered.
   Also player `id` is always used as last key to ensure stable ordering.
   If you choose descending ordering, `id` will also sort descending.
   If you don't specify any ordering, players will be sorted by `id` ascending.
-* `results_per_page` defaults to 20, max is 50
-* `page` - which page to return, defaults to 1
 
 Result:
 ```json
@@ -182,9 +182,6 @@ Result:
 	"players": [
 		// list of Player resources
 	],
-	"num_results": count of totally available results,
-	"total_pages": 10,
-	"page": 1
 }
 ```
 

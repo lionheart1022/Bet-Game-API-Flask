@@ -164,12 +164,7 @@ class PlayerResource(restful.Resource):
                 required=False,
             )
             #parser.add_argument('names_only', type=boolean_field)
-            parser.add_argument('page', type=int, default=1)
-            parser.add_argument('results_per_page', type=int, default=20)
             args = parser.parse_args()
-            # cap
-            if args.results_per_page > 50:
-                abort('[results_per_page]: max is 50')
 
             if args.filter:
                 query = Player.search(args.filter, args.filt_op)
@@ -194,10 +189,7 @@ class PlayerResource(restful.Resource):
                 )
             query = query.order_by(*orders)
 
-            if query:
-                total_count = query.count()
-                query = query.paginate(args.page, args.results_per_page,
-                                    error_out = False).items
+            query = query.limit(20)
 
             return jsonify(
                 players = fields.List(
@@ -206,9 +198,6 @@ class PlayerResource(restful.Resource):
                                     leaders='winrate' in (args.order or ''))
                     )
                 ).format(query),
-                num_results = total_count,
-                total_pages = math.ceil(total_count/args.results_per_page),
-                page = args.page,
             )
 
         player = Player.find(id)
