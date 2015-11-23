@@ -167,7 +167,7 @@ class Player(db.Model):
         return fast_count(
             self.games.filter(
                 Game.state == 'accepted',
-                *filters,
+                *filters
             )
         )
     @popularity_impl.expression
@@ -181,7 +181,7 @@ class Player(db.Model):
                         Game.opponent_id,
                     ]),
                     Game.state == 'accepted',
-                    *filters,
+                    *filters
                 )
             )
             .label('popularity')
