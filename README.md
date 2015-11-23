@@ -175,6 +175,12 @@ This endpoint returns at most first 20 results.
   Also player `id` is always used as last key to ensure stable ordering.
   If you choose descending ordering, `id` will also sort descending.
   If you don't specify any ordering, players will be sorted by `id` ascending.
+* `gametype` - when ordering by `popularity`, `gamecount` or `winrate`, only consider games with given gametype.
+* `period` - when ordering by `popularity`, `gamecount` or `winrate`, only consider games which occured within given period.
+  Possible choices: `today`, `yesterday`, `week`, `month`.
+
+Note that when limiting considered games by `gametype` or `period`, system will print out values for non-limited query!
+This may be fixed later.
 
 Result:
 ```json
