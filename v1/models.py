@@ -162,19 +162,16 @@ class Player(db.Model):
             .label('lastbet')
         )
 
-    @hybrid_property
-    def popularity(self):
-        return self.popularity2()
     @hybrid_method
-    def popularity2(self, *filters):
+    def popularity_impl(self, *filters):
         return fast_count(
             self.games.filter(
                 Game.state == 'accepted',
                 *filters,
             )
         )
-    @popularity2.expression
-    def popularity2(cls, *filters):
+    @popularity_impl.expression
+    def popularity_impl(cls, *filters):
         return (
             db.select([func.count(Game.id)])
             .where(
@@ -189,6 +186,9 @@ class Player(db.Model):
             )
             .label('popularity')
         )
+    @hybrid_property
+    def popularity(self):
+        return self.popularity_impl() # without filters
 
     _leadercache = {} # is a class field
     _leadercachetime = None
