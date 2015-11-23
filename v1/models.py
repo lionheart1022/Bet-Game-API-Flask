@@ -205,6 +205,19 @@ class Player(db.Model):
             Game.date_accepted >= day2ago,
             Game.date_accepted < dayago,
         )
+    @hybrid_property
+    def popularity_week(self):
+        now = datetime.utcnow()
+        weekago = now - timedelta(weeks=1)
+        return self.popularity_impl(
+            Game.date_accepted >= weekago,
+        )
+    @hybrid_property
+    def popularity_month(self):
+        since = datetime.utcnow() - timedelta(days=30)
+        return self.popularity_impl(
+            Game.date_accepted >= since,
+        )
 
     _leadercache = {} # is a class field
     _leadercachetime = None
