@@ -170,18 +170,15 @@ class Player(db.Model):
         return (
             db.select([func.count(Game.id)])
             .where(
-                Game.state == 'accepted',
-                cls.id.in_([
-                    Game.creator_id,
-                    Game.opponent_id,
-                ]),
+                db.and_(
+                    cls.id.in_([
+                        Game.creator_id,
+                        Game.opponent_id,
+                    ]),
+                    Game.state == 'accepted',
+                )
             )
             .label('popularity')
-        )
-        return cls.games.filter(
-            Game.state == 'accepted'
-        ).with_entities(
-            func.count('*')
         )
 
     _leadercache = {} # is a class field
