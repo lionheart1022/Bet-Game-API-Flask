@@ -1398,7 +1398,7 @@ class GameResource(restful.Resource):
                     continue
                 if args[argname]:
                     try:
-                        identity.checker(args[argname])
+                        args[argname] = identity.checker(args[argname])
                     except ValueError as e:
                         abort('Invalid {}: {}'.format(identity.name, e),
                               problem=argname)
