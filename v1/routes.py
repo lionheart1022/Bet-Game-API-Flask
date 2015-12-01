@@ -1339,7 +1339,7 @@ class GameResource(restful.Resource):
         game = Game()
         game.creator = user
         game.opponent = args.opponent
-        game.root = args.root.root # ensure we use real root
+        game.parent = args.root.root # ensure we use real root
         game.gamertag_creator = args.gamertag_creator
         game.gamertag_opponent = args.gamertag_opponent
         game.twitch_handle = args.twitch_handle
