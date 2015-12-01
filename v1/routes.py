@@ -1806,7 +1806,7 @@ class EventResource(restful.Resource):
     def fields(cls):
         return {
             'id': fields.Integer,
-            'root': fields.Nested(GameResource.fields_lite),
+            'root_id': fields.Integer,
             'time': fields.DateTime,
             'type': fields.String,
             'message': fields.Nested(ChatMessageResource.fields,

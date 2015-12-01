@@ -896,3 +896,25 @@ Possible game states:
 	"viewed": false, // `false` means "unread" message state
 }
 ```
+
+
+### Event resource
+Event types:
+
+* `message`: new chat message was received within this game
+* `system`: system event was received about game state
+* `betstate`: game state was updated
+* `abort`: one of users requested to abort the game
+
+```json
+{
+	"id": 123,
+	"root_id": 10, // id of root game for this event
+	"time": "RFC datetime",
+	"type": see above,
+	"message": Chat Message object (if type = message, else `null`),
+	"game": Game resource in which event happened, or `null` for messages,
+	"text": "system message text, if any, or null",
+	"newstate": "finished", // new game state, for `betstate` type only
+}
+```
