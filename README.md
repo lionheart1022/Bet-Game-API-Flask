@@ -852,6 +852,8 @@ Possible game states:
 	"id": 15, // internal id
 	"creator": { Limited Player resource },
 	"opponent": { Limited Player resource },
+	"is_root": false, // whether this game object is root of game session
+	"children": [ list of Game resource without `children` field for bets within this gaming session ]
 	"gamertag_creator": "Creator's primary identity",
 	"gamertag_opponent": "Opponent's primary identity",
 	"identity_id": "ea_gamertag", // value of corresponding gametype's identity_id
