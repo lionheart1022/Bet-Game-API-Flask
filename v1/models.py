@@ -350,6 +350,8 @@ class Game(db.Model):
     creator = db.relationship(Player, foreign_keys='Game.creator_id')
     opponent_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
     opponent = db.relationship(Player, foreign_keys='Game.opponent_id')
+    parent_id = db.Column(db.Integer, db.ForeignKey('game.id'), index=True)
+    parent = db.relationship('Game', foreign_keys='Game.parent_id')
 
     gamertag_creator = db.Column(db.String(128))
     gamertag_opponent = db.Column(db.String(128))
