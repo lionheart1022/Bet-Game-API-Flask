@@ -668,14 +668,13 @@ def notify_chat(msg):
         ),
     )
     return send_push(message)
-def notify_users(game, details=None, justpush=False, players=None, msg=None):
+def notify_users(game, justpush=False, players=None, msg=None):
     """
     This method creates record in game session,
     sends PUSH notifications about game state change
     to all interested users
     and also sends congratulations email to game winner.
     :param game: game object which state was changed
-    :param details: game state details, if any
     :param justpush: for debugging; push but no mail nor event.
     :param players: don't use it externally
     :param msg: don't use it externally
@@ -688,7 +687,7 @@ def notify_users(game, details=None, justpush=False, players=None, msg=None):
             evt.type = 'betstate'
             evt.game = game
             evt.newstate = game.state
-            evt.text = details
+            evt.text = game.details
             db.session.add(evt)
             db.session.commit()
 
