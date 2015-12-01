@@ -397,7 +397,19 @@ class Game(db.Model):
 
     @property
     def is_root(self):
-        return not bool(self.children)
+        """
+        Returns true if this game is session starter
+        """
+        return not bool(self.parent)
+
+    @property
+    def root(self):
+        """
+        Returns root game for this game
+        """
+        if not self.parent:
+            return self
+        return self.parent.root
 
     @property
     def has_message(self):
