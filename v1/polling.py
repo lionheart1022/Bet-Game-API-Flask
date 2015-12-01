@@ -236,6 +236,19 @@ class Poller:
 
         return True # for convenience
 
+    @classmethod
+    def gameEvent(cls, game, text):
+        """
+        Broadcast notification about game event to game session
+        """
+        evt = Event()
+        evt.root = game.root
+        evt.type = 'system'
+        evt.game = game
+        evt.text = text
+        db.session.add(evt)
+        db.session.commit()
+
     def prepare(self):
         """
         Prepare self for new polling, clear all caches.
