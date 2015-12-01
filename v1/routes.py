@@ -1136,8 +1136,8 @@ def identities():
 )
 class GameResource(restful.Resource):
     @classproperty
-    def fields(cls):
-        nochildren = {
+    def fields_lite(cls):
+        return {
             'id': fields.Integer,
             'creator': fields.Nested(PlayerResource.fields(public=True)),
             'opponent': fields.Nested(PlayerResource.fields(public=True)),
@@ -1165,9 +1165,11 @@ class GameResource(restful.Resource):
             'details': fields.String,
             'finish_date': fields.DateTime,
         }
-        ret = nochildren.copy()
+    @classproperty
+    def fields(cls):
+        ret = cls.fields_lite.copy()
         ret.update({
-            'children': fields.List(fields.Nested(nochildren)),
+            'children': fields.List(fields.Nested(cls.fields_lite)),
         })
         return ret
     @require_auth
@@ -1804,13 +1806,13 @@ class EventResource(restful.Resource):
     def fields(cls):
         return {
             'id': fields.Integer,
-            'root': fields.Nested(GameResource.fields),
+            'root': fields.Nested(GameResource.fields_lite),
             'time': fields.DateTime,
             'type': fields.String,
             'message': fields.Nested(ChatMessageResource.fields,
                                      allow_null=True),
             'text': fields.String,
-            'game': fields.Nested(GameResource.fields,
+            'game': fields.Nested(GameResource.fields_lite,
                                   allow_null=True),
         }
     @require_auth
