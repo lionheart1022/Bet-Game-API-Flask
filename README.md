@@ -595,12 +595,16 @@ Note that you should allow user to enter not-listed short values as well.
 ```
 
 
+
 ### POST /games
 Create game invitation.
 
 Arguments:
 
 * `opponent_id`: either nickname, gamertag or internal numeric id of opponent.
+* `root_id`: id of `game` object which should be "root" for this one,
+  i.e. which denotes current gaming session.
+  This argument can be omitted if you are creating new gaming session.
 * `gamertag_creator`: gamertag of the player for which invitation creator roots.
 	Optional, defaults to creator's own gamertag (if specified).
 * `gamertag_opponent`: gamertag of the player for which invitation opponent roots.
