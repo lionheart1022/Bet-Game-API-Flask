@@ -1136,8 +1136,8 @@ def identities():
 )
 class GameResource(restful.Resource):
     @classproperty
-    def fields_nochildren(cls):
-        return {
+    def fields(cls):
+        nochildren = {
             'id': fields.Integer,
             'creator': fields.Nested(PlayerResource.fields(public=True)),
             'opponent': fields.Nested(PlayerResource.fields(public=True)),
@@ -1162,11 +1162,9 @@ class GameResource(restful.Resource):
             'details': fields.String,
             'finish_date': fields.DateTime,
         }
-    @classproperty
-    def fields(cls):
-        ret = cls.fields_nochildren.copy()
+        ret = nochildren.copy()
         ret.update({
-            'children': fields.List(fields.Nested(cls.fields_nochildren)),
+            'children': fields.List(fields.Nested(nochildren)),
         })
         return ret
     @require_auth
