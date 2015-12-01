@@ -396,16 +396,6 @@ class Game(db.Model):
     del _make_identity_getter
 
     @property
-    def twitch_identity_name(self):
-        if not self.gametype:
-            return None
-        from .polling import Poller
-        poller = Poller.findPoller(self.gametype)
-        if not poller.twitch_identity:
-            return None
-        return poller.twitch_identity.name
-
-    @property
     def is_root(self):
         return not bool(self.children)
 
