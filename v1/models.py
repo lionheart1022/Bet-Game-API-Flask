@@ -369,6 +369,8 @@ class Game(db.Model):
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
     state = db.Column(db.Enum('new', 'cancelled', 'accepted', 'declined', 'finished'), default='new')
     accept_date = db.Column(db.DateTime, nullable=True)
+    aborter_id = db.Column(db.Integer, db.ForeignKey('player.id'))
+    aborter = db.relationship(Player, foreign_keys='Game.aborter_id')
     winner = db.Column(db.Enum('creator', 'opponent', 'draw'), nullable=True)
     details = db.Column(db.Text, nullable=True)
     finish_date = db.Column(db.DateTime, nullable=True)
