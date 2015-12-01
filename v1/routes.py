@@ -485,6 +485,8 @@ class PlayerResource(restful.Resource):
         if not dev:
             # if not found - get current one (which most likely has no token)
             dev = Device.query.get(g.device_id)
+            if not dev:
+                abort('Device id not found', 500)
             if dev.push_token:
                 abort('This device already has push token specified')
             dev.push_token = args.push_token
@@ -1175,9 +1177,7 @@ class GameResource(restful.Resource):
     @require_auth
     def get(self, user, id=None):
         if id:
-            game = Game.query.get(id)
-            if not game:
-                raise NotFound
+            game = Game.query.get_or_404(id)
 
             # TODO: allow?
             if not game.is_game_player(user):
@@ -1375,9 +1375,7 @@ class GameResource(restful.Resource):
         parser.add_argument('twitch_identity_opponent', required=False)
         args = parser.parse_args()
 
-        game = Game.query.get(id)
-        if not game:
-            raise NotFound
+        game = Game.query.get_or_404(id)
 
         user = check_auth()
         if user == game.creator:
@@ -1542,9 +1540,7 @@ class GameMessageResource(UploadableResource):
     ALLOWED = ['mpg','mp3','ogg','ogv', 'mp4', 'm4a']
     @require_auth
     def get_entity(self, args, is_put, user):
-        game = Game.query.get(args['id'])
-        if not game:
-            raise NotFound
+        game = Game.query.get_or_404(args['id'])
         if not game.is_game_player(user):
             raise Forbidden
         if is_put and user != game.creator:
@@ -1594,9 +1590,7 @@ class ChatMessageResource(restful.Resource):
 
         msg = None
         if id:
-            msg = ChatMessage.query.get(id)
-            if not msg:
-                raise NotFound
+            msg = ChatMessage.query.get_or_404(id)
             if not msg.is_for(user):
                 raise Forbidden
             if player:
@@ -1717,9 +1711,7 @@ class ChatMessageResource(restful.Resource):
     def patch(self, user, game_id=None, player_id=None, id=None):
         if not id:
             raise MethodNotAllowed
-        msg = ChatMessage.query.get(id)
-        if not msg:
-            raise NotFound
+        msg = ChatMessage.query.get_or_404(id)
         if msg.receiver_id != user.id:
             raise Forbidden(
                 'You cannot patch message which is not addressed to you')
@@ -1760,10 +1752,7 @@ class ChatMessageAttachmentResource(UploadableResource):
     ALLOWED = ['mp4','m4a','mov','png','jpg']
     @require_auth
     def get_entity(self, args, is_put, user):
-        msg = ChatMessage.query.get(args['id'])
-        if not msg:
-            raise NotFound
-
+        msg = ChatMessage.query.get_or_404(args['id'])
         if not msg.is_for(user):
             raise Forbidden
 
@@ -1776,7 +1765,7 @@ class ChatMessageAttachmentResource(UploadableResource):
         elif 'game_id' in args:
             game = Game.query.get(args['game_id'])
             if not game:
-                raise NotFound
+                raise NotFound('wrong game id')
             if not game.is_game_player(user):
                 raise Forbidden('You cannot access this game')
         else:
@@ -1910,9 +1899,7 @@ class BetaResource(restful.Resource):
         if not id:
             raise MethodNotAllowed
 
-        beta = Beta.query.get(id)
-        if not beta:
-            raise NotFound
+        beta = Beta.query.get_or_404(id)
 
         parser = RequestParser()
         parser.add_argument('flags')
@@ -2082,9 +2069,7 @@ span.new, span.finished, span.declined {
     ])
 @app.route('/debug/f@keg@me/<int:id>/<winner>', methods=['POST'])
 def debug_fake_result(id, winner):
-    game = Game.query.get(id)
-    if not game:
-        raise NotFound
+    game = Game.query.get_or_404(id)
     if winner not in ('creator', 'opponent', 'draw'):
         abort('Bad winner '+winner)
     if game.state != 'accepted':
