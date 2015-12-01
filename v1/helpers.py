@@ -668,20 +668,38 @@ def notify_chat(msg):
         ),
     )
     return send_push(message)
-def notify_users(game, nomail=False, players=None, msg=None):
+def notify_users(game, details=None, justpush=False, players=None, msg=None):
     """
-    This method sends PUSH notifications about game state change
-    to all interested users.
-    It will also send congratulations email to game winner.
+    This method creates record in game session,
+    sends PUSH notifications about game state change
+    to all interested users
+    and also sends congratulations email to game winner.
+    :param game: game object which state was changed
+    :param details: game state details, if any
+    :param justpush: for debugging; push but no mail nor event.
+    :param players: don't use it externally
+    :param msg: don't use it externally
     """
     if not players:
+        # create event, if required
+        if not justpush:
+            evt = Event()
+            evt.root = game.root
+            evt.type = 'betstate'
+            evt.game = game
+            evt.newstate = game.state
+            evt.text = details
+            db.session.add(evt)
+            db.session.commit()
+
+        # determine push&mail receivers
         if game.state == 'finished' and game.winner in ['creator','opponent']:
             # special handling
             winner = game.creator if game.winner == 'creator' else game.opponent
             looser = game.other(winner)
-            notify_users(game, nomail, [winner],
+            notify_users(game, justpush, [winner],
                          'Congratulations, you won the game!')
-            notify_users(game, nomail, [looser],
+            notify_users(game, justpush, [looser],
                          'Sorry, you lost the game...')
             return
         msg = {
@@ -746,7 +764,7 @@ def notify_users(game, nomail=False, players=None, msg=None):
     if message: # if had any receivers
         result = send_push(message)
     # and send email if applicable
-    if not nomail:
+    if not justpush:
         result = result and send_mail(game)
     return result
 

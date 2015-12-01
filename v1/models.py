@@ -367,7 +367,9 @@ class Game(db.Model):
 
     bet = db.Column(db.Float, nullable=False)
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
-    state = db.Column(db.Enum('new', 'cancelled', 'accepted', 'declined', 'finished'), default='new')
+    state = db.Column(db.Enum(
+        'new', 'cancelled', 'accepted', 'declined', 'finished',
+    ), default='new')
     accept_date = db.Column(db.DateTime, nullable=True)
     aborter_id = db.Column(db.Integer, db.ForeignKey('player.id'))
     aborter = db.relationship(Player, foreign_keys='Game.aborter_id')
@@ -503,7 +505,7 @@ class Event(db.Model):
     # for 'system', 'betstate' and 'abort' types
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
     game = db.relationship(Game)
-    # for 'system' type, and maybe for 'betstate'
+    # for 'system' and probably 'betstate' types
     text = db.Column(db.Text)
     # for 'betstate' type
     newstate = db.Column(db.String(128))

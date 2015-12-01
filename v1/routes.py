@@ -1954,7 +1954,7 @@ def push_state(state, user):
         if hasattr(game, k):
             setattr(game, k, v)
 
-    result = notify_users(game, nomail=True)
+    result = notify_users(game, justpush=True)
 
     return jsonify(
         pushed=result,
