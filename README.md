@@ -686,6 +686,17 @@ Game invitation creator can only make invitation `cancelled`.
 Returns *Game resource* object on success.
 
 
+### DELETE /games/<id>
+Request or confirm challenge aborting.
+
+If game's `aborter` field is null or equals to you,
+this will initiate an aborting request and return `{"started":true}`.
+So the user can request game aborting, and then request it again - new event will be created then.
+
+If game's `aborter` field equals to your opponent
+(i.e. your opponent request game aborting),
+this call will abort the game and return `{"aborted":true}`.
+
 ### GET /games/<id>/msg
 Returns binary message file attached to this game, or `204 NO CONTENT` if file was not attached.
 Content-type will be passed automatically based on file extension.
@@ -857,11 +868,13 @@ Possible game states:
 	"create_date": "RFC datetime",
 	"state": "finished", // see above
 	"accept_date": "RFC datetime", // date of eiter accepting or declining game, null for new games
+	"aborter": null or { Limited Player resource },
 	"winner": "opponent", // either "creator", "opponent" or "draw"
 	"details": "Manchester vs Barcelona, score 1-3", // game result details, it depends on game and poller
 	"finish_date": "RFC datetime" // date when this game was finished, according to EA servers
 }
 ```
+
 
 
 ### Chat message resource

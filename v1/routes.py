@@ -1158,6 +1158,7 @@ class GameResource(restful.Resource):
             'create_date': fields.DateTime,
             'state': fields.String,
             'accept_date': fields.DateTime,
+            'aborter': fields.Nested(PlayerResource.fields(public=True)),
             'winner': fields.String,
             'details': fields.String,
             'finish_date': fields.DateTime,
@@ -1490,6 +1491,35 @@ class GameResource(restful.Resource):
 
         return marshal(game, self.fields)
 
+    @require_auth
+    def delete(self, user, id=None):
+        if not id:
+            raise MethodNotAllowed
+        game = Game.query.get_or_404(id)
+        if not game.is_game_player(user):
+            raise Forbidden('You cannot access this challenge')
+        if not game.aborter or game.aborter == user:
+            # aborting not started, so initiate it.
+            # or maybe it is already started, so just ask again
+            # (make another event)
+            game.aborter = user
+            evt = Event()
+            evt.root = game.root
+            evt.type = 'abort'
+            evt.game = game
+            db.session.add(evt)
+            db.session.commit()
+            return dict(
+                started = True,
+            )
+        if game.aborter != game.other(user):
+            abort('Internal error, wrong aborter', 500)
+        Poller.gameDone(game, 'aborted',
+                        details='Challenge was aborted by '+game.aborter.nickname,
+                        )
+        return dict(
+            aborted = True,
+        )
 
 @api.resource(
     '/games/<int:id>/msg',
@@ -1755,6 +1785,43 @@ class ChatMessageAttachmentResource(UploadableResource):
     notfound = ondelete
 
 
+# Events
+@api.resource(
+    '/games/<int:game_id>/events',
+    '/games/<int:game_id>/events/',
+    '/games/<int:game_id>/events/<int:id>',
+)
+class EventResource(restful.Resource):
+    @classmethod
+    def fields(cls):
+        return {
+            'id': fields.Integer,
+            'root': fields.Nested(GameResource.fields),
+            'time': fields.DateTime,
+            'type': fields.String,
+            'message': fields.Nested(ChatMessageResource.fields),
+            'text': fields.String,
+            'game': fields.Nested(GameResource.fields),
+        }
+    @require_auth
+    def get(self, game_id, id=None):
+        root = Game.query.get_or_404(game_id)
+        if not root.is_root:
+            abort('This game is not root of hierarchy, use id %d'%root.root.id)
+        if id:
+            event = Event.query.get_or_404(id)
+            return marshal(event, self.fields)
+        # TODO custom filters, pagination
+        events = Event.query.filter(
+            Event.root_id == root.id,
+        ).order_by(
+            Event.time,
+        )
+        return marshal(
+            events,
+            fields.List(fields.Nested(self.fields)),
+        )
+
 # Beta testers
 @api.resource(
     '/betatesters',
@@ -1888,7 +1955,7 @@ def push_state(state, user):
         if hasattr(game, k):
             setattr(game, k, v)
 
-    result = notify_users(game, nomail=True)
+    result = notify_users(game, justpush=True)
 
     return jsonify(
         pushed=result,

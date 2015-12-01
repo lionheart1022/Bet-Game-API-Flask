@@ -164,7 +164,7 @@ class Poller:
         ))
 
     @classmethod
-    def gameDone(cls, game, winner, timestamp, details=None):
+    def gameDone(cls, game, winner, timestamp=None, details=None):
         """
         Mark the game as done, setting all needed fields.
         Winner is a string.
@@ -172,8 +172,12 @@ class Poller:
         Returns True for convenience (`return self.gameDone(...)`).
         """
         log.debug('Marking game {} as done'.format(game))
-        game.winner = winner
-        game.state = 'finished'
+        if winner == 'aborted':
+            game.winner = 'draw'
+            game.state = 'aborted'
+        else:
+            game.winner = winner
+            game.state = 'finished'
         game.details = details
         if not timestamp:
             game.finish_date = datetime.utcnow()
@@ -231,6 +235,19 @@ class Poller:
                 log.exception('Failed to delete watcher')
 
         return True # for convenience
+
+    @classmethod
+    def gameEvent(cls, game, text):
+        """
+        Broadcast notification about game event to game session
+        """
+        evt = Event()
+        evt.root = game.root
+        evt.type = 'system'
+        evt.game = game
+        evt.text = text
+        db.session.add(evt)
+        db.session.commit()
 
     def prepare(self):
         """

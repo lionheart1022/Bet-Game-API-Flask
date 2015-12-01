@@ -367,8 +367,12 @@ class Game(db.Model):
 
     bet = db.Column(db.Float, nullable=False)
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
-    state = db.Column(db.Enum('new', 'cancelled', 'accepted', 'declined', 'finished'), default='new')
+    state = db.Column(db.Enum(
+        'new', 'cancelled', 'accepted', 'declined', 'finished', 'aborted',
+    ), default='new')
     accept_date = db.Column(db.DateTime, nullable=True)
+    aborter_id = db.Column(db.Integer, db.ForeignKey('player.id'))
+    aborter = db.relationship(Player, foreign_keys='Game.aborter_id')
     winner = db.Column(db.Enum('creator', 'opponent', 'draw'), nullable=True)
     details = db.Column(db.Text, nullable=True)
     finish_date = db.Column(db.DateTime, nullable=True)
@@ -435,6 +439,7 @@ class Game(db.Model):
     def __repr__(self):
         return '<Game id={} state={}>'.format(self.id, self.state)
 
+
 class ChatMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
@@ -471,6 +476,39 @@ class ChatMessage(db.Model):
         )
     def __repr__(self):
         return '<ChatMessage id={} text={}>'.format(self.id, self.text)
+
+
+class Event(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    # game should be the root game of inner challenges hierarchy
+    # as it denotes gaming session
+    # TODO: maybe make it optional?
+    root_id = db.Column(db.Integer, db.ForeignKey('game.id'),
+                        index=True, nullable=False)
+    root = db.relationship(Game, backref='events', foreign_keys='Event.root_id')
+    @db.validates('root')
+    def validate_root(self, key, game):
+        # ensure it is the root of game session
+        return game.root
+    time = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+
+    type = db.Column(db.Enum(
+        'message', # one user sent message to another
+        'system', # system notification about game state, bet state unchanged
+        'betstate', # some bet changed its state, or was created
+        'abort', # request to abort one of bets in this session
+    ), nullable=False)
+
+    # for 'message' type
+    message_id = db.Column(db.Integer, db.ForeignKey('chat_message.id'))
+    message = db.relationship(ChatMessage)
+    # for 'system', 'betstate' and 'abort' types
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    game = db.relationship(Game, foreign_keys='Event.game_id')
+    # for 'system' and probably 'betstate' types
+    text = db.Column(db.Text)
+    # for 'betstate' type
+    newstate = db.Column(db.String(128))
 
 class Beta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
