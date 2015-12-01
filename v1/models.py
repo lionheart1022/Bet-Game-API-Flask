@@ -485,27 +485,28 @@ class Event(db.Model):
                         index=True, nullable=False)
     root = db.relationship(Game, backref='events', remote_side='Event.root_id')
     @db.validates('root')
-    def validate_game(self, key, game):
+    def validate_root(self, key, game):
         # ensure it is the root of game session
         return game.root
     time = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
     type = db.Column(db.Enum(
         'message', # one user sent message to another
-        'system', # system notification about game state
-        'outcome', # outcome of some bet
-        'innerbet', # new ingame bet was created (or maybe revenue bet)
+        'system', # system notification about game state, bet state unchanged
+        'betstate', # some bet changed its state, or was created
         'abort', # request to abort one of bets in this session
     ), nullable=False)
 
     # for 'message' type
     message_id = db.Column(db.Integer, db.ForeignKey('chat_message.id'))
     message = db.relationship(ChatMessage)
-    # for 'system' type, and maybe for 'outcome'
-    text = db.Column(db.Text)
-    # for 'outcome', 'innerbet' and 'abort' types
+    # for 'system', 'betstate' and 'abort' types
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
     game = db.relationship(Game)
+    # for 'system' type, and maybe for 'betstate'
+    text = db.Column(db.Text)
+    # for 'betstate' type
+    newstate = db.Column(db.String(128))
 
 class Beta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
