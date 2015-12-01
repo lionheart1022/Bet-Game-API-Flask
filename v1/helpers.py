@@ -641,6 +641,16 @@ def send_push(msg):
     return send_push_do(msg)
 
 def notify_chat(msg):
+    # create event (for now only if this message is within game)
+    if msg.game:
+        evt = Event()
+        evt.root = msg.game.root
+        evt.type = 'message'
+        evt.message = msg
+        db.session.add(evt)
+        db.session.commit()
+
+    # now handle pushes
     receivers = []
     for d in msg.receiver.devices:
         if d.push_token:
