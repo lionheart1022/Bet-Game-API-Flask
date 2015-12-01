@@ -702,14 +702,17 @@ def notify_users(game, justpush=False, players=None, msg=None):
                          'Sorry, you lost the game...')
             return
         msg = {
-            'new': '{} invites you to compete'.format(game.creator.nickname),
-            'cancelled': '{} cancelled their invitation'.format(game.creator.nickname),
-            'accepted': '{} accepted your invitation, start playing now!'
-                .format(game.opponent.nickname),
-            'declined': '{} declined your invitation'.format(game.opponent.nickname),
+            'new': '{creator} invites you to compete',
+            'cancelled': '{creator} cancelled their invitation',
+            'accepted': '{opponent} accepted your invitation, start playing now!',
+            'declined': '{opponent} declined your invitation',
             'finished': 'Your drew. Better luck next time!',
-            'aborted': 'Challenge was aborted by request of {}'.format(game.aborter.nickname),
-        }[game.state]
+            'aborted': 'Challenge was aborted by request of {aborter}',
+        }[game.state].format(
+            creator = game.creator.nickname,
+            opponent = game.opponent.nickname,
+            aborter = game.aborter.nickname if game.aborter else 'UNKNOWN',
+        )
 
         players = []
         if game.state in ['new', 'cancelled', 'finished']:
