@@ -1755,6 +1755,12 @@ class ChatMessageAttachmentResource(UploadableResource):
     notfound = ondelete
 
 
+# Events
+@api.resource(
+)
+class EventResource(restful.Resource):
+    pass
+
 # Beta testers
 @api.resource(
     '/betatesters',

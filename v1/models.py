@@ -435,6 +435,7 @@ class Game(db.Model):
     def __repr__(self):
         return '<Game id={} state={}>'.format(self.id, self.state)
 
+
 class ChatMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
@@ -471,6 +472,38 @@ class ChatMessage(db.Model):
         )
     def __repr__(self):
         return '<ChatMessage id={} text={}>'.format(self.id, self.text)
+
+
+class Event(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    # game should be the root game of inner challenges hierarchy
+    # as it denotes gaming session
+    # TODO: maybe make it optional?
+    root_id = db.Column(db.Integer, db.ForeignKey('game.id'),
+                        index=True, nullable=False)
+    root = db.relationship(Game, backref='events', remote_side='Event.root_id')
+    @db.validates('root')
+    def validate_game(self, key, game):
+        # ensure it is the root of game session
+        return game.root
+    time = db.Column(db.DateTime, default=datetime.utcnow)
+
+    type = db.Column(db.Enum(
+        'message', # one user sent message to another
+        'system', # system notification about game state
+        'outcome', # outcome of some bet
+        'innerbet', # new ingame bet was created (or maybe revenue bet)
+        'abort', # request to abort one of bets in this session
+    ), nullable=False)
+
+    # for 'message' type
+    message_id = db.Column(db.Integer, db.ForeignKey('chat_message.id'))
+    message = db.relationship(ChatMessage)
+    # for 'system' type
+    text = db.Column(db.Text)
+    # for 'outcome', 'innerbet' and 'abort' types
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'), index=True)
+    game = db.relationship(Game)
 
 class Beta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
