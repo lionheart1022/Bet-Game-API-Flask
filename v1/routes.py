@@ -1800,9 +1800,11 @@ class EventResource(restful.Resource):
             'root': fields.Nested(GameResource.fields),
             'time': fields.DateTime,
             'type': fields.String,
-            'message': fields.Nested(ChatMessageResource.fields),
+            'message': fields.Nested(ChatMessageResource.fields,
+                                     allow_null=True),
             'text': fields.String,
-            'game': fields.Nested(GameResource.fields),
+            'game': fields.Nested(GameResource.fields,
+                                  allow_null=True),
         }
     @require_auth
     def get(self, game_id, id=None):
