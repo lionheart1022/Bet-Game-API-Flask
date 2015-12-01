@@ -1685,6 +1685,7 @@ class ChatMessageResource(restful.Resource):
             player = game.other(user)
             if not player:
                 raise Forbidden('You cannot access this game', 403)
+            game = game.root # always attach messages to root game in session
 
         parser = RequestParser()
         parser.add_argument('text', required=False)
