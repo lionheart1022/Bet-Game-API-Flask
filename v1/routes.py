@@ -1819,7 +1819,7 @@ class EventResource(restful.Resource):
         if not root.is_root:
             abort('This game is not root of hierarchy, use id %d'%root.root.id)
         if id:
-            event = Event.query.filter_by(root=root, id=id).one_or_404()
+            event = Event.query.filter_by(root=root, id=id).first_or_404()
             return marshal(event, self.fields)
         # TODO custom filters, pagination
         events = Event.query.filter(
