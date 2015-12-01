@@ -486,7 +486,7 @@ class Event(db.Model):
     def validate_game(self, key, game):
         # ensure it is the root of game session
         return game.root
-    time = db.Column(db.DateTime, default=datetime.utcnow)
+    time = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
     type = db.Column(db.Enum(
         'message', # one user sent message to another
