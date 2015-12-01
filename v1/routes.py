@@ -1800,7 +1800,7 @@ class ChatMessageAttachmentResource(UploadableResource):
     '/games/<int:game_id>/events/<int:id>',
 )
 class EventResource(restful.Resource):
-    @classmethod
+    @classproperty
     def fields(cls):
         return {
             'id': fields.Integer,
