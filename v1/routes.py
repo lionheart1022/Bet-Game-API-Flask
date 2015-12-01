@@ -1506,14 +1506,14 @@ class GameResource(restful.Resource):
             evt.root = game.root
             evt.type = 'abort'
             evt.game = game
+            db.session.add(evt)
             db.session.commit()
             return dict(
                 started = True,
             )
         if game.aborter != game.other(user):
             abort('Internal error, wrong aborter', 500)
-        game.state = 'finished'
-        Poller.gameDone(game, 'draw',
+        Poller.gameDone(game, 'aborted',
                         details='Challenge was aborted by '+game.aborter.nickname,
                         )
         return dict(

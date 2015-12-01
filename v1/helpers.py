@@ -708,6 +708,7 @@ def notify_users(game, justpush=False, players=None, msg=None):
                 .format(game.opponent.nickname),
             'declined': '{} declined your invitation'.format(game.opponent.nickname),
             'finished': 'Your drew. Better luck next time!',
+            'aborted': 'Challenge was aborted by request of {}'.format(game.aborter.nickname),
         }[game.state]
 
         players = []

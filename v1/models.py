@@ -368,7 +368,7 @@ class Game(db.Model):
     bet = db.Column(db.Float, nullable=False)
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
     state = db.Column(db.Enum(
-        'new', 'cancelled', 'accepted', 'declined', 'finished',
+        'new', 'cancelled', 'accepted', 'declined', 'finished', 'aborted',
     ), default='new')
     accept_date = db.Column(db.DateTime, nullable=True)
     aborter_id = db.Column(db.Integer, db.ForeignKey('player.id'))

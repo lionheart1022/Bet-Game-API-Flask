@@ -172,8 +172,12 @@ class Poller:
         Returns True for convenience (`return self.gameDone(...)`).
         """
         log.debug('Marking game {} as done'.format(game))
-        game.winner = winner
-        game.state = 'finished'
+        if winner == 'aborted':
+            game.winner = 'draw'
+            game.state = 'aborted'
+        else:
+            game.winner = winner
+            game.state = 'finished'
         game.details = details
         if not timestamp:
             game.finish_date = datetime.utcnow()
