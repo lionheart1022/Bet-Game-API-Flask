@@ -1807,7 +1807,7 @@ class EventResource(restful.Resource):
                                   allow_null=True),
         }
     @require_auth
-    def get(self, game_id, id=None):
+    def get(self, user, game_id, id=None):
         root = Game.query.get_or_404(game_id)
         if not root.is_root:
             abort('This game is not root of hierarchy, use id %d'%root.root.id)
