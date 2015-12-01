@@ -485,7 +485,7 @@ class Event(db.Model):
     # TODO: maybe make it optional?
     root_id = db.Column(db.Integer, db.ForeignKey('game.id'),
                         index=True, nullable=False)
-    root = db.relationship(Game, backref='events', remote_side='Event.root_id')
+    root = db.relationship(Game, backref='events', foreign_keys='Event.root_id')
     @db.validates('root')
     def validate_root(self, key, game):
         # ensure it is the root of game session
@@ -504,7 +504,7 @@ class Event(db.Model):
     message = db.relationship(ChatMessage)
     # for 'system', 'betstate' and 'abort' types
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-    game = db.relationship(Game)
+    game = db.relationship(Game, foreign_keys='Event.game_id')
     # for 'system' and probably 'betstate' types
     text = db.Column(db.Text)
     # for 'betstate' type
