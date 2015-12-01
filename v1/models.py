@@ -499,7 +499,7 @@ class Event(db.Model):
     # for 'message' type
     message_id = db.Column(db.Integer, db.ForeignKey('chat_message.id'))
     message = db.relationship(ChatMessage)
-    # for 'system' type
+    # for 'system' type, and maybe for 'outcome'
     text = db.Column(db.Text)
     # for 'outcome', 'innerbet' and 'abort' types
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'), index=True)

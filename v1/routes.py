@@ -1757,9 +1757,40 @@ class ChatMessageAttachmentResource(UploadableResource):
 
 # Events
 @api.resource(
+    '/games/<int:game_id>/events',
+    '/games/<int:game_id>/events/',
+    '/games/<int:game_id>/events/<int:id>',
 )
 class EventResource(restful.Resource):
-    pass
+    @classmethod
+    def fields(cls):
+        return {
+            'id': fields.Integer,
+            'root': fields.Nested(GameResource.fields),
+            'time': fields.DateTime,
+            'type': fields.String,
+            'message': fields.Nested(ChatMessageResource.fields),
+            'text': fields.String,
+            'game': fields.Nested(GameResource.fields),
+        }
+    @require_auth
+    def get(self, game_id, id=None):
+        root = Game.query.get_or_404(game_id)
+        if not root.is_root:
+            abort('This game is not root of hierarchy, use id %d'%root.root.id)
+        if id:
+            event = Event.query.get_or_404(id)
+            return marshal(event, self.fields)
+        # TODO custom filters, pagination
+        events = Event.query.filter(
+            Event.root_id == root.id,
+        ).order_by(
+            Event.time,
+        )
+        return marshal(
+            events,
+            fields.List(fields.Nested(self.fields)),
+        )
 
 # Beta testers
 @api.resource(
