@@ -857,6 +857,7 @@ Possible game states:
 	"creator": { Limited Player resource },
 	"opponent": { Limited Player resource },
 	"is_root": false, // whether this game object is root of game session
+	"parent_id": 3, // id of parent (root) game object, or `null` if this is root
 	"children": [ list of Game resource without `children` field for bets within this gaming session ]
 	"gamertag_creator": "Creator's primary identity",
 	"gamertag_opponent": "Opponent's primary identity",
