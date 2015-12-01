@@ -1158,6 +1158,7 @@ class GameResource(restful.Resource):
             'create_date': fields.DateTime,
             'state': fields.String,
             'accept_date': fields.DateTime,
+            'aborter': fields.Nested(PlayerResource.fields(public=True)),
             'winner': fields.String,
             'details': fields.String,
             'finish_date': fields.DateTime,
