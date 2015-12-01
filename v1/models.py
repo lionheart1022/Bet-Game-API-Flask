@@ -502,7 +502,7 @@ class Event(db.Model):
     # for 'system' type, and maybe for 'outcome'
     text = db.Column(db.Text)
     # for 'outcome', 'innerbet' and 'abort' types
-    game_id = db.Column(db.Integer, db.ForeignKey('game.id'), index=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
     game = db.relationship(Game)
 
 class Beta(db.Model):
