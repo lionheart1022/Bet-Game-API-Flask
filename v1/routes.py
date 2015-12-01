@@ -1141,6 +1141,7 @@ class GameResource(restful.Resource):
             'id': fields.Integer,
             'creator': fields.Nested(PlayerResource.fields(public=True)),
             'opponent': fields.Nested(PlayerResource.fields(public=True)),
+            'is_root': fields.Boolean,
             'gamertag_creator': fields.String,
             'gamertag_opponent': fields.String,
             'identity_id': fields.String,

@@ -406,6 +406,10 @@ class Game(db.Model):
         return poller.twitch_identity.name
 
     @property
+    def is_root(self):
+        return not bool(self.children)
+
+    @property
     def has_message(self):
         from .routes import GameMessageResource
         return bool(GameMessageResource.findfile(self))
