@@ -353,7 +353,7 @@ class Game(db.Model):
     parent_id = db.Column(db.Integer, db.ForeignKey('game.id'),
                           index=True)
     parent = db.relationship('Game', foreign_keys='Game.parent_id',
-                             backref='children')
+                             backref='children', remote_side='Game.id')
 
     gamertag_creator = db.Column(db.String(128))
     gamertag_opponent = db.Column(db.String(128))
