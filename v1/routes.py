@@ -1490,6 +1490,35 @@ class GameResource(restful.Resource):
 
         return marshal(game, self.fields)
 
+    @require_auth
+    def delete(self, user, id=None):
+        if not id:
+            raise MethodNotAllowed
+        game = Game.query.get_or_404(id)
+        if not game.is_game_player(user):
+            raise Forbidden('You cannot access this challenge')
+        if not game.aborter or game.aborter == user:
+            # aborting not started, so initiate it.
+            # or maybe it is already started, so just ask again
+            # (make another event)
+            game.aborter = user
+            evt = Event()
+            evt.root = game.root
+            evt.type = 'abort'
+            evt.game = game
+            db.session.commit()
+            return dict(
+                started = True,
+            )
+        if game.aborter != game.other(user):
+            abort('Internal error, wrong aborter', 500)
+        game.state = 'finished'
+        Poller.gameDone(game, 'draw',
+                        details='Challenge was aborted by '+game.aborter.nickname,
+                        )
+        return dict(
+            aborted = True,
+        )
 
 @api.resource(
     '/games/<int:id>/msg',
