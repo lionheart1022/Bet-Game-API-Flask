@@ -1821,8 +1821,8 @@ class EventResource(restful.Resource):
             Event.time,
         )
         return marshal(
-            events,
-            fields.List(fields.Nested(self.fields)),
+            dict(events=events),
+            dict(events=fields.List(fields.Nested(self.fields))),
         )
 
 # Beta testers
