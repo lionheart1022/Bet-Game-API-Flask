@@ -1339,6 +1339,7 @@ class GameResource(restful.Resource):
         game = Game()
         game.creator = user
         game.opponent = args.opponent
+        log.debug('setting parent')
         game.parent = args.root.root # ensure we use real root
         game.gamertag_creator = args.gamertag_creator
         game.gamertag_opponent = args.gamertag_opponent
@@ -1354,6 +1355,7 @@ class GameResource(restful.Resource):
 
         db.session.commit()
 
+        log.debug('notifying')
         notify_users(game)
 
         return marshal(game, self.fields), 201
