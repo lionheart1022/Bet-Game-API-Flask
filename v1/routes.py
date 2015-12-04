@@ -1343,7 +1343,8 @@ class GameResource(restful.Resource):
         game.creator = user
         game.opponent = args.opponent
         log.debug('setting parent')
-        game.parent = args.root.root # ensure we use real root
+        if args.root:
+            game.parent = args.root.root # ensure we use real root
         game.gamertag_creator = args.gamertag_creator
         game.gamertag_opponent = args.gamertag_opponent
         game.twitch_handle = args.twitch_handle
