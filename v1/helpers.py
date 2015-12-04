@@ -641,7 +641,7 @@ def send_push(msg):
     return send_push_do(msg)
 
 
-def notify_event(root, etype, **kwargs):
+def notify_event(root, etype, alert=None, **kwargs):
     # create event
     evt = Event()
     evt.root = root.root # ensure root
@@ -651,31 +651,32 @@ def notify_event(root, etype, **kwargs):
     db.session.add(evt)
     db.session.commit() # for id
 
-    alert = {
-        'message': 'New message from {sender}: {text}',
-        'system': 'Game event detected: {text}',
-        'betstate': 'Challenge state changed. {text}',
-        'abort': 'Game abort requested by {aborter}',
-    }[etype]
-    if evt.message:
-        alert = alert.format(
-            sender = evt.message.sender.nickname,
-            text = evt.message.text,
-        )
-    elif etype == 'abort':
-        alert = alert.format(
-            aborter = evt.game.aborter.nickname,
-        )
-    else:
-        alert = alert.format(
-            text = evt.text or '',
-        )
+    if alert is None:
+        alert = {
+            'message': 'New message from {sender}: {text}',
+            'system': 'Game event detected: {text}',
+            'betstate': 'Challenge state changed. {text}',
+            'abort': 'Game abort requested by {aborter}',
+        }[etype]
+        if evt.message:
+            alert = alert.format(
+                sender = evt.message.sender.nickname,
+                text = evt.message.text,
+            )
+        elif etype == 'abort':
+            alert = alert.format(
+                aborter = evt.game.aborter.nickname,
+            )
+        else:
+            alert = alert.format(
+                text = evt.text or '',
+            )
 
     # now broadcast push
     message = apns_clerk.Message(
         receivers,
-        alert=alert,
-        badge='increment',
+        alert=alert or None,
+        badge='increment' if alert else None,
         content_available=1,
         message=restful.marshal(
             evt, routes.EventResource.fields
