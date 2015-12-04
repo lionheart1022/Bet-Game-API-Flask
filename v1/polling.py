@@ -241,13 +241,11 @@ class Poller:
         """
         Broadcast notification about game event to game session
         """
-        evt = Event()
-        evt.root = game.root
-        evt.type = 'system'
-        evt.game = game
-        evt.text = text
-        db.session.add(evt)
-        db.session.commit()
+        return notify_event(
+            game.root, 'system',
+            game = game,
+            text = text,
+        )
 
     def prepare(self):
         """

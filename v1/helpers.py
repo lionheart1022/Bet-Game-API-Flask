@@ -655,12 +655,16 @@ def notify_event(root, etype, **kwargs):
         'message': 'New message from {sender}: {text}',
         'system': 'Game event detected: {text}',
         'betstate': 'Challenge state changed. {text}',
-        'abort': 'Game abort requested',
+        'abort': 'Game abort requested by {aborter}',
     }[etype]
     if evt.message:
         alert = alert.format(
             sender = evt.message.sender.nickname,
             text = evt.message.text,
+        )
+    elif etype == 'abort':
+        alert = alert.format(
+            aborter = evt.game.aborter.nickname,
         )
     else:
         alert = alert.format(
@@ -682,12 +686,11 @@ def notify_event(root, etype, **kwargs):
 def notify_chat(msg):
     # create event (for now only if this message is within game)
     if msg.game:
-        evt = Event()
-        evt.root = msg.game.root
-        evt.type = 'message'
-        evt.message = msg
-        db.session.add(evt)
-        db.session.commit()
+        return notify_event(
+            msg.game.root, 'message',
+            message = msg,
+        )
+        # and don't send regular message push
 
     # now handle pushes
     receivers = []
@@ -732,14 +735,13 @@ def notify_users(game, justpush=False, players=None, msg=None):
     if not players:
         # create event, if required
         if not justpush:
-            evt = Event()
-            evt.root = game.root
-            evt.type = 'betstate'
-            evt.game = game
-            evt.newstate = game.state
-            evt.text = game.details
-            db.session.add(evt)
-            db.session.commit()
+            # FIXME increase badge only for interested users
+            notify_event(
+                game.root, 'betstate',
+                game = game,
+                newstate = game.state,
+                text = game.details,
+            )
 
         # determine push&mail receivers
         if game.state == 'finished' and game.winner in ['creator','opponent']:

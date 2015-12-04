@@ -1512,12 +1512,10 @@ class GameResource(restful.Resource):
             # or maybe it is already started, so just ask again
             # (make another event)
             game.aborter = user
-            evt = Event()
-            evt.root = game.root
-            evt.type = 'abort'
-            evt.game = game
-            db.session.add(evt)
-            db.session.commit()
+            notify_event(
+                game.root, 'abort',
+                game = game,
+            )
             return dict(
                 started = True,
             )
