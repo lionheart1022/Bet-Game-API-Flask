@@ -640,6 +640,45 @@ def send_push(msg):
 
     return send_push_do(msg)
 
+
+def notify_event(root, etype, **kwargs):
+    # create event
+    evt = Event()
+    evt.root = root.root # ensure root
+    evt.type = etype
+    for k, v in kwargs.items():
+        setattr(evt, k, v)
+    db.session.add(evt)
+    db.session.commit() # for id
+
+    alert = {
+        'message': 'New message from {sender}: {text}',
+        'system': 'Game event detected: {text}',
+        'betstate': 'Challenge state changed. {text}',
+        'abort': 'Game abort requested',
+    }[etype]
+    if evt.message:
+        alert = alert.format(
+            sender = evt.message.sender.nickname,
+            text = evt.message.text,
+        )
+    else:
+        alert = alert.format(
+            text = evt.text or '',
+        )
+
+    # now broadcast push
+    message = apns_clerk.Message(
+        receivers,
+        alert=alert,
+        badge='increment',
+        content_available=1,
+        message=restful.marshal(
+            evt, routes.EventResource.fields
+        ),
+    )
+    return send_push(message)
+
 def notify_chat(msg):
     # create event (for now only if this message is within game)
     if msg.game:
@@ -678,6 +717,7 @@ def notify_chat(msg):
         ),
     )
     return send_push(message)
+
 def notify_users(game, justpush=False, players=None, msg=None):
     """
     This method creates record in game session,
