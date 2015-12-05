@@ -720,11 +720,12 @@ def notify_event(root, etype, dontsave=False, **kwargs):
             'cancelled': '{creator} cancelled their invitation',
             'accepted': '{opponent} accepted your invitation, start playing now!',
             'declined': '{opponent} declined your invitation',
-            'finished': 'Your drew. Better luck next time!',
+            'finished': 'Your drew. Better luck next time! {text}',
             'aborted': 'Challenge was aborted by request of {aborter}',
         }[game.state].format(
             creator = evt.game.creator.nickname,
             opponent = evt.game.opponent.nickname,
+            text = evt.text,
             aborter = evt.game.aborter.nickname if game.aborter else 'UNKNOWN',
         )
 
