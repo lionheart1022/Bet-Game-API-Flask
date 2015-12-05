@@ -1975,7 +1975,10 @@ def push_event(root_id, etype, user):
         args.message = ChatMessage.query.get_or_404(args.message)
     if args.game:
         args.game = Game.query.get_or_404(args.game)
-    success = notify_event(root, etype, dontsave=True, **args)
+    try:
+        success = notify_event(root, etype, dontsave=True, **args)
+    except ValueError as e:
+        abort(str(e))
     return jsonify(success=success)
 
 @app.route('/debug/echo')
