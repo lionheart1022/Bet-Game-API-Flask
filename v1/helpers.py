@@ -592,6 +592,12 @@ class JsonField(restful.fields.Raw):
 # Notification
 apns_session = None
 def send_push(players, alert, **kwargs):
+    """
+    Sends PUSH message with given alert to given player(s).
+    Kwargs holds message payload.
+    Returns True if sent successfully, False if sending failed
+    or None if no receivers were found (no push tokens).
+    """
     if not isinstance(players, list):
         players = [players]
 
@@ -609,7 +615,7 @@ def send_push(players, alert, **kwargs):
         log.info('Not sending push to {} because no tokens available'.format(
             msg.receiver.nickname
         ))
-        return False
+        return None
 
     msg = apns_clerk.Message(
         receivers,
@@ -859,14 +865,14 @@ def notify_users(game, justpush=False, players=None, msg=None):
 
 
     from . import routes # for fields list
-    result = True
-    # FIXME ret code with receivers
     result = send_push(
         players, msg,
         game=restful.marshal(
             game, routes.GameResource.fields
         )
     )
+    if result is None:
+        result = True # had no tokens - it's okay
     # and send email if applicable
     if not justpush:
         result = result and send_mail(game)
