@@ -815,39 +815,22 @@ def stream_done(stream, winner, timestamp, details=None):
     from v1.polling import Poller
     from v1.models import Game
 
-    for gid in itertools.chain(
-        [stream.game_id],
-        map(
-            int,
-            filter(
-                None,
-                stream.game_ids_supplementary.split(','),
-            ),
-        ),
-    ):
-        if gid < 0:
-            gid = -gid
-            reverse = True
-        else:
-            reverse = False
-        game = Game.query.get(gid)
-        if game:
-            poller = Poller.findPoller(stream.gametype)
-            if winner == 'failed':
-                if poller.twitch == 2: # mandatory
-                    log.warning('Watching failed, considering it a draw')
-                    winner = 'draw'
-                elif poller.twitch == 1: # optional
-                    log.warning('Watching failed, not updating game')
-                    winner = None # will be fetched by Polling later
-            if winner:
-                if winner in ['creator','opponent'] and reverse:
-                    winner = 'creator' if winner == 'opponent' else 'opponent'
-                Poller.gameDone(game, winner, int(timestamp), details)
-        else:
-            log.error('Invalid game ID: {}'.format(stream.game_id))
+    for game, reverse in stream.all_games_revinfo():
+        poller = Poller.findPoller(stream.gametype)
+        if winner == 'failed':
+            if poller.twitch == 2: # mandatory
+                log.warning('Watching failed, considering it a draw')
+                winner = 'draw'
+            elif poller.twitch == 1: # optional
+                log.warning('Watching failed, not updating game')
+                winner = None # will be fetched by Polling later
+        if winner:
+            if winner in ['creator','opponent'] and reverse:
+                winner = 'creator' if winner == 'opponent' else 'opponent'
+            Poller.gameDone(game, winner, int(timestamp), details)
 
     # and anyway issue DELETE request, because this stream is unneeded anymore
+    # (even if no games were changed)
 
     # no need to remove from pool, because we are on master
     # and it was already removed from pool anyway
