@@ -334,6 +334,7 @@ class Handler:
             waits += 1
             if tries and waits > minutes:
                 log.info('Abandoning waiting')
+                self.sysevent('Twitch: wrong game lasted for too long, aborting')
                 return False
         log.info('Correct game detected')
         return True
@@ -355,12 +356,14 @@ class Handler:
 
                 if waits > WAIT_MAX:
                     # will be caught below
+                    self.sysevent('Twitch: stream was offline for too long, aborting')
                     raise Exception('We waited for too long, '
                                     'abandoning stream '+self.stream.handle)
                 log.info('Stream {} is offline, waiting'
                             .format(self.stream.handle))
                 self.stream.state = 'waiting'
                 db.session.commit()
+                self.sysevent('Twitch: stream is offline, waiting')
 
                 # wait & retry
                 eventlet.sleep(WAIT_DELAY)
