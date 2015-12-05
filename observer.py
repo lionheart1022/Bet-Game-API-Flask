@@ -198,7 +198,7 @@ class Stream(db.Model):
             q = q.filter_by(gametype=gametype)
         return q.first()
 
-    def all_games_revinfo(self):
+    def iter_games_revinfo(self):
         """
         Iterate over all game objects related to this stream.
         Yields tuples of (Game, bool)
@@ -224,11 +224,11 @@ class Stream(db.Model):
                 log.warning('Bad game id %d' % gid)
             yield game, reverse
 
-    def all_games(self):
-        yield from (g for g,r in self.all_games_revinfo())
-    def all_gameroots(self):
+    def iter_games(self):
+        yield from (g for g,r in self.iter_games_revinfo())
+    def iter_gameroots(self):
         rids = set()
-        for game in self.all_games():
+        for game in self.iter_games():
             r = game.root
             if r.id not in rids:
                 yield r
@@ -823,7 +823,7 @@ def stream_done(stream, winner, timestamp, details=None):
     from v1.polling import Poller
     from v1.models import Game
 
-    for game, reverse in stream.all_games_revinfo():
+    for game, reverse in stream.iter_games_revinfo():
         poller = Poller.findPoller(stream.gametype)
         if winner == 'failed':
             if poller.twitch == 2: # mandatory
