@@ -690,31 +690,28 @@ def notify_event(root, etype, dontsave=False, **kwargs):
         db.session.add(evt)
         db.session.commit() # for id
 
-    def notify_event_push(event, alert, players):
+    def notify_event_push(event, players, alert):
         from . import routes # for fields list
         return send_push(
             players,
             alert,
-            message=restful.marshal(
-                evt, routes.EventResource.fields
+            event=restful.marshal(
+                evt, routes.EventResource.fields # TODO include full root
             ),
         )
 
     if etype == 'message':
         # notify msg receiver
         return notify_event_push(
-            evt,
+            evt, evt.message.receiver,
             'Message from {sender}: {text}'.format(
                 sender = evt.message.sender.nickname,
                 text = evt.message.text,
             ),
-            evt.message.receiver,
         )
     elif etype == 'system':
-        return notify_event_push(
-            evt,
+        return notify_event_push( [evt.root.creator, evt.root.opponent],
             'Game event detected: {text}'.format(text=evt.text),
-            [evt.root.creator, evt.root.opponent],
         )
     elif etype == 'betstate':
         if game.state == 'finished' and game.winner in ['creator','opponent']:
@@ -724,14 +721,12 @@ def notify_event(root, etype, dontsave=False, **kwargs):
                       evt.game.opponent)
             looser = evt.game.other(winner)
             ret = notify_event_push(
-                evt,
+                 winner,
                 'Congratulations, you won the game!',
-                winner,
             )
             ret &= notify_event_push(
-                evt,
+                evt, looser,
                 'Sorry, you lost the game...',
-                looser,
             )
             return ret
         msg = {
@@ -753,14 +748,13 @@ def notify_event(root, etype, dontsave=False, **kwargs):
             players.append(game.opponent)
         if game.state in ['accepted', 'declined', 'finished']:
             players.append(game.creator)
-        return notify_event_push(evt, msg, players)
+        return notify_event_push(evt, players, msg)
     elif etype == 'abort':
         return notify_event_push(
-            evt,
+            evt, evt.game.other(evt.game.aborter),
             'Game abort requested by {aborter}'.format(
                 aborter = evt.game.aborter.nickname,
             ),
-            evt.game.other(evt.game.aborter),
         )
 
 def notify_chat(msg):
