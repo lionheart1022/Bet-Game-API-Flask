@@ -756,6 +756,8 @@ def notify_event(root, etype, dontsave=False, **kwargs):
                 aborter = evt.game.aborter.nickname,
             ),
         )
+    else:
+        raise ValueError('invalid etype '+etype)
 
 def notify_chat(msg):
     # create event (for now only if this message is within game)
