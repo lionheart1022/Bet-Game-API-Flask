@@ -941,6 +941,8 @@ Event types:
 * `betstate`: game state was updated
 * `abort`: one of users requested to abort the game
 
+When this resource is sent over PUSH, it will also include `root` field with complete info about root game.
+
 ```json
 {
 	"id": 123,

@@ -1804,6 +1804,13 @@ class EventResource(restful.Resource):
             'game': fields.Nested(GameResource.fields_lite,
                                   allow_null=True),
         }
+    @classproperty
+    def fields_more(cls):
+        # for push notifications
+        ret = cls.fields.copy()
+        ret['root'] = Game.fields
+        return ret
+
     @require_auth
     def get(self, user, game_id, id=None):
         root = Game.query.get_or_404(game_id)
