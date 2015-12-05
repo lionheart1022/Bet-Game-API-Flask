@@ -378,7 +378,7 @@ class FifaPoller(Poller, LimitedApi):
             log.error('Failed to fetch match info '
                       'for player {}, gt {} gm {}'.format(
                           nick, gametype, gamemode),
-                      exc_info=True)
+                      exc_info=False) # XXX disabled
             return []
 
     def pollGame(self, game, who=None, matches=None):
