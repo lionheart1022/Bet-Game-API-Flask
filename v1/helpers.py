@@ -675,6 +675,7 @@ def send_push(players, alert, **kwargs):
 
 
 def notify_event_push(event, alert, players):
+    from . import routes # for fields list
     return send_push(
         players,
         alert,
