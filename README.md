@@ -761,7 +761,18 @@ Game-related notifications have the following format:
 }
 ```
 
-For chat-related notifications format is as follows:
+Once game session is established, subsequent events related to it will be represented as follows.
+```json
+{
+	"alert": text depending on event, e.g. "New message from {sender}: {text}" or "Game event detected: {event}",
+	"badge": "increment",
+	"content_available": 1,
+	"event": { Event resource }
+}
+```
+
+For global chat messages (i.e. which are not related to any game session)
+server will send push notifications of the following format:
 
 ```json
 {

@@ -687,11 +687,11 @@ def notify_event(root, etype, alert=None, **kwargs):
 def notify_chat(msg):
     # create event (for now only if this message is within game)
     if msg.game:
+        # don't send regular message push
         return notify_event(
             msg.game.root, 'message',
             message = msg,
         )
-        # and don't send regular message push
 
     # now handle pushes
     receivers = []
