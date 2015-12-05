@@ -591,7 +591,34 @@ class JsonField(restful.fields.Raw):
 
 # Notification
 apns_session = None
-def send_push(msg):
+def send_push(players, alert, **kwargs):
+    if not isinstance(players, list):
+        players = [players]
+
+    receivers = []
+    receivers.append('0'*64) # mock
+    for p in players:
+        for d in p.devices:
+            if d.push_token:
+                if len(d.push_token) == 64:
+                    # 64 hex digits = 32 bytes, valid token length
+                    receivers.append(d.push_token)
+                else:
+                    log.warning('Incorrect push token '+d.push_token)
+    if not receivers:
+        log.info('Not sending push to {} because no tokens available'.format(
+            msg.receiver.nickname
+        ))
+        return False
+
+    msg = apns_clerk.Message(
+        receivers,
+        alert=alert,
+        badge='increment',
+        content_available=1,
+        **kwargs,
+    )
+
     global apns_session
     try:
         if not apns_session:
@@ -642,29 +669,13 @@ def send_push(msg):
 
 
 def notify_event_push(event, alert, players):
-    if not isinstance(users, list):
-        users = [users]
-
-    receivers = []
-    for p in players:
-        for d in p.devices:
-            if d.push_token:
-                if len(d.push_token) == 64:
-                    # 64 hex digits = 32 bytes, valid token length
-                    receivers.append(d.push_token)
-                else:
-                    log.warning('Incorrect push token '+d.push_token)
-
-    message = apns_clerk.Message(
-        receivers,
-        alert=alert,
-        badge='increment',
-        content_available=1,
+    return send_push(
+        players,
+        alert,
         message=restful.marshal(
             evt, routes.EventResource.fields
         ),
     )
-    return send_push(message)
 def notify_event(root, etype, dontsave=False, **kwargs):
     """
     This method creates & saves Event with given parameters.
@@ -754,33 +765,17 @@ def notify_chat(msg):
         )
 
     # now handle pushes
-    receivers = []
-    for d in msg.receiver.devices:
-        if d.push_token:
-            if len(d.push_token) == 64:
-                receivers.append(d.push_token)
-            else:
-                log.warning('Incorrect push token '+d.push_token)
-    if not receivers:
-        log.info('Not sending push to {} because no tokens available'.format(
-            msg.receiver.nickname
-        ))
-        return False
     from . import routes # for fields list
-    receivers.append('0'*64) # mock
-    message = apns_clerk.Message(
-        receivers,
-        alert='Message from {}: {}'.format(
+    return send_push(
+        msg.receiver,
+        'Message from {}: {}'.format(
             msg.sender.nickname,
             msg.text,
         ),
-        badge='increment',
-        content_available=1,
         message=restful.marshal(
             msg, routes.ChatMessageResource.fields
         ),
     )
-    return send_push(message)
 
 def notify_users(game, justpush=False, players=None, msg=None):
     """
@@ -842,19 +837,6 @@ def notify_users(game, justpush=False, players=None, msg=None):
                 else:
                     log.warning('Incorrect push token '+d.push_token)
 
-    from . import routes # for fields list
-    message = None
-    if receivers:
-        # add "mock" device, because without it srv.send() hangs
-        receivers.append('0'*64)
-        log.debug('recv: '+str(receivers))
-        message = apns_clerk.Message(receivers, alert=msg, badge='increment',
-                                    content_available=1,
-                                    game=restful.marshal(
-                                        game, routes.GameResource.fields))
-
-    log.debug('msg: '+str(message))
-
     from .apis import mailsend
     def send_mail(game):
         if game.state == 'finished':
@@ -876,9 +858,15 @@ def notify_users(game, justpush=False, players=None, msg=None):
             )
 
 
+    from . import routes # for fields list
     result = True
-    if message: # if had any receivers
-        result = send_push(message)
+    # FIXME ret code with receivers
+    result = send_push(
+        players, msg,
+        game=restful.marshal(
+            game, routes.GameResource.fields
+        )
+    )
     # and send email if applicable
     if not justpush:
         result = result and send_mail(game)
