@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from types import SimpleNamespace
 import math
 from collections import namedtuple
+from functools import lru_cache
 from html.parser import HTMLParser
 from urllib.parse import quote
 
@@ -70,6 +71,7 @@ class Poller:
         return Identity.get(cls.twitch_identity_id)
 
     @classmethod
+    @lru_cache()
     def findPoller(cls, gametype):
         """
         Tries to find poller class for given gametype.

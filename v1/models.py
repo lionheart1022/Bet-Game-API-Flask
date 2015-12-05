@@ -419,6 +419,11 @@ class Game(db.Model):
     def has_message(self):
         from .routes import GameMessageResource
         return bool(GameMessageResource.findfile(self))
+    @property
+    def is_ingame(self):
+        from .polling import Poller
+        return (self.gamemode in
+                Poller.findPoller(self.gametype).gamemodes_ingame)
     @hybrid_method
     def is_game_player(self, player):
         return (player.id == self.creator_id) | (player.id == self.opponent_id)
