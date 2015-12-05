@@ -263,6 +263,7 @@ class Handler:
         self.handle = stream.handle
         self.gametype = stream.gametype
         self.sub = None
+        self._sysevts = set()
 
     def start(self):
         log.info('spawning handler')
@@ -300,6 +301,14 @@ class Handler:
         for game in self.stream.iter_games():
             #if not game.is_ingame:
             Poller.gameEvent(game, text)
+    def sysevent_once(self, text):
+        """
+        Notify all related games about certain event unless already notified
+        """
+        if text in self._sysevts:
+            return
+        self._sysevts.add(text)
+        self.sysevent(text)
     def check_current_game(self):
         '''Check if the game currently playing on the stream
         matches one requested for this handler,
