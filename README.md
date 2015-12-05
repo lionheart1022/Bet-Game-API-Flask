@@ -730,6 +730,22 @@ Message receiver will be your opponent for this game.
 ### PATCH /games/<id>/messages/<id>
 Mark chat message as read.
 
+### GET /games/<id>/events
+Retrieve events for given *gaming session*.
+Game denoted by an ID passed should be the `root` one.
+All messages, game state changes and others are represented as events.
+
+Events are sorted by time ascending. I'll add other sorting options and pagination later.
+
+Return format:
+```json
+{
+	"events": [ list of Event resources ]
+}
+```
+
+### GET /games/<game-id>/events/<event-id>
+Retrieves single Event resource.
 
 ## PUSH notifications
 Whenever an event happens in the system, it will send PUSH notification to related devices.
