@@ -298,6 +298,10 @@ class Handler:
         Notify all related games about certain event
         """
         # FIXME: avoid dupes somehow, maybe exclude ingames?
+        # FIXME FIXME do send this upstream and only perform on master!! FIXME
+        if '{' in text:
+            game = next(self.stream.iter_games())
+            text = text.format(creator=game.creator.nickname, opponent=game.opponent.nickname)
         for game in self.stream.iter_games():
             #if not game.is_ingame:
             Poller.gameEvent(game, text)
@@ -751,9 +755,9 @@ class FifaHandler(Handler):
                     if len(need-have) == 1:
                         # one team is bad, other is good; notify bad-team player
                         diffteam = (need-have)[0]
-                        wronger = self.stream.creator if diffteam == cl else self.stream.opponent
+                        wronger = 'creator' if diffteam == cl else 'opponent'
                         self.sysevent(
-                            '{}, did you choose another team?'.format(wronger.nickname),
+                            '{%s}, did you choose another team?' % wronger
                         )
 
         # TODO: probably pre-handle & remember team names here
