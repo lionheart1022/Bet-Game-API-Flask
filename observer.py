@@ -301,13 +301,13 @@ class Handler:
         for game in self.stream.iter_games():
             #if not game.is_ingame:
             Poller.gameEvent(game, text)
-    def sysevent_once(self, text):
+    def sysevent_once(self, text, key=None):
         """
         Notify all related games about certain event unless already notified
         """
-        if text in self._sysevts:
+        if key or text in self._sysevts:
             return
-        self._sysevts.add(text)
+        self._sysevts.add(key or text)
         self.sysevent(text)
     def check_current_game(self):
         '''Check if the game currently playing on the stream
@@ -516,6 +516,7 @@ class Handler:
             results = [('failed', True,
                         'Observer terminated without returning any result! '
                         'Please contact support.')]
+            self.sysevent('Twitch: stream finished but no results were retrieved')
             # FIXME: maybe better restart it?
             self.stream.state = 'failed'
             last_res = datetime.utcnow()
