@@ -198,6 +198,34 @@ class Stream(db.Model):
             q = q.filter_by(gametype=gametype)
         return q.first()
 
+    def all_games_revinfo(self):
+        """
+        Iterate over all game objects related to this stream.
+        Yields tuples of (Game, bool)
+        where bool=True means current game is "inversed" (crea=oppo).
+        """
+        for gid in itertools.chain(
+            [self.game_id],
+            map(
+                int,
+                filter(
+                    None,
+                    self.game_ids_supplementary.split(','),
+                ),
+            ),
+        ):
+            if gid < 0:
+                gid = -gid
+                reverse = True
+            else:
+                reverse = False
+            game = Game.query.get(gid)
+            if not game:
+                log.warning('Bad game id %d' % gid)
+            yield game, reverse
+
+    def all_games(self):
+        yield from (g for g,r in self.all_games_revinfo())
 
 # Main logic
 ROOT = os.path.dirname(os.path.abspath(__file__))
