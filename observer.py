@@ -318,6 +318,11 @@ class Handler:
     def wait_for_correct_game(self, minutes=None):
         log.info('Waiting for correct game')
         waits = 0
+        if not self.check_current_game():
+            # log this only once
+            # FIXME: avoid dupes somehow, maybe exclude ingames?
+            for game in Stream.iter_games():
+                Poller.gameEvent(game, 'Twitch: wrong game running, waiting')
         while not self.check_current_game():
             eventlet.sleep(60) # check every minute
             waits += 1
