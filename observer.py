@@ -200,10 +200,12 @@ class Stream(db.Model):
 
     def iter_games_revinfo(self):
         """
+        Master node only!
         Iterate over all game objects related to this stream.
         Yields tuples of (Game, bool)
         where bool=True means current game is "inversed" (crea=oppo).
         """
+        from v1.models import Game
         for gid in itertools.chain(
             [self.game_id],
             map(
@@ -223,16 +225,8 @@ class Stream(db.Model):
             if not game:
                 log.warning('Bad game id %d' % gid)
             yield game, reverse
-
     def iter_games(self):
         yield from (g for g,r in self.iter_games_revinfo())
-    def iter_gameroots(self):
-        rids = set()
-        for game in self.iter_games():
-            r = game.root
-            if r.id not in rids:
-                yield r
-                rids.add(r.id)
 
 
 # Main logic
@@ -297,14 +291,16 @@ class Handler:
         """
         Notify all related games about certain event
         """
-        # FIXME: avoid dupes somehow, maybe exclude ingames?
-        # FIXME FIXME do send this upstream and only perform on master!! FIXME
-        if '{' in text:
-            game = next(self.stream.iter_games())
-            text = text.format(creator=game.creator.nickname, opponent=game.opponent.nickname)
-        for game in self.stream.iter_games():
-            #if not game.is_ingame:
-            Poller.gameEvent(game, text)
+        log.debug('Handler {} has event {}'.format(
+            self, text))
+        # propagate result to master
+        requests.patch(
+            '{}/streams/{}/{}'.format(SELF_URL, self.stream.handle, self.stream.gametype),
+            data = dict(
+                event = text,
+            ),
+        )
+        log.debug('Event sent.')
     def sysevent_once(self, text, key=None):
         """
         Notify all related games about certain event unless already notified.
@@ -881,7 +877,6 @@ def stream_done(stream, winner, timestamp, details=None):
     Marks given stream as done, and notifies clients etc.
     """
     from v1.polling import Poller
-    from v1.models import Game
 
     for game, reverse in stream.iter_games_revinfo():
         poller = Poller.findPoller(stream.gametype)
@@ -911,6 +906,20 @@ def stream_done(stream, winner, timestamp, details=None):
                    '{}/streams/{}/{}'.format(SELF_URL, stream.handle, stream.gametype))
 
     return True
+
+def stream_event(stream, text):
+    """
+    Runs on master node only.
+    Notifies clients about some event happened on the stream.
+    """
+    from v1.polling import Poller
+    if '{' in text:
+        game = next(self.stream.iter_games())
+        text = text.format(creator=game.creator.nickname, opponent=game.opponent.nickname)
+    # FIXME: avoid dupes somehow, maybe exclude ingames?
+    for game in self.stream.iter_games():
+        #if not game.is_ingame:
+        Poller.gameEvent(game, text)
 
 def current_load():
     streams = len(pool)
@@ -1063,6 +1072,7 @@ class StreamResource(restful.Resource):
     def patch(self, id=None, gametype=None):
         """
         Used to propagate stream result (or status update) from child to parent.
+        Plese provide either (winner,details,timestamp) or (event)!
         """
         if not id or not gametype:
             raise MethodNotAllowed
@@ -1075,9 +1085,10 @@ class StreamResource(restful.Resource):
             raise NotFound
 
         parser = RequestParser(bundle_errors=True)
-        parser.add_argument('winner', required=True)
+        parser.add_argument('winner')
         parser.add_argument('details', default=None)
-        parser.add_argument('timestamp', type=float, required=True)
+        parser.add_argument('timestamp', type=float)
+        parser.add_argument('event')
         args = parser.parse_args()
 
         if PARENT:
@@ -1085,7 +1096,10 @@ class StreamResource(restful.Resource):
             return requests.patch('{}/streams/{}/{}'.format(PARENT[1], id, gametype),
                                   data = args).json()
         else:
-            stream_done(stream, args.winner, args.timestamp, args.details)
+            if args.event:
+                stream_event(stream, args.event)
+            else:
+                stream_done(stream, args.winner, args.timestamp, args.details)
 
         return jsonify(success = True)
 
