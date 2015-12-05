@@ -749,19 +749,9 @@ Retrieves single Event resource.
 
 ## PUSH notifications
 Whenever an event happens in the system, it will send PUSH notification to related devices.
-For now there are 2 types of notifications: game-related and chat-related.
-Game-related notifications have the following format:
+For now there are 2 types of notifications: event-related and chat-related.
 
-```json
-{
-	"alert": text depending on event, e.g. "<somebody> invites you to compete",
-	"badge": "increment",
-	"content_available": 1,
-	"game": { Game resource }
-}
-```
-
-Once game session is established, subsequent events related to it will be represented as follows.
+Vast majority of notifications are now in Event-related format. They look like this:
 ```json
 {
 	"alert": text depending on event, e.g. "New message from {sender}: {text}" or "Game event detected: {event}",
@@ -771,8 +761,8 @@ Once game session is established, subsequent events related to it will be repres
 }
 ```
 
-For global chat messages (i.e. which are not related to any game session)
-server will send push notifications of the following format:
+For global chat messages (i.e. which are not linked to any game session)
+server will send push notifications in another format:
 
 ```json
 {
