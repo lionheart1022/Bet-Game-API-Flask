@@ -292,6 +292,14 @@ class Handler:
         os.killpg(pgid, signal.SIGTERM)
         eventlet.spawn_after(3, os.killpg, pgid, signal.SIGKILL)
 
+    def sysevent(self, text):
+        """
+        Notify all related games about certain event
+        """
+        # FIXME: avoid dupes somehow, maybe exclude ingames?
+        for game in self.stream.iter_games():
+            #if not game.is_ingame:
+            Poller.gameEvent(game, text)
     def check_current_game(self):
         '''Check if the game currently playing on the stream
         matches one requested for this handler,
@@ -320,9 +328,7 @@ class Handler:
         waits = 0
         if not self.check_current_game():
             # log this only once
-            # FIXME: avoid dupes somehow, maybe exclude ingames?
-            for game in Stream.iter_games():
-                Poller.gameEvent(game, 'Twitch: wrong game running, waiting')
+            self.sysevent('Twitch: wrong game running, waiting')
         while not self.check_current_game():
             eventlet.sleep(60) # check every minute
             waits += 1
