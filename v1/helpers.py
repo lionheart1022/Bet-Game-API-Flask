@@ -622,7 +622,7 @@ def send_push(players, alert, **kwargs):
         alert=alert,
         badge='increment',
         content_available=1,
-        **kwargs,
+        **kwargs
     )
 
     global apns_session
