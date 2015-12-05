@@ -1968,7 +1968,7 @@ def push_state(state, user):
         game = marshal(game, GameResource.fields)
     )
 
-@app.route('/debug/push_event/<root_id:int>/<etype>', methods=['POST'])
+@app.route('/debug/push_event/<int:root_id>/<etype>', methods=['POST'])
 @require_auth
 def push_event(root_id, etype, user):
     root = Game.query.get_or_404(root_id).root
