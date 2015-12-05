@@ -674,15 +674,6 @@ def send_push(players, alert, **kwargs):
     return send_push_do(msg)
 
 
-def notify_event_push(event, alert, players):
-    from . import routes # for fields list
-    return send_push(
-        players,
-        alert,
-        message=restful.marshal(
-            evt, routes.EventResource.fields
-        ),
-    )
 def notify_event(root, etype, dontsave=False, **kwargs):
     """
     This method creates & saves Event with given parameters.
@@ -698,6 +689,16 @@ def notify_event(root, etype, dontsave=False, **kwargs):
     if not dontsave:
         db.session.add(evt)
         db.session.commit() # for id
+
+    def notify_event_push(event, alert, players):
+        from . import routes # for fields list
+        return send_push(
+            players,
+            alert,
+            message=restful.marshal(
+                evt, routes.EventResource.fields
+            ),
+        )
 
     if etype == 'message':
         # notify msg receiver
