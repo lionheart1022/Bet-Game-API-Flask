@@ -641,7 +641,31 @@ def send_push(msg):
     return send_push_do(msg)
 
 
-def notify_event(root, etype, alert=None, simulate=False, **kwargs):
+def notify_event_push(event, alert, players):
+    if not isinstance(users, list):
+        users = [users]
+
+    receivers = []
+    for p in players:
+        for d in p.devices:
+            if d.push_token:
+                if len(d.push_token) == 64:
+                    # 64 hex digits = 32 bytes, valid token length
+                    receivers.append(d.push_token)
+                else:
+                    log.warning('Incorrect push token '+d.push_token)
+
+    message = apns_clerk.Message(
+        receivers,
+        alert=alert,
+        badge='increment',
+        content_available=1,
+        message=restful.marshal(
+            evt, routes.EventResource.fields
+        ),
+    )
+    return send_push(message)
+def notify_event(root, etype, dontsave=False, **kwargs):
     """
     This method creates & saves Event with given parameters.
     Also it sends push notification for all interested parties.
@@ -653,42 +677,32 @@ def notify_event(root, etype, alert=None, simulate=False, **kwargs):
     evt.type = etype
     for k, v in kwargs.items():
         setattr(evt, k, v)
-    if not simulate:
+    if not dontsave:
         db.session.add(evt)
         db.session.commit() # for id
 
-    if alert is None:
-        alert = {
-            'message': 'New message from {sender}: {text}',
-            'system': 'Game event detected: {text}',
-            'betstate': 'Challenge state changed. {text}',
-            'abort': 'Game abort requested by {aborter}',
-        }[etype]
-        if evt.message:
-            alert = alert.format(
-                sender = evt.message.sender.nickname,
-                text = evt.message.text,
-            )
-        elif etype == 'abort':
-            alert = alert.format(
-                aborter = evt.game.aborter.nickname,
-            )
-        else:
-            alert = alert.format(
-                text = evt.text or '',
-            )
+    alert = {
+        'message': 'New message from {sender}: {text}',
+        'system': 'Game event detected: {text}',
+        'betstate': 'Challenge state changed. {text}',
+        'abort': 'Game abort requested by {aborter}',
+    }[etype]
+    if evt.message:
+        alert = alert.format(
+            sender = evt.message.sender.nickname,
+            text = evt.message.text,
+        )
+    elif etype == 'abort':
+        alert = alert.format(
+            aborter = evt.game.aborter.nickname,
+        )
+    else:
+        alert = alert.format(
+            text = evt.text or '',
+        )
 
     # now broadcast push
-    message = apns_clerk.Message(
-        receivers,
-        alert=alert or None,
-        badge='increment' if alert else None,
-        content_available=1,
-        message=restful.marshal(
-            evt, routes.EventResource.fields
-        ),
-    )
-    return send_push(message)
+    notify_event_push(event, alert, [event.root.creator, event.root.opponent])
 
 def notify_chat(msg):
     # create event (for now only if this message is within game)
