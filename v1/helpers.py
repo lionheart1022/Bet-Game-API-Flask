@@ -681,28 +681,67 @@ def notify_event(root, etype, dontsave=False, **kwargs):
         db.session.add(evt)
         db.session.commit() # for id
 
-    alert = {
-        'message': 'New message from {sender}: {text}',
-        'system': 'Game event detected: {text}',
-        'betstate': 'Challenge state changed. {text}',
-        'abort': 'Game abort requested by {aborter}',
-    }[etype]
-    if evt.message:
-        alert = alert.format(
-            sender = evt.message.sender.nickname,
-            text = evt.message.text,
+    if etype == 'message':
+        # notify msg receiver
+        return notify_event_push(
+            evt,
+            'Message from {sender}: {text}'.format(
+                sender = evt.message.sender.nickname,
+                text = evt.message.text,
+            ),
+            evt.message.receiver,
         )
-    elif etype == 'abort':
-        alert = alert.format(
-            aborter = evt.game.aborter.nickname,
+    elif etype == 'system':
+        return notify_event_push(
+            evt,
+            'Game event detected: {text}'.format(text=evt.text),
+            [evt.root.creator, evt.root.opponent],
         )
-    else:
-        alert = alert.format(
-            text = evt.text or '',
+    elif etype == 'betstate':
+        if game.state == 'finished' and game.winner in ['creator','opponent']:
+            # special handling
+            winner = (evt.game.creator
+                      if evt.game.winner == 'creator' else
+                      evt.game.opponent)
+            looser = evt.game.other(winner)
+            ret = notify_event_push(
+                evt,
+                'Congratulations, you won the game!',
+                winner,
+            )
+            ret &= notify_event_push(
+                evt,
+                'Sorry, you lost the game...',
+                looser,
+            )
+            return ret
+        msg = {
+            'new': '{creator} invites you to compete',
+            'cancelled': '{creator} cancelled their invitation',
+            'accepted': '{opponent} accepted your invitation, start playing now!',
+            'declined': '{opponent} declined your invitation',
+            'finished': 'Your drew. Better luck next time!',
+            'aborted': 'Challenge was aborted by request of {aborter}',
+        }[game.state].format(
+            creator = evt.game.creator.nickname,
+            opponent = evt.game.opponent.nickname,
+            aborter = evt.game.aborter.nickname if game.aborter else 'UNKNOWN',
         )
 
-    # now broadcast push
-    notify_event_push(event, alert, [event.root.creator, event.root.opponent])
+        players = []
+        if game.state in ['new', 'cancelled', 'finished']:
+            players.append(game.opponent)
+        if game.state in ['accepted', 'declined', 'finished']:
+            players.append(game.creator)
+        return notify_event_push(evt, msg, players)
+    elif etype == 'abort':
+        return notify_event_push(
+            evt,
+            'Game abort requested by {aborter}'.format(
+                aborter = evt.game.aborter.nickname,
+            ),
+            evt.game.other(evt.game.aborter),
+        )
 
 def notify_chat(msg):
     # create event (for now only if this message is within game)
