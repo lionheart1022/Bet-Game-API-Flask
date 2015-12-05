@@ -38,7 +38,8 @@ Identity('starcraft_uid','StarCraft profile URL from battle.net or sc2ranks.com'
 ### Polling ###
 class Poller:
     gametypes = {} # list of supported types for this class
-    gamemodes = {} # default
+    gamemodes_primary = {}
+    gamemodes_ingame = {}
     usemodes = False # do we need to init again for each mode?
     sameregion = False # do we need to ensure region is the same for both gamertags
     # region is stored as slash delimited prefix of gamertag.
@@ -86,6 +87,12 @@ class Poller:
         for sub in cls.__subclasses__():
             yield from sub.allPollers()
 
+    @classproperty
+    def gamemodes(cls):
+        ret = {}
+        ret.update(cls.gamemodes_ingame)
+        ret.update(cls.gamemodes_primary)
+        return ret
     @classproperty
     def all_gametypes(cls):
         types = set(cls.gametypes)
