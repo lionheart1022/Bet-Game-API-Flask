@@ -641,15 +641,21 @@ def send_push(msg):
     return send_push_do(msg)
 
 
-def notify_event(root, etype, alert=None, **kwargs):
+def notify_event(root, etype, alert=None, simulate=False, **kwargs):
+    """
+    This method creates & saves Event with given parameters.
+    Also it sends push notification for all interested parties.
+    Will not send notification to e.g. sender of chat message.
+    """
     # create event
     evt = Event()
     evt.root = root.root # ensure root
     evt.type = etype
     for k, v in kwargs.items():
         setattr(evt, k, v)
-    db.session.add(evt)
-    db.session.commit() # for id
+    if not simulate:
+        db.session.add(evt)
+        db.session.commit() # for id
 
     if alert is None:
         alert = {
