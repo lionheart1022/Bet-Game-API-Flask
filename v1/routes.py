@@ -1961,6 +1961,23 @@ def push_state(state, user):
         game = marshal(game, GameResource.fields)
     )
 
+@app.route('/debug/push_event/<root_id:int>/<etype>', methods=['POST'])
+@require_auth
+def push_event(root_id, etype, user):
+    root = Game.query.get_or_404(root_id).root
+    parser = RequestParser()
+    parser.add_argument('message', type=int)
+    parser.add_argument('game', type=int)
+    parser.add_argument('text')
+    parser.add_argument('newstate')
+    args = parser.parse_args()
+    if args.message:
+        args.message = ChatMessage.query.get_or_404(args.message)
+    if args.game:
+        args.game = Game.query.get_or_404(args.game)
+    success = notify_event(root, etype, dontsave=True, **args)
+    return jsonify(success=success)
+
 @app.route('/debug/echo')
 def debug_echo():
     return '<{}>\n{}\n'.format(
