@@ -709,7 +709,7 @@ class FifaHandler(Handler):
         if score1 < 0 or score2 < 0:
             log.debug('Negative scores: '+line)
             return None
-        if len(team1) != 3 or len(team2) != 3:
+        if len(team1) not in (2,3) or len(team2) not in (2,3):
             log.debug('Bad team names, expected 3 chars: '+line)
             return None
         team1l, team2l = map(lambda t: t.casefold().translate({
