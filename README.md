@@ -905,6 +905,7 @@ Possible game states:
 	"twitch_identity_name": "Fifa Team", // value of corresponding gametype's twitch_identity_name
 	"gametype": "xboxone-fifa15", // see POST /games for options
 	"gamemode": "friendlies", // or any other, see POST /games for details
+	"is_ingame": false, // whether this game's gamemode is ingame bet
 	"bet": 5.29, // bet amount
 	"has_message": true, // bool, tells if GET /games/<id>/msg will work
 	"create_date": "RFC datetime",
