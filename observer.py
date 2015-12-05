@@ -306,9 +306,10 @@ class Handler:
         Notify all related games about certain event unless already notified
         """
         if key or text in self._sysevts:
-            return
+            return False
         self._sysevts.add(key or text)
         self.sysevent(text)
+        return True
     def check_current_game(self):
         '''Check if the game currently playing on the stream
         matches one requested for this handler,
@@ -664,6 +665,7 @@ class FifaHandler(Handler):
 
     def started(self):
         self.__approaching = False
+        self.__teamcheck = list()
 
     def check(self, line):
         log.debug('checking line: '+line)
@@ -723,6 +725,35 @@ class FifaHandler(Handler):
 
         log.debug('Got score data. Teams {} / {}, scores {} / {}'.format(
             team1, team2, score1, score2))
+        self.sysevent_once('Twitch: got score info', 'score_got')
+
+        if len(self.__teamcheck) < 10:
+            have = set((team1l, team2l))
+            self.__teamcheck.add(have)
+            if len(self.__teamcheck) == 10:
+                # do the check
+                cl, ol = map(lambda u: u.casefold().translate({
+                    ord(n): '@' for n in '0123456789'
+                }), (self.stream.creator, self.stream.opponent))
+                need = set((cl, ol))
+                haveprobs = dict()
+                for have in self.__teamcheck:
+                    haveprobs[have] = haveprobs.get(have, 0)+1
+                have = max(haveprobs.items(), key=lambda i: i[1])[0]
+
+                # now `have` is most probable one, do check it
+                if have != need:
+                    self.sysevent('Unexpected teams! Requested {}, found {}'.format(
+                        '/'.join(need),
+                        '/'.join(have),
+                    ))
+                    if len(need-have) == 1:
+                        # one team is bad, other is good; notify bad-team player
+                        diffteam = (need-have)[0]
+                        wronger = self.stream.creator if diffteam == cl else self.stream.opponent
+                        self.sysevent(
+                            '{}, did you choose another team?'.format(wronger.nickname),
+                        )
 
         # TODO: probably pre-handle & remember team names here
         # to check if stream went wrong
