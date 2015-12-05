@@ -303,7 +303,8 @@ class Handler:
             Poller.gameEvent(game, text)
     def sysevent_once(self, text, key=None):
         """
-        Notify all related games about certain event unless already notified
+        Notify all related games about certain event unless already notified.
+        Returns True if this was first call with given key/text, False otherwise.
         """
         if key or text in self._sysevts:
             return False
