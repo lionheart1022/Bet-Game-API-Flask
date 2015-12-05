@@ -747,6 +747,24 @@ Return format:
 ### GET /games/<game-id>/events/<event-id>
 Retrieves single Event resource.
 
+## Debugging endpoints (some of them)
+
+### POST /debug/push_event/<root>/<etype>
+Simulates and pushes event with given root challenge id and of given event type.
+
+Possible event types are documented in `Event resource` description.
+
+Also you can provide 4 optional fields:
+
+* `message` - message resource id,
+* `game` - game resource id,
+* `text` - string,
+* `newstate` - string.
+
+If not provided, these fields will be null.
+
+This endpoint returns `{"success": true}` on success.
+
 ## PUSH notifications
 Whenever an event happens in the system, it will send PUSH notification to related devices.
 For now there are 2 types of notifications: event-related and chat-related.
@@ -935,3 +953,4 @@ Event types:
 	"newstate": "finished", // new game state, for `betstate` type only
 }
 ```
+
