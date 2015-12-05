@@ -226,6 +226,14 @@ class Stream(db.Model):
 
     def all_games(self):
         yield from (g for g,r in self.all_games_revinfo())
+    def all_gameroots(self):
+        rids = set()
+        for game in self.all_games():
+            r = game.root
+            if r.id not in rids:
+                yield r
+                rids.add(r.id)
+
 
 # Main logic
 ROOT = os.path.dirname(os.path.abspath(__file__))
