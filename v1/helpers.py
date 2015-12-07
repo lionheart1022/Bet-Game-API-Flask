@@ -635,9 +635,9 @@ def send_push(players, alert, **kwargs):
 
     # calculate path relative to this script location,
     # because working directory may vary (for observer)
-    cert_file = os.path.dirname(__file__)+'/../apns.pem'
+    cert_file = os.path.dirname(__file__)+'/../apns_{}.pem'.format(config.APNS_CERT)
     conn = apns_session.get_connection(
-        'push_sandbox',
+        'push_{}'.format(config.APNS_CERT),
         cert_file=cert_file)
 
     def send_push_do(msg, tries=0):

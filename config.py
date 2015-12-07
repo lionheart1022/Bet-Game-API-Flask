@@ -18,6 +18,10 @@ try:
     from secret import TEST
 except ImportError:
     TEST = False
+try:
+    from secret import APNS_CERT
+except ImportError:
+    APNS_CERT = 'sandbox'
 from secret import ADMIN_IDS
 from secret import RIOT_KEY, STEAM_KEY, BATTLENET_KEY, SC2RANKS_KEY
 from secret import DATADOG_API_KEY
