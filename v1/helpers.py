@@ -674,7 +674,7 @@ def send_push(players, alert, **kwargs):
     return send_push_do(msg)
 
 
-def notify_event(root, etype, dontsave=False, **kwargs):
+def notify_event(root, etype, debug=False, **kwargs):
     """
     This method creates & saves Event with given parameters.
     Also it sends push notification for all interested parties.
@@ -686,9 +686,9 @@ def notify_event(root, etype, dontsave=False, **kwargs):
     evt.type = etype
     for k, v in kwargs.items():
         setattr(evt, k, v)
-    if not dontsave:
-        db.session.add(evt)
-        db.session.commit() # for id
+    # TODO: if debug: evt.is_debug = True
+    db.session.add(evt)
+    db.session.commit() # for id
 
     def notify_event_push(event, players, alert):
         from . import routes # for fields list

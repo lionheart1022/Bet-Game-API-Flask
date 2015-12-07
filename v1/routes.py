@@ -1987,7 +1987,7 @@ def push_event(root_id, etype, user):
         if args.aborter:
             args.game.aborter = Player.query.get_or_404(args.aborter)
     try:
-        success = notify_event(root, etype, dontsave=True, **args)
+        success = notify_event(root, etype, debug=True, **args)
     except ValueError as e:
         abort(str(e))
     return jsonify(success=success)
