@@ -702,6 +702,8 @@ def notify_event(root, etype, dontsave=False, **kwargs):
 
     if etype == 'message':
         # notify msg receiver
+        if not evt.message:
+            raise ValueError('No message provided')
         return notify_event_push(
             evt, evt.message.receiver,
             'Message from {sender}: {text}'.format(
@@ -717,7 +719,7 @@ def notify_event(root, etype, dontsave=False, **kwargs):
     elif etype == 'betstate':
         game = evt.game
         if not game:
-            raise ValueError('No game id specified')
+            raise ValueError('No game specified')
         if game.state == 'finished' and game.winner in ['creator','opponent']:
             # special handling
             winner = (evt.game.creator
