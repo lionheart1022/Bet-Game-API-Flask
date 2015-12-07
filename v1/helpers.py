@@ -751,8 +751,11 @@ def notify_event(root, etype, dontsave=False, **kwargs):
             players.append(game.creator)
         return notify_event_push(evt, players, msg)
     elif etype == 'abort':
+        receiver = evt.game.other(evt.game.aborter)
+        if not receiver:
+            raise ValueError('No aborter user id specified?')
         return notify_event_push(
-            evt, evt.game.other(evt.game.aborter),
+            evt, receiver,
             'Game abort requested by {aborter}'.format(
                 aborter = evt.game.aborter.nickname,
             ),

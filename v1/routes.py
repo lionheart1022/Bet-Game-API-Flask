@@ -1978,11 +1978,14 @@ def push_event(root_id, etype, user):
     parser.add_argument('game', type=int)
     parser.add_argument('text')
     parser.add_argument('newstate')
+    parser.add_argument('aborter', type=int)
     args = parser.parse_args()
     if args.message:
         args.message = ChatMessage.query.get_or_404(args.message)
     if args.game:
         args.game = Game.query.get_or_404(args.game)
+        if args.aborter:
+            args.game.aborter = Player.query.get_or_404(args.aborter)
     try:
         success = notify_event(root, etype, dontsave=True, **args)
     except ValueError as e:
