@@ -686,12 +686,13 @@ def notify_event(root, etype, debug=False, **kwargs):
     evt.type = etype
     for k, v in kwargs.items():
         setattr(evt, k, v)
-    # TODO: if debug: evt.is_debug = True
-    db.session.add(evt)
-    db.session.commit() # for id
+    # will save only after checking
 
     def notify_event_push(event, players, alert):
         from . import routes # for fields list
+        # for id
+        db.session.add(event)
+        db.session.commit()
         return send_push(
             players,
             alert,
