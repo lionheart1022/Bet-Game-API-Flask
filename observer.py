@@ -914,10 +914,10 @@ def stream_event(stream, text):
     """
     from v1.polling import Poller
     if '{' in text:
-        game = next(self.stream.iter_games())
+        game = next(stream.iter_games())
         text = text.format(creator=game.creator.nickname, opponent=game.opponent.nickname)
     # FIXME: avoid dupes somehow, maybe exclude ingames?
-    for game in self.stream.iter_games():
+    for game in stream.iter_games():
         #if not game.is_ingame:
         Poller.gameEvent(game, text)
 
