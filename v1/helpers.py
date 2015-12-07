@@ -646,7 +646,7 @@ def send_push(players, alert, **kwargs):
         try:
             log.debug('sending..')
             ret = srv.send(msg)
-            log.info('push sending done for {}'.format(msg))
+            log.info('push sending done for {}, {}'.format(msg, msg.alert))
         except:
             log.error('Failed to connect to APNs', exc_info=True)
             return False
