@@ -759,9 +759,9 @@ def notify_event(root, etype, debug=False, **kwargs):
     elif etype == 'abort':
         if not evt.game:
             raise ValueError('No game id specified')
-        receiver = evt.game.other(evt.game.aborter)
-        if not receiver:
+        if not evt.game.aborter:
             raise ValueError('No aborter user id specified')
+        receiver = evt.game.other(evt.game.aborter)
         return notify_event_push(
             evt, receiver,
             'Game abort requested by {aborter}'.format(
