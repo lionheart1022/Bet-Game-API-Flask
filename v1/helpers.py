@@ -697,7 +697,7 @@ def notify_event(root, etype, debug=False, **kwargs):
             players,
             alert,
             event=restful.marshal(
-                evt, routes.EventResource.fields_more # TODO include full root
+                evt, routes.EventResource.fields
             ),
         )
 
