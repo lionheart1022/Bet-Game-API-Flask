@@ -715,6 +715,9 @@ def notify_event(root, etype, dontsave=False, **kwargs):
             'Game event detected: {text}'.format(text=evt.text),
         )
     elif etype == 'betstate':
+        game = evt.game
+        if not game:
+            raise ValueError('No game id specified')
         if game.state == 'finished' and game.winner in ['creator','opponent']:
             # special handling
             winner = (evt.game.creator
