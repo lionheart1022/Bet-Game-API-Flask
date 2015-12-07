@@ -710,7 +710,8 @@ def notify_event(root, etype, dontsave=False, **kwargs):
             ),
         )
     elif etype == 'system':
-        return notify_event_push( [evt.root.creator, evt.root.opponent],
+        return notify_event_push(
+            evt, [evt.root.creator, evt.root.opponent],
             'Game event detected: {text}'.format(text=evt.text),
         )
     elif etype == 'betstate':
@@ -721,7 +722,7 @@ def notify_event(root, etype, dontsave=False, **kwargs):
                       evt.game.opponent)
             looser = evt.game.other(winner)
             ret = notify_event_push(
-                 winner,
+                evt, winner,
                 'Congratulations, you won the game!',
             )
             ret &= notify_event_push(
