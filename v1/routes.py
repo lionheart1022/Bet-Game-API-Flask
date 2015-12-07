@@ -1809,7 +1809,7 @@ class EventResource(restful.Resource):
     def fields_more(cls):
         # for push notifications
         ret = cls.fields.copy()
-        ret['root'] = fields.Nested(Game.fields)
+        ret['root'] = fields.Nested(GameResource.fields)
         return ret
 
     @require_auth
