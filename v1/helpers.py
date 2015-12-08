@@ -605,7 +605,7 @@ def send_push(players, alert, **kwargs):
     receivers = []
     #receivers.append('0'*64) # mock
     for p in players:
-        for d in p.devices:
+        for d in p.devices.filter_by(failed=False):
             if d.push_token:
                 if len(d.push_token) == 64:
                     # 64 hex digits = 32 bytes, valid token length
@@ -664,12 +664,14 @@ def send_push(players, alert, **kwargs):
             return False
         else:
             for token, reason in ret.failed.items():
-                log.warning('Device {} failed by {}, removing'.format(token,reason))
+                log.warning('Device {} failed by {}, shall remove'.format(token,reason))
                 dev = Device.query.filter_by(push_token=token).first()
                 if dev:
                     log.warning('not removing (dbg)')
-             #       db.session.delete(dev)
+                    dev.failed = True
                     db.session.commit()
+                else:
+                    log.warning('No device found with this token!')
 
             for code, error in ret.errors:
                 log.warning('Error {}: {}'.format(code, error))
@@ -858,7 +860,7 @@ def notify_users(game, justpush=False, players=None, msg=None):
             players.append(game.creator)
     receivers = []
     for p in players:
-        for d in p.devices:
+        for d in p.devices.filter_by(failed=False):
             if d.push_token:
                 if len(d.push_token) == 64:
                     # 64 hex digits = 32 bytes, valid token length

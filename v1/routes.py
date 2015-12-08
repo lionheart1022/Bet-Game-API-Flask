@@ -488,6 +488,7 @@ class PlayerResource(restful.Resource):
             if dev.push_token:
                 abort('This device already has push token specified')
             dev.push_token = args.push_token
+            dev.failed = False # just to ensure
 
             # and remove that token from other devices
             Device.query.filter(

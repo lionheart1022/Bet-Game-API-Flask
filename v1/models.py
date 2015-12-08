@@ -337,7 +337,8 @@ class Transaction(db.Model):
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     player_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
-    player = db.relationship(Player, backref='devices')
+    player = db.relationship(Player, backref=db.backref('devices',
+                                                        lazy='dynamic'))
     push_token = db.Column(db.String(128), nullable=True)
     last_login = db.Column(db.DateTime, default=datetime.utcnow)
     failed = db.Column(db.Boolean, default=False)
