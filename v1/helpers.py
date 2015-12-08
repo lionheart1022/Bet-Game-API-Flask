@@ -603,7 +603,7 @@ def send_push(players, alert, **kwargs):
         players = [players]
 
     receivers = []
-    receivers.append('0'*64) # mock
+    #receivers.append('0'*64) # mock
     for p in players:
         for d in p.devices:
             if d.push_token:
