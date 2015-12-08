@@ -17,6 +17,7 @@ from functools import wraps
 import binascii
 import apns_clerk
 import datadog as datadog_api
+from eventlet.timeout import Timeout
 
 import config
 from .models import *
@@ -645,13 +646,19 @@ def send_push(players, alert, **kwargs):
         log.debug('send_push: try {}'.format(tries))
         log.debug('{} receivers remaining: {}'.format(
             len(msg._tokens),
-            ','.join(r[:2]+'..'+r[-2:] for r in msg._tokens),
+            ', '.join(r[:2]+'-'+r[-2:] for r in msg._tokens),
         ))
         srv = apns_clerk.APNs(conn)
+        ret = None
         try:
             log.debug('sending..')
-            ret = srv.send(msg)
-            log.info('push sending done for {}, {}'.format(msg, msg.alert))
+            with Timeout(10, False):
+                ret = srv.send(msg)
+            if ret:
+                log.info('push sending done for {}, {}'.format(msg, msg.alert))
+            else:
+                log.error('Push sending timed out!')
+                return False
         except:
             log.error('Failed to connect to APNs', exc_info=True)
             return False
