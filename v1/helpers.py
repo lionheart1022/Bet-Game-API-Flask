@@ -616,10 +616,7 @@ def send_push(players, alert, **kwargs):
             msg.receiver.nickname
         ))
         return None
-    log.debug('Will send push to {} receivers: {}'.format(
-        len(receivers),
-        ','.join(r[:2]+'..'+r[-2:] for r in receivers),
-    ))
+    log.debug('Have {} receivers'.format(len(receivers)))
 
     msg = apns_clerk.Message(
         receivers,
@@ -646,6 +643,10 @@ def send_push(players, alert, **kwargs):
 
     def send_push_do(msg, tries=0):
         log.debug('send_push: try {}'.format(tries))
+        log.debug('{} receivers remaining: {}'.format(
+            len(msg._tokens),
+            ','.join(r[:2]+'..'+r[-2:] for r in msg._tokens),
+        ))
         srv = apns_clerk.APNs(conn)
         try:
             log.debug('sending..')
@@ -659,7 +660,7 @@ def send_push(players, alert, **kwargs):
                 log.warning('Device {} failed by {}, removing'.format(token,reason))
                 dev = Device.query.filter_by(push_token=token).first()
                 if dev:
-                    log.warning('removing')
+                    log.warning('not removing (dbg)')
              #       db.session.delete(dev)
                     db.session.commit()
 
