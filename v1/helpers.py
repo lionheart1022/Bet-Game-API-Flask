@@ -858,15 +858,6 @@ def notify_users(game, justpush=False, players=None, msg=None):
             players.append(game.opponent)
         if game.state in ['accepted', 'declined', 'finished']:
             players.append(game.creator)
-    receivers = []
-    for p in players:
-        for d in p.devices.filter_by(failed=False):
-            if d.push_token:
-                if len(d.push_token) == 64:
-                    # 64 hex digits = 32 bytes, valid token length
-                    receivers.append(d.push_token)
-                else:
-                    log.warning('Incorrect push token '+d.push_token)
 
     from .apis import mailsend
     def send_mail(game):
