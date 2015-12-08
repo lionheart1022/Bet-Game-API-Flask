@@ -616,6 +616,10 @@ def send_push(players, alert, **kwargs):
             msg.receiver.nickname
         ))
         return None
+    log.debug('Will send push to {} receivers: {}'.format(
+        len(receivers),
+        ','.join(r[:2]+'..'+r[-2:] for r in receivers),
+    ))
 
     msg = apns_clerk.Message(
         receivers,
