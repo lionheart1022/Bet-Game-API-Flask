@@ -667,7 +667,7 @@ def send_push(players, alert, **kwargs):
                 log.warning('Device {} failed by {}, shall remove'.format(token,reason))
                 dev = Device.query.filter_by(push_token=token).first()
                 if dev:
-                    log.warning('not removing (dbg)')
+                    log.warning('Marking as failed')
                     dev.failed = True
                     db.session.commit()
                 else:
