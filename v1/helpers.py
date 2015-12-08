@@ -681,6 +681,7 @@ def send_push(players, alert, **kwargs):
                 else:
                     log.warning('needs retry.. but max retries exceed')
                     return False
+            log.info('Push sending finished successfully')
             return True
 
     return send_push_do(msg)
