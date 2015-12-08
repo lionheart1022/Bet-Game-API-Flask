@@ -1052,7 +1052,7 @@ def gametypes():
                     args.filt_op
                 )(args.filter)
                 or getattr(
-                    item.get('subtitle', '').casefold(),
+                    (item.get('subtitle') or '').casefold(),
                     args.filt_op
                 )(args.filter)
             ),
