@@ -642,6 +642,8 @@ def send_push(players, alert, **kwargs):
         'push_{}'.format(config.APNS_CERT),
         cert_file=cert_file)
 
+    class PushTimeout(Exception):
+        pass
     def send_push_do(msg, tries=0):
         log.debug('send_push: try {}'.format(tries))
         log.debug('{} receivers remaining: {}'.format(
@@ -649,18 +651,16 @@ def send_push(players, alert, **kwargs):
             ', '.join(r[:2]+'-'+r[-2:] for r in msg._tokens),
         ))
         srv = apns_clerk.APNs(conn)
-        ret = None
         try:
             log.debug('sending..')
-            with Timeout(10, False):
+            with Timeout(10, PushTimeout):
                 ret = srv.send(msg)
-            if ret:
-                log.info('push sending done for {}, {}'.format(msg, msg.alert))
-            else:
-                log.error('Push sending timed out!')
-                return False
-        except:
-            log.error('Failed to connect to APNs', exc_info=True)
+            log.info('push sending done for {}, {}'.format(msg, msg.alert))
+        except PushTimeout:
+            log.error('Push sending timeout', exc_info=True)
+            return False
+        except Exception:
+            log.error('APNS connection failure', exc_info=True)
             return False
         else:
             for token, reason in ret.failed.items():
