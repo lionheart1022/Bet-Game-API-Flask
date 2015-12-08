@@ -340,8 +340,9 @@ class Device(db.Model):
     player = db.relationship(Player, backref='devices')
     push_token = db.Column(db.String(128), nullable=True)
     last_login = db.Column(db.DateTime, default=datetime.utcnow)
+    failed = db.Column(db.Boolean, default=False)
     def __repr__(self):
-        return '<Device id={}>'.format(self.id)
+        return '<Device id={}, failed={}>'.format(self.id, self.failed)
 
 
 class Game(db.Model):
