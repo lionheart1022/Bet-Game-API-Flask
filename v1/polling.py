@@ -134,7 +134,11 @@ class Poller:
         in the passed game object.
 
         This method may be called more than once for single game,
-        but game will be actually started only after last call.
+        but game will be actually started only after the last call.
+
+        Please don't save current time in this method,
+        instead you can use game.date_accepted field
+        which shall hold the most relevant value.
         """
         pass
     def games(self, gametype, gamemode=None):
@@ -1091,9 +1095,21 @@ if __name__ == '__main__':
                 poller.identity_check(
                     getattr(args, role)))
 
+    print()
+    print('Notifying poller that game was started')
     poller.gameStarted(Game.query.first()) # FIXME
 
     pin = poller()
     if args.gamemode or not poller.usemodes:
+        print()
+        print('Preparing poller')
         pin.prepare()
+    print()
+    print('Polling')
     pin.poll(args.now, args.gametype, args.gamemode)
+
+    if(Game.query.first()._isDone):
+        print('Game was marked as done!')
+    else:
+        print('Game was not marked as done.')
+    print('Done.')
