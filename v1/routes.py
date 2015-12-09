@@ -1463,22 +1463,27 @@ class GameResource(restful.Resource):
         # Now, before we save state change, start twitch stream if required
         # so that we can abort request if it failed
         if game.twitch_handle and args.state == 'accepted':
-            ret = requests.put(
-                '{}/streams/{}/{}'.format(
-                    config.OBSERVER_URL,
-                    game.twitch_handle,
-                    game.gametype,
-                ),
-                data = dict(
-                    game_id = game.id,
-                    creator = game.twitch_identity_creator
-                            if poller.twitch_identity else
-                            game.gamertag_creator,
-                    opponent = game.twitch_identity_opponent
-                            if poller.twitch_identity else
-                            game.gamertag_opponent,
-                ),
-            )
+            try:
+                ret = requests.put(
+                    '{}/streams/{}/{}'.format(
+                        config.OBSERVER_URL,
+                        game.twitch_handle,
+                        game.gametype,
+                    ),
+                    data = dict(
+                        game_id = game.id,
+                        creator = game.twitch_identity_creator
+                                if poller.twitch_identity else
+                                game.gamertag_creator,
+                        opponent = game.twitch_identity_opponent
+                                if poller.twitch_identity else
+                                game.gamertag_opponent,
+                    ),
+                )
+                retstatus = ret.status_code
+            except Exception:
+                log.exception('Failed to start twitch stream!')
+                abort('Cannot start twitch observing - internal error', 500)
             if ret.status_code not in (200, 201):
                 jret = ret.json()
                 if ret.status_code == 409: # dup
