@@ -1071,6 +1071,8 @@ if __name__ == '__main__':
     poller = Poller.findPoller(args.gametype)
     if not poller:
         raise ValueError('Unknown gametype '+args.gametype)
+    if args.gamemode and not poller.usemodes:
+        raise ValueError('This poller doesn\'t support game modes')
     for role in 'creator', 'opponent':
         poller.identity_check(getattr(args, role))
     pin = poller()
