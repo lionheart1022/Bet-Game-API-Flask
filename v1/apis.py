@@ -14,10 +14,7 @@ try:
     from .helpers import log
 except ImportError:
     # test environment
-    config = SimpleNamespace(
-        PAYPAL_SANDBOX = None,
-    )
-    from common import debug_log as log
+    from mock import config, log
 
 ### External APIs ###
 def nexmo(endpoint, **kwargs):

@@ -14,7 +14,7 @@ if __name__ == '__main__':
     # debugging environment; other changes are in the bottom
     from apis import *
     from common import *
-    from common import debug_log as log
+    from mock import log, config, dummyfunc, db
 else:
     # live environment
     import config
@@ -992,25 +992,9 @@ def poll_all():
 
 
 if __name__ == '__main__':
-    # testing environment, make a fixture
-    config = SimpleNamespace()
-    # just dummy address, as we have no observer here
-    config.OBSERVER_URL = 'http://localhost/'
-
-    def dummy(message, order=[], ondone=None):
-        def func(*args, **kwargs):
-            for arg in order:
-                if arg in kwargs:
-                    args.append(kwargs.pop(arg))
-            print(message.format(*args, **kwargs))
-            if ondone:
-                ondone()
-        return func
-
-
-    notify_users = dummy(
+    notify_users = dummyfunc(
         '** Notifying users about state change in game {}')
-    notify_event = dummy(
+    notify_event = dummyfunc(
         '** Notifying users about event happened '
         'in game {game}, event {text}')
 
@@ -1041,12 +1025,6 @@ if __name__ == '__main__':
 
             self.accept_date = start or datetime.now()
             self.meta = None
-
-    db = SimpleNamespace(
-        session = SimpleNamespace()
-    )
-    db.session.add = dummy('** Adding object {} to database session')
-    db.session.commit = dummy('** Commiting DB')
 
     def gameDone(game, winner, timestamp=None, details=None):
         print('** Marking game {} as done - '
