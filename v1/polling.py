@@ -1048,6 +1048,8 @@ if __name__ == '__main__':
                 yield game
             def first(self):
                 return next(iter(self))
+            def clear(self):
+                self.__class__._game = None
         query = Query()
         root = 'Gaming session'
         _isDone = False
