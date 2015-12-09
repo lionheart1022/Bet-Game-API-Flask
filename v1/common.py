@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 class classproperty:
     """
     Cached class property; evaluated only once
@@ -11,4 +13,8 @@ class classproperty:
         return self.obj[cls]
 
 
-
+debug_log = SimpleNamespace(**{
+    meth: lambda msg: print('{}: {}'.format(meth.upper(), msg))
+    for meth in
+    'debug info warning error exception'.split()
+})

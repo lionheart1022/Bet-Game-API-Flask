@@ -17,8 +17,7 @@ except ImportError:
     config = SimpleNamespace(
         PAYPAL_SANDBOX = None,
     )
-    log = SimpleNamespace()
-    log.__getattr__ = lambda x: lambda p: print(p)
+    from common import debug_log as log
 
 ### External APIs ###
 def nexmo(endpoint, **kwargs):

@@ -14,6 +14,7 @@ if __name__ == '__main__':
     # debugging environment; other changes are in the bottom
     from apis import *
     from common import *
+    from common import debug_log as log
 else:
     # live environment
     import config
@@ -1045,11 +1046,7 @@ if __name__ == '__main__':
     )
     db.session.add = dummy('** Adding object {} to database session')
     db.session.commit = dummy('** Commiting DB')
-    log = SimpleNamespace(**{
-        meth: dummy(meth.upper()+': {}')
-        for meth in
-        'debug info warning error exception'.split()
-    })
+
     def gameDone(game, winner, timestamp=None, details=None):
         print('** Marking game {} as done - '
               'winner {}, timestamp {}, details {}'.format(
@@ -1071,6 +1068,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     def do(poller, gametype=None, gamemode=None):
+        if not poller:
+            raise ValueError('Unknown gametype?')
         pin = poller()
         pin.poll(args.now, gametype, gamemode)
     if args.gamemode:
