@@ -9,36 +9,7 @@ from urllib.parse import quote
 import requests
 from dateutil.parser import parse as date_parse
 
-if __name__ == '__main__':
-    # testing environment, make a fixture
-    config = SimpleNamespace()
-    # just dummy address, as we have no observer here
-    config.OBSERVER_URL = 'http://localhost/'
-
-    def dummyfunc(message, name=None):
-        def func(*args, **kwargs):
-            print(message.format(*args, **kwargs))
-        func.__name__ = name or func.__name__
-        return func
-
-
-    # This is a mock class which simulates database model functionality
-    class Game:
-        # actually it should be a reference to this or another Game object
-        root = 'Gaming session'
-
-    notify_users = dummyfunc(
-        '** Notifying users about state change in game {}')
-    notify_event = dummyfunc(
-        '** Notifying users about event happened '
-        'in game {game}, event {text}')
-
-    db = SimpleNamespace(
-        session = SimpleNamespace()
-    )
-    db.session.add = dummyfunc('** Adding object {} to database session')
-    db.session.commit = dummyfunc('** Commiting DB')
-else:
+if __name__ != '__main__':
     # live environment
     import config
     from .helpers import notify_users, notify_event
@@ -1014,10 +985,88 @@ def poll_all():
     log.info('Polling done')
 
 if __name__ == '__main__':
-    class Game
+    # testing environment, make a fixture
+    config = SimpleNamespace()
+    # just dummy address, as we have no observer here
+    config.OBSERVER_URL = 'http://localhost/'
+
+    def dummy(message, order=[], ondone=None):
+        def func(*args, **kwargs):
+            for arg in order:
+                if arg in kwargs:
+                    args.append(kwargs.pop(arg))
+            print(message.format(*args, **kwargs))
+            if ondone:
+                ondone()
+        return func
+
+
+    notify_users = dummy(
+        '** Notifying users about state change in game {}')
+    notify_event = dummy(
+        '** Notifying users about event happened '
+        'in game {game}, event {text}')
+
+    # This is a mock class which simulates database model functionality
+    class Game:
+        # actually it should be a reference to this or another Game object
+        class Query(SimpleNamespace):
+            def filter_by(self, **kwargs):
+                # copy self
+                dup = Query(**self.__dict__)
+                dup.__dict__.update(kwargs)
+                return dup
+            def count(self):
+                return 1
+            def __iter__(self):
+                yield Game(args.creator, args.opponent,
+                           getattr(self, 'gametype', args.gametype),
+                           getattr(self, 'gamemode', args.gamemode),
+                           args.start or None)
+        query = Query()
+        root = 'Gaming session'
+        _isDone = False
+        def __init__(self, crea, oppo, type, mode, start = None):
+            self.gamertag_creator = crea
+            self.gamertag_opponent = oppo
+            self.gametype = type
+            self.gamemode = mode
+
+            self.accept_date = start or datetime.now()
+            self.meta = None
+
+    db = SimpleNamespace(
+        session = SimpleNamespace()
+    )
+    db.session.add = dummy('** Adding object {} to database session')
+    db.session.commit = dummy('** Commiting DB')
+    log = SimpleNamespace(**{
+        meth: dummy(meth.upper()+': {}')
+        for meth in
+        'debug info warning error exception'.split()
+    })
+    def gameDone(game, winner, timestamp=None, details=None):
+        print('** Marking game {} as done - '
+              'winner {}, timestamp {}, details {}'.format(
+                  game, winner, timestamp, details))
+        game._isDone = True
+    Poller.gameDone = gameDone
+
     from argparse import ArgumentParser
     parser = ArgumentParser()
-    parser.add_argument('gametype')
+    parser.add_argument('creator')
+    parser.add_argument('opponent')
+    parser.add_argument('gametype', nargs='?')
+    parser.add_argument('gamemode', nargs='?')
+    now = datetime.utcfromtimestamp(
+        datetime.utcnow().timestamp() // (5*60) * (5*60)
+    )
+    parser.add_argument('--now', nargs=1, default=now)
     args = parser.parse_args()
 
-    ;
+    def dogame(gametype, gamemode):
+        game = Game(args.creator, args.opponent,
+                    gametype, gamemode)
+        poller = Poller.findPoller(gametype)
+        pin = poller() # instantiate
+        pin.poll(args.now)
