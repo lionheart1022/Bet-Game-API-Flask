@@ -1082,7 +1082,8 @@ if __name__ == '__main__':
     Poller.gameDone = gameDone
 
     from argparse import ArgumentParser
-    parser = ArgumentParser()
+    parser = ArgumentParser(description='You can run either all-tests mode with -t '
+                            'or custom-test mode with positional arguments.')
     parser.add_argument('-t', '--tests', action='store_true', default=False,
                         help='Testing mode. '
                         'In this mode other options should not be specified; '
