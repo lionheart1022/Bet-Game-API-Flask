@@ -1037,9 +1037,11 @@ if __name__ == '__main__':
                         args.creator, args.opponent,
                         start = args.start or None)
                 game = self.__class__._game
-                for attr in 'gametype', 'gamemode':
+                for attr in ('gametype', 'gamemode',
+                             'gamertag_creator', 'gamertag_opponent'):
                     setattr(game, attr, getattr(
-                        self, attr, getattr(args, attr)))
+                        self, attr, getattr(args,
+                                            attr[9:] if 'tag_' in attr else attr)))
                 yield game
             def first(self):
                 return next(iter(self))
@@ -1047,13 +1049,11 @@ if __name__ == '__main__':
         root = 'Gaming session'
         _isDone = False
         _silent = True
-        def __init__(self, gamertag_creator, gamertag_opponent,
-                     gametype=None, gamemode=None,
-                     start = None):
-            self.gamertag_creator = gamertag_creator
-            self.gamertag_opponent = gamertag_opponent
-            self.gametype = gametype
-            self.gamemode = gamemode
+        def __init__(self, start = None):
+            self.gamertag_creator = None
+            self.gamertag_opponent = None
+            self.gametype = None
+            self.gamemode = None
 
             self.accept_date = start or datetime.now()
             self.meta = None
