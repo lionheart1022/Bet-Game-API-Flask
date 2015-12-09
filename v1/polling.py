@@ -1013,7 +1013,7 @@ if __name__ == '__main__':
             def count(self):
                 return 1
             def __iter__(self):
-                key = set((k,v) for k,v in self.__dict__.items()
+                key = ((k,v) for k,v in self.__dict__.items()
                         if not k.startswith('_'))
                 print('** Querying games with %s'%key)
                 if key not in self._games:
@@ -1062,9 +1062,15 @@ if __name__ == '__main__':
         raise ValueError('Unknown gametype '+args.gametype)
     if args.gamemode and not poller.usemodes:
         raise ValueError('This poller doesn\'t support game modes')
+
     for role in 'creator', 'opponent':
         setattr(args, role,
                 poller.identity_check(
                     getattr(args, role)))
+
+    poller.gameStarted(Game.query.first()) # FIXME
+
     pin = poller()
-    pin.poll(args.now,  args.gametype, args.gamemode)
+    if not args.gamemode:
+        pin.prepare()
+    pin.poll(args.now, args.gametype, args.gamemode)
