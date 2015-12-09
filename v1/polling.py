@@ -1015,7 +1015,9 @@ if __name__ == '__main__':
         class Query(SimpleNamespace):
             def __init__(self, **kwargs):
                 super().__init__(**kwargs)
-                self._games = {}
+                self._game = Game(
+                    args.creator, args.opponent,
+                    start = args.start or None)
             def filter_by(self, **kwargs):
                 # copy self
                 dup = self.__class__(**self.__dict__)
@@ -1027,14 +1029,11 @@ if __name__ == '__main__':
                 key = tuple((k,v) for k,v in self.__dict__.items()
                         if not k.startswith('_'))
                 print('** Querying games with %s'%dict(key))
-                if key not in self._games:
-                    self._games[key] = Game(
-                        args.creator, args.opponent,
-                        start = args.start or None)
+
                 for attr in 'gametype', 'gamemode':
-                    setattr(self._games[key], attr, getattr(
+                    setattr(self._game, attr, getattr(
                         self, attr, getattr(args, attr)))
-                yield self._games[key]
+                yield self._game
             def first(self):
                 return next(iter(self))
         query = Query()
