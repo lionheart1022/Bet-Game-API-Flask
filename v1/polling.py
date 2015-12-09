@@ -1058,15 +1058,23 @@ if __name__ == '__main__':
     parser.add_argument('opponent')
     parser.add_argument('gametype', nargs='?')
     parser.add_argument('gamemode', nargs='?')
+    parser.add_argument('--start', nargs=1, default=None) #TODO
     now = datetime.utcfromtimestamp(
         datetime.utcnow().timestamp() // (5*60) * (5*60)
     )
     parser.add_argument('--now', nargs=1, default=now)
     args = parser.parse_args()
 
-    def dogame(gametype, gamemode):
-        game = Game(args.creator, args.opponent,
-                    gametype, gamemode)
-        poller = Poller.findPoller(gametype)
-        pin = poller() # instantiate
-        pin.poll(args.now)
+    def do(poller, gametype=None, gamemode=None):
+        pin = poller()
+        pin.poll(args.now, gametype, gamemode)
+    if args.gamemode:
+        do(Poller.findPoller(args.gametype), args.gametype, args.gamemode)
+    elif args.gametype:
+        do(Poller.findPoller(args.gametype))
+    else:
+        for poller in Poller.allPollers():
+            if poller.minutes and args.now.minute % poller.minutes != 0:
+                log.info('Skipping poller {} because of timeframes'.format(poller))
+                continue
+            do(poller)
