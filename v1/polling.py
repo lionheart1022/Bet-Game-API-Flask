@@ -870,7 +870,7 @@ class TibiaPoller(Poller, LimitedApi):
         ).text
         parser = cls.Parser(convert_charrefs=True)
         ret = parser(page)
-        log.debug('TiviaPoller: fetching character {}: {}'.format(
+        log.debug('TibiaPoller: fetching character {}: {}'.format(
             playername, ret))
         return ret
 
@@ -989,6 +989,7 @@ def poll_all():
         pin.poll(now)
 
     log.info('Polling done')
+
 
 if __name__ == '__main__':
     # testing environment, make a fixture
