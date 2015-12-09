@@ -1028,6 +1028,7 @@ if __name__ == '__main__':
         query = Query()
         root = 'Gaming session'
         _isDone = False
+        _silent = True
         def __init__(self, crea, oppo, type, mode, start = None):
             self.gamertag_creator = crea
             self.gamertag_opponent = oppo
@@ -1036,6 +1037,11 @@ if __name__ == '__main__':
 
             self.accept_date = start or datetime.now()
             self.meta = None
+            self._silent = False
+        def __setattr__(self, k, v):
+            if not self._silent:
+                print('** Setting property on game obj: {}={}'.format(k,v))
+            super().__setattr__(k, v)
 
     def gameDone(game, winner, timestamp=None, details=None):
         print('** Marking game {} as done - '
