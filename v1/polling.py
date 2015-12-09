@@ -1071,6 +1071,6 @@ if __name__ == '__main__':
     poller.gameStarted(Game.query.first()) # FIXME
 
     pin = poller()
-    if not args.gamemode:
+    if args.gamemode:
         pin.prepare()
     pin.poll(args.now, args.gametype, args.gamemode)
