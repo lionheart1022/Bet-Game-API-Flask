@@ -1068,12 +1068,10 @@ if __name__ == '__main__':
     parser.add_argument('--now', nargs=1, default=now)
     args = parser.parse_args()
 
-    def do(poller, gametype=None, gamemode=None):
-        if not poller:
-            raise ValueError('Unknown gametype?')
-        pin = poller()
-        pin.poll(args.now, gametype, gamemode)
-    if args.gamemode:
-        do(Poller.findPoller(args.gametype), args.gametype, args.gamemode)
-    else:
-        do(Poller.findPoller(args.gametype))
+    poller = Poller.findPoller(args.gametype)
+    if not poller:
+        raise ValueError('Unknown gametype '+args.gametype)
+    for role in 'creator', 'opponent':
+        poller.identity_check(args[role])
+    pin = poller()
+    pin.poll(args.now,  args.gametype, args.gamemode)
