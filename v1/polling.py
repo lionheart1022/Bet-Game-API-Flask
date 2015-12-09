@@ -1043,7 +1043,7 @@ if __name__ == '__main__':
         root = 'Gaming session'
         _isDone = False
         _silent = True
-        def __init__(self, gamertag_creator, gamertag_opponnet,
+        def __init__(self, gamertag_creator, gamertag_opponent,
                      gametype=None, gamemode=None,
                      start = None):
             self.gamertag_creator = gamertag_creator
