@@ -1061,6 +1061,7 @@ if __name__ == '__main__':
             self.gamertag_opponent = None
             self.gametype = None
             self.gamemode = None
+            self.start = datetime.now()
 
             self.meta = None
             self._silent = False
