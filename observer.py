@@ -306,7 +306,7 @@ class Handler:
         Notify all related games about certain event unless already notified.
         Returns True if this was first call with given key/text, False otherwise.
         """
-        if key or text in self._sysevts:
+        if (key or text) in self._sysevts:
             return False
         self._sysevts.add(key or text)
         self.sysevent(text)
