@@ -4,12 +4,21 @@ import os
 import time
 from datetime import datetime, timedelta
 from collections import OrderedDict, namedtuple
+from types import SimpleNamespace
 import email
 import requests
 from requests_oauthlib import OAuth1Session
 
-import config
-from .helpers import log
+try:
+    import config
+    from .helpers import log
+except ImportError:
+    # test environment
+    config = SimpleNamespace(
+        PAYPAL_SANDBOX = None,
+    )
+    log = SimpleNamespace()
+    log.__getattr__ = lambda x: lambda p: print(p)
 
 ### External APIs ###
 def nexmo(endpoint, **kwargs):

@@ -22,6 +22,7 @@ from eventlet.timeout import Timeout
 import config
 from .models import *
 from .main import db
+from .common import *
 
 ### Logging ###
 class log_cls:
@@ -83,18 +84,6 @@ restful.utils.error_data = lambda code: {
     'error_code': code,
     'error': http_status_message(code)
 }
-
-class classproperty:
-    """
-    Cached class property; evaluated only once
-    """
-    def __init__(self, fget):
-        self.fget = fget
-        self.obj = {}
-    def __get__(self, owner, cls):
-        if cls not in self.obj:
-            self.obj[cls] = self.fget(cls)
-        return self.obj[cls]
 
 
 ### Tokens ###

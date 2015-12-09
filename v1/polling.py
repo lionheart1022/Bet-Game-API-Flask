@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from datetime import datetime, timedelta
 from types import SimpleNamespace
 import math
@@ -12,6 +13,7 @@ from dateutil.parser import parse as date_parse
 if __name__ == '__main__':
     # debugging environment; other changes are in the bottom
     from apis import *
+    from common import *
 else:
     # live environment
     import config
@@ -1016,7 +1018,7 @@ if __name__ == '__main__':
         class Query(SimpleNamespace):
             def filter_by(self, **kwargs):
                 # copy self
-                dup = Query(**self.__dict__)
+                dup = self.__class__(**self.__dict__)
                 dup.__dict__.update(kwargs)
                 return dup
             def count(self):
