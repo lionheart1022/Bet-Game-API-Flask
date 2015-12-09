@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+import traceback
 
 class classproperty:
     """
@@ -14,7 +15,9 @@ class classproperty:
 
 
 debug_log = SimpleNamespace(**{
-    meth: lambda msg: print('{}: {}'.format(meth.upper(), msg))
-    for meth in
+    meth: lambda msg, exc_info=False: (
+        print('{}: {}'.format(meth.upper(), msg))
+        or (exc_info or meth == 'exception') and traceback.print_exc()
+    ) for meth in
     'debug info warning error exception'.split()
 })
