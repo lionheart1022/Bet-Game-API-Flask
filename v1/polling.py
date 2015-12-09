@@ -1087,7 +1087,7 @@ if __name__ == '__main__':
     parser.add_argument('opponent', nargs='?')
     parser.add_argument('gametype', nargs='?')
     parser.add_argument('gamemode', nargs='?')
-    parser.add_argument('--start', nargs=1, default=None) #TODO
+    parser.add_argument('--start', type=date_parse, default=None) #TODO
     now = datetime.utcfromtimestamp(
         datetime.utcnow().timestamp() // (5*60) * (5*60)
     )
