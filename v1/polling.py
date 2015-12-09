@@ -1037,15 +1037,16 @@ if __name__ == '__main__':
                 print('** Querying games with %s'%dict(key))
 
                 if not self.__class__._game:
-                    self.__class__._game = Game(
-                        args.creator, args.opponent,
-                        start = args.start or None)
+                    self.__class__._game = Game()
                 game = self.__class__._game
-                for attr in ('gametype', 'gamemode',
+                for attr in ('gametype', 'gamemode', 'start',
                              'gamertag_creator', 'gamertag_opponent'):
                     setattr(game, attr, getattr(
-                        self, attr, getattr(args,
-                                            attr[9:] if 'tag_' in attr else attr)))
+                        self, attr, getattr(
+                            args,
+                            attr[9:] if 'tag_' in attr else attr
+                        )
+                    ))
                 yield game
             def first(self):
                 return next(iter(self))
@@ -1055,15 +1056,17 @@ if __name__ == '__main__':
         root = 'Gaming session'
         _isDone = False
         _silent = True
-        def __init__(self, start = None):
+        def __init__(self):
             self.gamertag_creator = None
             self.gamertag_opponent = None
             self.gametype = None
             self.gamemode = None
 
-            self.accept_date = start or datetime.now()
             self.meta = None
             self._silent = False
+        @property
+        def accept_date(self):
+            return getattr(self, 'start')
         def __setattr__(self, k, v):
             if not self._silent and v != getattr(self, k):
                 print('** Setting property on game obj: {}={}'.format(k,v))
