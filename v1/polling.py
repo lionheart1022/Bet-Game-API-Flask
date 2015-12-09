@@ -714,7 +714,7 @@ class CSGOPoller(Poller):
     def pollGame(self, game):
         crea = SimpleNamespace(tag=game.gamertag_creator)
         oppo = SimpleNamespace(tag=game.gamertag_opponent)
-        crea.initial, oppo.initial = map(int, game.meta.split(':'))
+        crea.total, oppo.total = map(int, game.meta.split(':'))
         for user in crea, oppo:
             if user.tag not in self.matches:
                 self.matches[user.tag] = self.fetch_match(user.tag)
