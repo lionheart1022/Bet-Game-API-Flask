@@ -15,6 +15,12 @@ if __name__ == '__main__':
     from apis import *
     from common import *
     from mock import log, config, dummyfunc, db
+    try:
+        import config as config_module
+        for p in dir(config_module):
+            setattr(config, p, getattr(config_module, p))
+    except ImportError:
+        pass
 else:
     # live environment
     import config
