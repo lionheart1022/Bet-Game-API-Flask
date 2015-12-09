@@ -1308,6 +1308,10 @@ class GameResource(restful.Resource):
                         abort('Please specify your {}'.format(
                             identity.name,
                         ), problem=argname)
+            if args[name+'_creator'] == args[name+'_opponent']:
+                abort('Your and your opponent\'s {} should be different!'.format(
+                    identity.name,
+                ))
         # Update creator's identity if requested
         if had_creatag and poller.identity:
             if args.savetag == 'replace':
@@ -1425,6 +1429,10 @@ class GameResource(restful.Resource):
                         abort('Invalid {}: {}'.format(identity.name, e),
                               problem=argname)
                     if getattr(game, argname) != args[argname]:
+                        if getattr(game, '{}_creator'.format(name)) == args[argname]:
+                            abort('You cannot specify {} same as your opponent\'s!'.format(
+                                identity.name,
+                            ))
                         log.warning(
                             'Game {}: changing {} opponent identity '
                             'from {} to {}'.format(
