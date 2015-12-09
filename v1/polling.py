@@ -16,6 +16,8 @@ if __name__ == '__main__':
     from common import *
     from mock import log, config, dummyfunc, db
     try:
+        import sys
+        sys.path.append('..')
         import config as config_module
         for p in dir(config_module):
             setattr(config, p, getattr(config_module, p))
