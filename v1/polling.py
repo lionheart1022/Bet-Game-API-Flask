@@ -72,8 +72,9 @@ class Poller:
     subtitle = None
     category = None
     minutes = 0 # by default, poll as often as possible
-    # List of tuples (creator, opponent, startdate).
-    # For each of these tuples there should exist finished game.
+    # List of tuples (creator, opponent, gamemode, startdate, winner).
+    # For each of these tuples there should exist finished game
+    # with specified result.
     tests = []
 
     @classproperty
