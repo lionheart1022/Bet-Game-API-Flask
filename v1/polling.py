@@ -684,13 +684,15 @@ class CSGOPoller(Poller):
             ))
     @classmethod
     def fetch_match(cls, userid):
+        log.debug('Fetching matches for user id %s'%userid)
         ret = Steam.call(
             'ISteamUserStats', 'GetUserStatsForGame', 'v0002',
             appid=730, # CS:GO
             steamid=userid, # not worry whether it string or int
         ).get('playerstats', {})
         stats = {s['name']: s['value'] for s in ret.get('stats', [])}
-        log.debug('stats: '+str(stats))
+        if not stats:
+            raise ValueError('No stats available for player %s'%userid)
         return cls.Match(*[
             stats[stat if stat.startswith('total') else 'last_match_'+stat]
             for stat in cls.Match._fields
@@ -1079,6 +1081,7 @@ if __name__ == '__main__':
         raise ValueError('This poller doesn\'t support game modes')
 
     for role in 'creator', 'opponent':
+        print('Checking gamertag '+getattr(args, role))
         setattr(args, role,
                 poller.identity_check(
                     getattr(args, role)))
