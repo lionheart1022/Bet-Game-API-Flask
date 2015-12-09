@@ -1109,7 +1109,7 @@ if __name__ == '__main__':
     pin.poll(args.now, args.gametype, args.gamemode)
 
     if(Game.query.first()._isDone):
-        print('Game was marked as done!')
+        print('Game was ended!')
     else:
-        print('Game was not marked as done.')
+        print('Didn\'t end the game.')
     print('Done.')
