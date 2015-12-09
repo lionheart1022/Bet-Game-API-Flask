@@ -1030,9 +1030,10 @@ if __name__ == '__main__':
                 if key not in self._games:
                     self._games[key] = Game(
                         args.creator, args.opponent,
-                        getattr(self, 'gametype', args.gametype),
-                        getattr(self, 'gamemode', args.gamemode),
-                        args.start or None)
+                        start = args.start or None)
+                for attr in 'gametype', 'gamemode':
+                    setattr(self._games[key], attr, getattr(
+                        self, attr, getattr(args, attr)))
                 yield self._games[key]
             def first(self):
                 return next(iter(self))
@@ -1040,11 +1041,13 @@ if __name__ == '__main__':
         root = 'Gaming session'
         _isDone = False
         _silent = True
-        def __init__(self, crea, oppo, type, mode, start = None):
-            self.gamertag_creator = crea
-            self.gamertag_opponent = oppo
-            self.gametype = type
-            self.gamemode = mode
+        def __init__(self, gamertag_creator, gamertag_opponnet,
+                     gametype=None, gamemode=None,
+                     start = None):
+            self.gamertag_creator = gamertag_creator
+            self.gamertag_opponent = gamertag_opponent
+            self.gametype = gametype
+            self.gamemode = gamemode
 
             self.accept_date = start or datetime.now()
             self.meta = None
