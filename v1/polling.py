@@ -9,10 +9,41 @@ from urllib.parse import quote
 import requests
 from dateutil.parser import parse as date_parse
 
-import config
+if __name__ == '__main__':
+    # testing environment, make a fixture
+    config = SimpleNamespace()
+    # just dummy address, as we have no observer here
+    config.OBSERVER_URL = 'http://localhost/'
+
+    def dummyfunc(message, name=None):
+        def func(*args, **kwargs):
+            print(message.format(*args, **kwargs))
+        func.__name__ = name or func.__name__
+        return func
+
+
+    # This is a mock class which simulates database model functionality
+    class Game:
+        # actually it should be a reference to this or another Game object
+        root = 'Gaming session'
+
+    notify_users = dummyfunc(
+        '** Notifying users about state change in game {}')
+    notify_event = dummyfunc(
+        '** Notifying users about event happened '
+        'in game {game}, event {text}')
+
+    db = SimpleNamespace(
+        session = SimpleNamespace()
+    )
+    db.session.add = dummyfunc('** Adding object {} to database session')
+    db.session.commit = dummyfunc('** Commiting DB')
+else:
+    # live environment
+    import config
+    from .helpers import notify_users, notify_event
+    from .models import *
 from .apis import *
-from .helpers import *
-from .models import *
 
 class Identity(namedtuple('Identity', 'id name checker choices')):
     _all = {}
@@ -982,3 +1013,11 @@ def poll_all():
 
     log.info('Polling done')
 
+if __name__ == '__main__':
+    class Game
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('gametype')
+    args = parser.parse_args()
+
+    ;
