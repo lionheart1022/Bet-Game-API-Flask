@@ -690,6 +690,7 @@ class CSGOPoller(Poller):
             steamid=userid, # not worry whether it string or int
         ).get('playerstats', {})
         stats = {s['name']: s['value'] for s in ret.get('stats', [])}
+        log.debug('stats: '+str(stats))
         return cls.Match(*[
             stats[stat if stat.startswith('total') else 'last_match_'+stat]
             for stat in cls.Match._fields
@@ -1032,7 +1033,7 @@ if __name__ == '__main__':
                         args.start or None)
                 yield self._games[key]
             def first(self):
-                return self.__iter__()
+                return next(iter(self))
         query = Query()
         root = 'Gaming session'
         _isDone = False
