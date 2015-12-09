@@ -1013,7 +1013,7 @@ if __name__ == '__main__':
             def count(self):
                 return 1
             def __iter__(self):
-                key = ((k,v) for k,v in self.__dict__.items()
+                key = set((k,v) for k,v in self.__dict__.items()
                         if not k.startswith('_'))
                 print('** Querying games with %s'%key)
                 if key not in self._games:
@@ -1022,7 +1022,7 @@ if __name__ == '__main__':
                         getattr(self, 'gametype', args.gametype),
                         getattr(self, 'gamemode', args.gamemode),
                         args.start or None)
-                yield self._games[keys]
+                yield self._games[key]
             def first(self):
                 return self.__iter__()
         query = Query()
