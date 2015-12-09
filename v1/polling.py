@@ -72,6 +72,9 @@ class Poller:
     subtitle = None
     category = None
     minutes = 0 # by default, poll as often as possible
+    # List of tuples (creator, opponent, startdate).
+    # For each of these tuples there should exist finished game.
+    tests = []
 
     @classproperty
     def identity(cls):
@@ -1072,9 +1075,10 @@ if __name__ == '__main__':
 
     from argparse import ArgumentParser
     parser = ArgumentParser()
-    parser.add_argument('creator')
-    parser.add_argument('opponent')
-    parser.add_argument('gametype')
+    parser.add_argument('--tests', action='store_true', default=False)
+    parser.add_argument('creator', nargs='?')
+    parser.add_argument('opponent', nargs='?')
+    parser.add_argument('gametype', nargs='?')
     parser.add_argument('gamemode', nargs='?')
     parser.add_argument('--start', nargs=1, default=None) #TODO
     now = datetime.utcfromtimestamp(
@@ -1082,6 +1086,9 @@ if __name__ == '__main__':
     )
     parser.add_argument('--now', nargs=1, default=now)
     args = parser.parse_args()
+
+    if not args.tests and not args.gametype:
+        raise ValueError('Please specify either --tests or creator, opponent and gametype')
 
     poller = Poller.findPoller(args.gametype)
     if not poller:
