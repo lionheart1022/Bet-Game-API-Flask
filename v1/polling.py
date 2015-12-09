@@ -1002,6 +1002,13 @@ if __name__ == '__main__':
     class Game:
         # actually it should be a reference to this or another Game object
         class Query(SimpleNamespace):
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
+                self._game = Game(
+                    args.creator, args.opponent,
+                    getattr(self, 'gametype', args.gametype),
+                    getattr(self, 'gamemode', args.gamemode),
+                    args.start or None)
             def filter_by(self, **kwargs):
                 # copy self
                 dup = self.__class__(**self.__dict__)
@@ -1010,10 +1017,12 @@ if __name__ == '__main__':
             def count(self):
                 return 1
             def __iter__(self):
-                yield Game(args.creator, args.opponent,
-                           getattr(self, 'gametype', args.gametype),
-                           getattr(self, 'gamemode', args.gamemode),
-                           args.start or None)
+                print('** Querying games with '+', '.join(
+                    '{}={}'.format(k, v)
+                    for k,v in self.__dict__.items()
+                    if not k.startswith('_')
+                ))
+                yield self._game
         query = Query()
         root = 'Gaming session'
         _isDone = False
