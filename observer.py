@@ -374,7 +374,8 @@ class Handler:
                             .format(self.stream.handle))
                 self.stream.state = 'waiting'
                 db.session.commit()
-                self.sysevent('Twitch: stream is offline, waiting')
+                self.sysevent_once('Twitch: stream is offline, waiting',
+                                   'offline_wait')
 
                 # wait & retry
                 eventlet.sleep(WAIT_DELAY)
