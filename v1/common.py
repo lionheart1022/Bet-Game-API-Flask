@@ -14,10 +14,13 @@ class classproperty:
         return self.obj[cls]
 
 
-debug_log = SimpleNamespace(**{
-    meth: lambda msg, exc_info=False: (
-        print('{}: {}'.format(meth.upper(), msg))
-        or (exc_info or meth == 'exception') and traceback.print_exc()
-    ) for meth in
-    'debug info warning error exception'.split()
-})
+class debug_log:
+    def debug_print(meth):
+        def doprint(cls, msg, exc_info=(meth=='exception')):
+            print('{}: {}'.format(meth.upper(), msg))
+            if exc_info:
+                import traceback
+                traceback.print_exc()
+        return doprint
+    for meth in 'debug info warning error exception'.split():
+        locals()[meth] = classmethod(debug_print(meth))
