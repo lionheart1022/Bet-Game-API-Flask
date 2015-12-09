@@ -11,11 +11,11 @@ from urllib.parse import quote
 import requests
 from dateutil.parser import parse as date_parse
 
-from common import *
 if __name__ == '__main__':
     # debugging environment; other changes are in the bottom
     from apis import *
     from mock import log, config, dummyfunc, db
+    from common import *
     try:
         sys.path.append('..')
         import config as config_module
@@ -29,6 +29,7 @@ else:
     from .helpers import notify_users, notify_event
     from .models import *
     from .apis import *
+    from .common import *
 
 class Identity(namedtuple('Identity', 'id name checker choices')):
     _all = {}
