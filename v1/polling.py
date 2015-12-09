@@ -11,10 +11,10 @@ from urllib.parse import quote
 import requests
 from dateutil.parser import parse as date_parse
 
+from common import *
 if __name__ == '__main__':
     # debugging environment; other changes are in the bottom
     from apis import *
-    from common import *
     from mock import log, config, dummyfunc, db
     try:
         sys.path.append('..')
