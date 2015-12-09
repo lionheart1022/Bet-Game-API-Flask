@@ -1083,20 +1083,35 @@ if __name__ == '__main__':
 
     from argparse import ArgumentParser
     parser = ArgumentParser()
-    parser.add_argument('--tests', action='store_true', default=False)
-    parser.add_argument('creator', nargs='?')
-    parser.add_argument('opponent', nargs='?')
-    parser.add_argument('gametype', nargs='?')
-    parser.add_argument('gamemode', nargs='?')
-    parser.add_argument('--start', type=date_parse, default=None) #TODO
+    parser.add_argument('--tests', action='store_true', default=False,
+                        help='Testing mode. '
+                        'In this mode other options should not be specified; '
+                        'their values will be taken from Poller.tests field '
+                        'for each poller class.')
+    parser.add_argument('creator', nargs='?',
+                        help='First opponent\'s identity')
+    parser.add_argument('opponent', nargs='?',
+                        help='Second opponent\'s identity')
+    parser.add_argument('gametype', nargs='?',
+                        help='This determines which poller will be used')
+    parser.add_argument('gamemode', nargs='?',
+                        help='Can be omitted '
+                        'if you want to test all gamemodes of given poller '
+                        'or if it doesn\'t use gamemodes at all.')
+    parser.add_argument('--start', type=date_parse, default=None,
+                        help='Time when the virtual game invitation was accepted; '
+                        'defaults to now.')
     now = datetime.utcfromtimestamp(
         datetime.utcnow().timestamp() // (5*60) * (5*60)
     )
-    parser.add_argument('--now', nargs=1, default=now)
+    parser.add_argument('--now', nargs=1, default=now,
+                        help='Time when the test is performed (for "minutes" field), '
+                        'defaults to current time rounded by 5 minutes.')
     args = parser.parse_args()
 
     if not args.tests and not args.gametype:
-        raise ValueError('Please specify either --tests or creator, opponent and gametype')
+        parser.error(
+            'Please specify either --tests or creator, opponent and gametype')
 
     if args.tests:
         for poller in Poller.allPollers():
@@ -1150,9 +1165,9 @@ if __name__ == '__main__':
 
     poller = Poller.findPoller(args.gametype)
     if not poller:
-        raise ValueError('Unknown gametype '+args.gametype)
+        parser.error('Unknown gametype '+args.gametype)
     if args.gamemode and not poller.usemodes:
-        raise ValueError('This poller doesn\'t support game modes')
+        parser.error('This poller doesn\'t support game modes')
 
     for role in 'creator', 'opponent':
         print('Checking gamertag '+getattr(args, role))
