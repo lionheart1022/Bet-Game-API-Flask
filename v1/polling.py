@@ -1055,7 +1055,7 @@ if __name__ == '__main__':
             self.meta = None
             self._silent = False
         def __setattr__(self, k, v):
-            if not self._silent:
+            if not self._silent and v != getattr(self, k):
                 print('** Setting property on game obj: {}={}'.format(k,v))
             super().__setattr__(k, v)
 
