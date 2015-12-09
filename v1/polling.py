@@ -9,12 +9,15 @@ from urllib.parse import quote
 import requests
 from dateutil.parser import parse as date_parse
 
-if __name__ != '__main__':
+if __name__ == '__main__':
+    # debugging environment; other changes are in the bottom
+    from apis import *
+else:
     # live environment
     import config
     from .helpers import notify_users, notify_event
     from .models import *
-from .apis import *
+    from .apis import *
 
 class Identity(namedtuple('Identity', 'id name checker choices')):
     _all = {}
