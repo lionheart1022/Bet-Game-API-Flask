@@ -1013,9 +1013,9 @@ if __name__ == '__main__':
     class Game:
         # actually it should be a reference to this or another Game object
         class Query(SimpleNamespace):
+            _game = None
             def __init__(self, **kwargs):
                 super().__init__(**kwargs)
-                self._game = None
             def filter_by(self, **kwargs):
                 # copy self
                 dup = self.__class__(**self.__dict__)
@@ -1028,15 +1028,15 @@ if __name__ == '__main__':
                         if not k.startswith('_'))
                 print('** Querying games with %s'%dict(key))
 
-                if not self._game:
-                    self._game = Game(
+                if not self.__class__._game:
+                    self.__class__._game = Game(
                         args.creator, args.opponent,
                         start = args.start or None)
-
+                game = self.__class__._game
                 for attr in 'gametype', 'gamemode':
-                    setattr(self._game, attr, getattr(
+                    setattr(game, attr, getattr(
                         self, attr, getattr(args, attr)))
-                yield self._game
+                yield game
             def first(self):
                 return next(iter(self))
         query = Query()
