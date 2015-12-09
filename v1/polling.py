@@ -1058,7 +1058,7 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('creator')
     parser.add_argument('opponent')
-    parser.add_argument('gametype', nargs='?')
+    parser.add_argument('gametype')
     parser.add_argument('gamemode', nargs='?')
     parser.add_argument('--start', nargs=1, default=None) #TODO
     now = datetime.utcfromtimestamp(
@@ -1074,11 +1074,5 @@ if __name__ == '__main__':
         pin.poll(args.now, gametype, gamemode)
     if args.gamemode:
         do(Poller.findPoller(args.gametype), args.gametype, args.gamemode)
-    elif args.gametype:
-        do(Poller.findPoller(args.gametype))
     else:
-        for poller in Poller.allPollers():
-            if poller.minutes and args.now.minute % poller.minutes != 0:
-                log.info('Skipping poller {} because of timeframes'.format(poller))
-                continue
-            do(poller)
+        do(Poller.findPoller(args.gametype))
