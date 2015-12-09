@@ -1083,7 +1083,7 @@ if __name__ == '__main__':
 
     from argparse import ArgumentParser
     parser = ArgumentParser()
-    parser.add_argument('--tests', action='store_true', default=False,
+    parser.add_argument('-t', '--tests', action='store_true', default=False,
                         help='Testing mode. '
                         'In this mode other options should not be specified; '
                         'their values will be taken from Poller.tests field '
@@ -1098,13 +1098,13 @@ if __name__ == '__main__':
                         help='Can be omitted '
                         'if you want to test all gamemodes of given poller '
                         'or if it doesn\'t use gamemodes at all.')
-    parser.add_argument('--start', type=date_parse, default=None,
+    parser.add_argument('-s', '--start', type=date_parse, default=None,
                         help='Time when the virtual game invitation was accepted; '
                         'defaults to now.')
     now = datetime.utcfromtimestamp(
         datetime.utcnow().timestamp() // (5*60) * (5*60)
     )
-    parser.add_argument('--now', nargs=1, default=now,
+    parser.add_argument('-n', '--now', nargs=1, default=now,
                         help='Time when the test is performed (for "minutes" field), '
                         'defaults to current time rounded by 5 minutes.')
     args = parser.parse_args()
