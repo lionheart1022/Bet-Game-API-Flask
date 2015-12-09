@@ -1072,6 +1072,6 @@ if __name__ == '__main__':
     if not poller:
         raise ValueError('Unknown gametype '+args.gametype)
     for role in 'creator', 'opponent':
-        poller.identity_check(args[role])
+        poller.identity_check(getattr(args, role))
     pin = poller()
     pin.poll(args.now,  args.gametype, args.gamemode)
