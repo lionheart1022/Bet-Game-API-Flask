@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 from datetime import datetime, timedelta
 from types import SimpleNamespace
 import math
@@ -16,7 +17,6 @@ if __name__ == '__main__':
     from common import *
     from mock import log, config, dummyfunc, db
     try:
-        import sys
         sys.path.append('..')
         import config as config_module
         for p in dir(config_module):
@@ -1096,6 +1096,56 @@ if __name__ == '__main__':
 
     if not args.tests and not args.gametype:
         raise ValueError('Please specify either --tests or creator, opponent and gametype')
+
+    if args.tests:
+        for poller in Poller.allPollers():
+            print('Testing poller '+poller)
+            for gametype in ([args.gametype]
+                             if args.gametype else
+                             poller.gametypes):
+                tests = poller.tests
+                if isinstance(tests, dict):
+                    tests = tests.get(gametype, [])
+                for creator, opponent, gamemode, start, winner in tests:
+                    args.creator = creator
+                    args.opponent = opponent
+                    args.gamemode = gamemode
+                    args.start = date_parse(start)
+
+                    for role in 'creator', 'opponent':
+                        print('Checking gamertag '+getattr(args, role))
+                        setattr(args, role,
+                                poller.identity_check(
+                                    getattr(args, role)))
+
+                    print()
+                    print('Notifying poller that game was started')
+                    poller.gameStarted(Game.query.first()) # FIXME
+
+                    pin = poller()
+                    if args.gamemode or not poller.usemodes:
+                        print()
+                        print('Preparing poller')
+                        pin.prepare()
+                    print()
+                    print('Polling')
+                    pin.poll(args.now, gametype, args.gamemode)
+
+                    game = Game.query.first()
+                    if not game._isDone:
+                        print('This poller didn\'t end this game!')
+                        sys.exit(1)
+                    print('Game was ended.')
+                    if game.winner != winner:
+                        print('This game\'s winner doesn\'t match expected!')
+                        print('Expected {}, got {}'.format(
+                            winner, game.winner,
+                        ))
+                        sys.exit(1)
+
+                    Game.query.clear()
+
+        sys.exit()
 
     poller = Poller.findPoller(args.gametype)
     if not poller:
