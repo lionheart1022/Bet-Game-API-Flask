@@ -1099,7 +1099,7 @@ if __name__ == '__main__':
 
     if args.tests:
         for poller in Poller.allPollers():
-            print('Testing poller '+poller)
+            print('Testing poller %s'%poller.__name__)
             for gametype in ([args.gametype]
                              if args.gametype else
                              poller.gametypes):
