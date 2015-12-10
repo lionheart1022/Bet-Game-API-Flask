@@ -566,7 +566,7 @@ class WilliamHill:
                 ),
             )
             if 'whoSessions' not in ret:
-                raise WilliamHillError('Login failed')
+                raise WilliamHill.WilliamHillError('Login failed')
         if ticket:
             self.session.headers.update({
                 'who-ticket': ticket,
