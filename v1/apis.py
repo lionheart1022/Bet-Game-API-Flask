@@ -242,11 +242,17 @@ class Twitter:
         jret['_code'] = ret.status_code
         return jret
 
-class LimitedApi:
-    # this is default delay between subsequent requests to the same api,
-    # can be overriden in subclasses
-    DELAY = timedelta(seconds=2)
-
+class JsonApi:
+    @classmethod
+    def session(cls):
+        " If overriden, should return a requests.session object "
+        return None
+    @classmethod
+    def request(cls, *args, **kwargs):
+        " Can be overriden "
+        if cls.session == JsonApi.session: # not overriden
+            return requests.request(*args, **kwargs)
+        return cls.session().request(*args, **kwargs)
     @classmethod
     def request_json(cls, *args, **kwargs):
         ret = cls.request(*args, **kwargs)
@@ -263,8 +269,18 @@ class LimitedApi:
         resp['_code'] = ret.status_code
 
         return resp
+
+class LimitedApi(JsonApi):
+    # this is default delay between subsequent requests to the same api,
+    # can be overriden in subclasses
+    DELAY = timedelta(seconds=2)
+
     @classmethod
     def request(cls, *args, **kwargs):
+        """
+        This overrides JsonApi's method adding delay.
+        """
+        # TODO: maybe use session for delaying?
         now = datetime.utcnow()
         last = getattr(cls, '_last', None)
         if last:
@@ -279,7 +295,7 @@ class LimitedApi:
 
         # now that we slept if needed, call Requests
         # and handle any json-related problems
-        return requests.request(*args, **kwargs)
+        return super().request(*args, **kwargs)
 
 class Riot(LimitedApi):
     URL = 'https://{region}.api.pvp.net/api/lol/{region}/{version}/{method}'
