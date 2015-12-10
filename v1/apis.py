@@ -537,6 +537,11 @@ class Twitch:
         return val
 
 class WilliamHill:
+    """
+    Unlike other APIs in this module,
+    this one should be instantiated for usage.
+    This is because it requires user credentials.
+    """
     class WilliamHillError(Exception):
         pass
     BASE = 'https://sandbox.whapi.com/v1/'
