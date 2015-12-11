@@ -250,7 +250,7 @@ class JsonApi:
     @classmethod
     def request(cls, *args, **kwargs):
         " Can be overriden "
-        if cls.session == JsonApi.session: # not overriden
+        if cls.session() == JsonApi.session: # not overriden
             return requests.request(*args, **kwargs)
         return cls.session().request(*args, **kwargs)
     @classmethod
