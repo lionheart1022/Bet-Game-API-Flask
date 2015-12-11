@@ -1541,7 +1541,7 @@ class GameResource(restful.Resource):
         if game.aborter != game.other(user):
             abort('Internal error, wrong aborter', 500)
         Poller.gameDone(game, 'aborted',
-                        details='Challenge was aborted by '+game.aborter.nickname,
+                        details='Challenge was aborted by request of '+game.aborter.nickname,
                         )
         return dict(
             aborted = True,
