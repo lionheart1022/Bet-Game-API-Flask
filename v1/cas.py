@@ -22,12 +22,14 @@ def cas_logout():
     return redirect(url);
 @app.route('/cas/done')
 def cas_done():
-    ticket = None # TODO fetch from args
-    url = WilliamHill.CAS_HOST
-    url += '/cas/serviceValidate'
+    ticket = request.args.get('ticket')
+
+    url = WilliamHill.CAS_HOST + '/cas/serviceValidate'
     ret = requests.get(url, params=dict(
         ticket = ticket,
         service = url_for('.cas_done'),
         # TODO opt?
     ))
     print(ret)
+    # TODO
+
