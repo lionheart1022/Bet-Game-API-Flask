@@ -16,6 +16,10 @@ def cas_login():
         service = config.SITE_BASE_URL+url_for('.cas_done'),
     ))
     return redirect(url);
+@app.route('/cas/logout')
+def cas_logout():
+    url = WilliamHill.CAS_HOST + '/cas/logout'
+    return redirect(url);
 @app.route('/cas/done')
 def cas_done():
     ticket = None # TODO fetch from args
