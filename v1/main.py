@@ -16,6 +16,7 @@ def init_app(flask_app):
     flask_app.register_blueprint(app, url_prefix='/v1')
     flask_app.before_first_request_funcs.extend(_before1req)
 
+
 # now apply routes
 from . import routes
-
+from . import cas

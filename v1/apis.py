@@ -543,6 +543,7 @@ class WilliamHill:
     class WilliamHillError(Exception):
         pass
     BASE = 'https://sandbox.whapi.com/v1/'
+    CAS_HOST = 'https://auth.williamhill.com'
     def __init__(self, ticket=None, username=None, password=None):
         self.session = requests.Session()
         self.session.headers.update({
