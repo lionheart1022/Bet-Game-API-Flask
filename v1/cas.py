@@ -13,7 +13,7 @@ from .apis import WilliamHill
 def cas():
     url = WilliamHill.CAS_HOST
     url += '/cas/login?'+urlencode(dict(
-        service = url_for('cas_done'),
+        service = url_for('.cas_done'),
     ))
     return redirect(url);
 @app.route('/cas/done')
@@ -23,7 +23,7 @@ def cas_done():
     url += '/cas/serviceValidate'
     ret = requests.get(url, params=dict(
         ticket = ticket,
-        service = url_for('cas_done'),
+        service = url_for('.cas_done'),
         # TODO opt?
     ))
     print(ret)
