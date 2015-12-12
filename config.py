@@ -59,3 +59,5 @@ WITHDRAW_MINIMUM = 40
 WITHDRAW_COEFFICIENT = 0.90
 
 OBSERVER_URL = 'http://localhost:8021'
+
+SITE_BASE_URL = 'https://betgame.co.uk'

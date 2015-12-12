@@ -9,11 +9,11 @@ from .apis import WilliamHill
 
 # this is a primary CAS login endpoint
 # https://developer.williamhill.com/cas-implementation-guidelines-developers-0
-@app.route('/cas')
-def cas():
+@app.route('/cas/login')
+def cas_login():
     url = WilliamHill.CAS_HOST
     url += '/cas/login?'+urlencode(dict(
-        service = 'https://betgame.co.uk'+url_for('.cas_done'),
+        service = config.SITE_BASE_URL+url_for('.cas_done'),
     ))
     return redirect(url);
 @app.route('/cas/done')
