@@ -13,7 +13,7 @@ from .apis import WilliamHill
 def cas():
     url = WilliamHill.CAS_HOST
     url += '/cas/login?'+urlencode(dict(
-        service = url_for('.cas_done'),
+        service = 'https://betgame.co.uk'+url_for('.cas_done'),
     ))
     return redirect(url);
 @app.route('/cas/done')
