@@ -426,8 +426,17 @@ class Steam(LimitedApi):
     @classmethod
     def pretty_id(cls, val):
         steam_id = cls.parse_id(val)
-        name = cls.player_nick(steam_id) or steam_id # fallback, just for case
-        return '{}@{}'.format(steam_id, name)
+        name = cls.player_nick(steam_id)
+        if not name:
+            return steam_id # store w/o dot
+        return '{}.{}'.format(steam_id, name)
+    @classmethod
+    def split_identity(cls, val):
+        """
+        This is reverse for `pretty_id`
+        """
+        id, sep, name = val.partition('.')
+        return id, name or str(id)
 
     @classmethod
     def call(cls, path, method, version, **params):

@@ -31,12 +31,13 @@ else:
     from .apis import *
     from .common import *
 
-class Identity(namedtuple('Identity', 'id name checker choices')):
+class Identity(namedtuple('Identity', 'id name checker choices formatter')):
     _all = {}
-    def __new__(cls, id, name, checker, choices=None):
+    def __new__(cls, id, name, checker, choices=None, formatter=None):
         if not checker:
             checker = lambda val: val
-        ret = super().__new__(cls, id, name, checker, choices)
+        ret = super().__new__(cls, id, name, checker, choices,
+                              formatter or lambda val: (val, str(val)))
         cls._all[id] = ret
         return ret
     @classmethod
@@ -47,7 +48,8 @@ class Identity(namedtuple('Identity', 'id name checker choices')):
         return cls._all.values()
 Identity('riot_summonerName', 'Riot Summoner Name ("name" or "region/name")',
             Riot.summoner_check)
-Identity('steam_id','STEAM ID (numeric, URL or nickname)', Steam.parse_id)
+Identity('steam_id','STEAM ID (numeric, URL or nickname)', Steam.pretty_id,
+         formatter = lambda x: Steam.split_identity(x)[1])
 Identity('starcraft_uid','StarCraft profile URL from battle.net or sc2ranks.com',
             StarCraft.check_uid)
 # ea_gamertag, fifa_team, tibia_character - will be added in classes
@@ -581,9 +583,9 @@ class Dota2Poller(Poller):
 
     def pollGame(self, game):
         from_oppo = False
-        matchlist = self.matchlists.get(game.gamertag_creator)
+        matchlist = self.matchlists.get(game.gamertag_creator_val)
         if not matchlist:
-            matchlist = self.matchlists.get(game.gamertag_opponent)
+            matchlist = self.matchlists.get(game.gamertag_opponent_val)
             from_oppo = True
         if not match:
             # TODO: handle pagination
@@ -592,7 +594,7 @@ class Dota2Poller(Poller):
             # so maybe no need (as we check every 30 minutes)
             matchlist = Steam.dota2(
                 method = 'GetMatchHistory',
-                account_id = game.gamertag_creator, # it is in str, but doesn't matter here
+                account_id = game.gamertag_creator_val, # it is in str, but doesn't matter here
                 date_min = round(game.accept_date.timestamp()),
             ).get('matches')
             # TODO: merge all matches in cache, index by match id,
@@ -600,8 +602,8 @@ class Dota2Poller(Poller):
             # this may reduce requests count
             if not matchlist:
                 raise ValueError('Couldn\'t fetch match list for account id {}'
-                                 .format(game.gamertag_creator))
-            self.matchlists[game.gamertag_creator] = match['matches']
+                                 .format(game.gamertag_creator_val))
+            self.matchlists[game.gamertag_creator_val] = match['matches']
         for match in matchlist:
             if match['start_time'] < game.accept_date.timestamp:
                 # this match is too old, subsequent are older -> not found
@@ -609,9 +611,9 @@ class Dota2Poller(Poller):
             player_ids = (Steam.id_to_64(p['account_id'])
                           for p in match['players']
                           if 'account_id' in p)
-            if int(game.gamertag_creator
+            if int(game.gamertag_creator_val
                    if from_oppo else
-                   game.gamertag_opponent) in player_ids:
+                   game.gamertag_opponent_val) in player_ids:
                 # found the right match
                 # now load its details to determine winner and duration
 
@@ -625,8 +627,8 @@ class Dota2Poller(Poller):
                 crea = SimpleNamespace()
                 oppo = SimpleNamespace()
                 crea.id, oppo.id = map(int,
-                                       [game.gamertag_creator,
-                                        game.gamertag_opponent])
+                                       [game.gamertag_creator_val,
+                                        game.gamertag_opponent_val])
                 for player in match['players']:
                     for user in (crea, oppo):
                         if Steam.id_to_64(player.get('account_id')) == user.id:
@@ -712,13 +714,13 @@ class CSGOPoller(Poller):
         # store "<crea_total>:<oppo_total>" to know when match was played
         game.meta = ':'.join(map(
             lambda p: str(cls.fetch_match(p).total_matches_played),
-            (game.gamertag_creator, game.gamertag_opponent)
+            (game.gamertag_creator_val, game.gamertag_opponent_val)
         ))
     def prepare(self):
         self.matches = {}
     def pollGame(self, game):
-        crea = SimpleNamespace(tag=game.gamertag_creator)
-        oppo = SimpleNamespace(tag=game.gamertag_opponent)
+        crea = SimpleNamespace(tag=game.gamertag_creator_val)
+        oppo = SimpleNamespace(tag=game.gamertag_opponent_val)
         crea.total, oppo.total = map(int, game.meta.split(':'))
         for user in crea, oppo:
             if user.tag not in self.matches:

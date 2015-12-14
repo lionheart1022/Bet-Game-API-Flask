@@ -400,6 +400,19 @@ class Game(db.Model):
                 _make_identity_getter(kind, prop)
             )
     del _make_identity_getter
+    def _make_identity_splitter(role, prop):
+        attr = 'gamertag_'+role
+        seq = {'val':0,'text':1}[prop]
+        def _getter(self):
+            # formatter returns tuple (internal, human_readable)
+            return self.identity.formatter(getattr(self, attr))[seq]
+        return _getter
+    for role in 'creator', 'opponent':
+        for prop in 'val', 'text':
+            locals()['gamertag_{}_{}'.format(role, prop)] = property(
+                _make_identity_splitter(role, prop)
+            )
+    del _make_identity_splitter
 
     @property
     def is_root(self):
