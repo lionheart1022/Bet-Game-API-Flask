@@ -603,7 +603,9 @@ def send_push(players, alert, **kwargs):
                     log.warning('Incorrect push token '+d.push_token)
     if not receivers:
         log.info('Not sending push to {} because no tokens available'.format(
-            msg.receiver.nickname
+            ', '.join([
+                player.nickname for player in players
+            ]) or '(nobody)',
         ))
         return None
     log.debug('Have {} receivers'.format(len(receivers)))
