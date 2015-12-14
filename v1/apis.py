@@ -332,7 +332,7 @@ class Riot(LimitedApi):
             return '/'.join([
                 region,
                 ret[val.lower()]['name'],
-                ret[val.lower()]['id'],
+                str(ret[val.lower()]['id']),
             ])
         raise ValueError('Unknown summoner name')
 
