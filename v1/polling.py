@@ -32,6 +32,10 @@ else:
     from .common import *
 
 class Identity(namedtuple('Identity', 'id name checker choices formatter')):
+    # Formatter is needed for identities which use non-readable format
+    # like Steam ID.
+    # In pair with corresponding checker, it allows to store
+    # both machine-readable and human-readable values.
     _all = {}
     def __new__(cls, id, name, checker, choices=None, formatter=None):
         if not checker:
