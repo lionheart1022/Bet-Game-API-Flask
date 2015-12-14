@@ -702,14 +702,23 @@ def notify_event(root, etype, debug=False, **kwargs):
                 cancelled = 'Challenge invitation was cancelled',
                 accepted = 'Challenge accepted',
                 declined = 'Challenge declined',
-                finished = 'Challenge finished',
+                finished = 'Challenge finished ({result})',
                 aborted = 'Challenge aborted',
             ),
             abort = 'Challenge abort requested',
         )
         text = types[etype]
         if isinstance(text, dict):
-            text = text[kwargs['game'].state]
+            game = kwargs['game']
+            text = text[game.state]
+            if '{' in text:
+                text = text.format(
+                    result =
+                    'draw' if game.winner == 'draw'
+                    else 'winner: {}'.format(
+                        getattr(game, game.winner).nickname,
+                    )
+                )
         kwargs['text'] = text
 
     def notify_event_push(event, players, alert):
