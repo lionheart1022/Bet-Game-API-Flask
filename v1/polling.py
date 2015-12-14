@@ -37,7 +37,7 @@ class Identity(namedtuple('Identity', 'id name checker choices formatter')):
         if not checker:
             checker = lambda val: val
         ret = super().__new__(cls, id, name, checker, choices,
-                              formatter or lambda val: (val, str(val)))
+                              formatter or (lambda val: (val, str(val))))
         cls._all[id] = ret
         return ret
     @classmethod
