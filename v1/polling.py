@@ -47,7 +47,7 @@ class Identity(namedtuple('Identity', 'id name checker choices')):
         return cls._all.values()
 Identity('riot_summonerName', 'Riot Summoner Name ("name" or "region/name")',
             Riot.summoner_check)
-Identity('steam_id','STEAM ID (numeric or URL)', Steam.parse_id)
+Identity('steam_id','STEAM ID (numeric, URL or nickname)', Steam.parse_id)
 Identity('starcraft_uid','StarCraft profile URL from battle.net or sc2ranks.com',
             StarCraft.check_uid)
 # ea_gamertag, fifa_team, tibia_character - will be added in classes

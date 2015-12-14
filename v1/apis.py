@@ -410,6 +410,26 @@ class Steam(LimitedApi):
         return int(ret['steamid']) # it was returned as string
 
     @classmethod
+    def player_nick(cls, val):
+        """
+        Gets *numeric steam ID*, retrieves properly-spelled nickname.
+        """
+        ret = cls.call(
+            'ISteamUser', 'GetPlayerSummaries', 'v0002',
+            steamids = steam_id,
+        )
+        ps = ret.get('players')
+        if not ps:
+            log.error('Couldn\'t load player nickname from Steam')
+            return None
+        return ps[0].get('personaname')
+    @classmethod
+    def pretty_id(cls, val):
+        steam_id = cls.parse_id(val)
+        name = cls.player_nick(steam_id) or steam_id # fallback, just for case
+        return '{}@{}'.format(steam_id, name)
+
+    @classmethod
     def call(cls, path, method, version, **params):
         # TODO: on 503 error, retry in 30 seconds
         params['key'] = config.STEAM_KEY
