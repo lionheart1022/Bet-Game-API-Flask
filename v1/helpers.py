@@ -694,6 +694,24 @@ def notify_event(root, etype, debug=False, **kwargs):
         setattr(evt, k, v)
     # will save only after checking
 
+    if not kwargs.get('text'):
+        types = dict(
+            message = 'New message received',
+            betstate = dict(
+                new = 'New challenge available',
+                cancelled = 'Challenge invitation was cancelled',
+                accepted = 'Challenge accepted',
+                declined = 'Challenge declined',
+                finished = 'Challenge finished',
+                aborted = 'Challenge aborted',
+            ),
+            abort = 'Challenge abort requested',
+        )
+        text = types[etype]
+        if isinstance(text, dict):
+            text = text[kwargs['game'].state]
+        kwargs['text'] = text
+
     def notify_event_push(event, players, alert):
         from . import routes # for fields list
         # for id
