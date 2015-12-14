@@ -709,7 +709,7 @@ def notify_event(root, etype, debug=False, **kwargs):
         )
         text = types[etype]
         if isinstance(text, dict):
-            game = kwargs['game']
+            game = evt.game
             text = text[game.state]
             if '{' in text:
                 text = text.format(
@@ -719,8 +719,7 @@ def notify_event(root, etype, debug=False, **kwargs):
                         getattr(game, game.winner).nickname,
                     )
                 )
-        kwargs['text'] = text
-    log.debug(kwargs['text'])
+        evt.text = text
 
     def notify_event_push(event, players, alert):
         from . import routes # for fields list
