@@ -720,6 +720,7 @@ def notify_event(root, etype, debug=False, **kwargs):
                     )
                 )
         kwargs['text'] = text
+    log.debug(kwargs['text'])
 
     def notify_event_push(event, players, alert):
         from . import routes # for fields list
