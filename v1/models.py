@@ -132,7 +132,9 @@ class Player(db.Model):
     @hybrid_property
     def winrate(self):
         if 'winrate_filt' in g:
-            log.debug('winrate: using filt '+str(g.winrate_filt))
+            log.debug('winrate: using filt '+','.join(
+                str(f) for f in g.winrate_filt
+            ))
             return self.winrate_impl(*g.winrate_filt)
         log.debug('winrate: no filt')
         return self.winrate_impl()
