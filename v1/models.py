@@ -85,7 +85,6 @@ class Player(db.Model):
             db.select([func.count(Game.id)])
             .where(db.and_(
                 Game.state == 'finished',
-                *filters
             ))
         )
     @hybrid_property
