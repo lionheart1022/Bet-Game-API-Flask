@@ -66,7 +66,6 @@ class Player(db.Model):
         return self.gamecount_impl()
     @hybrid_method
     def winrate_impl(self, *filters):
-        # FIXME: rewrite in sql?
         count = 0
         wins = 0
         for game in self.games.filter(*filters):
