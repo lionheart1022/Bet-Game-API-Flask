@@ -68,9 +68,7 @@ class Player(db.Model):
     def winrate_impl(self, *filters):
         count = 0
         wins = 0
-        for game in self.games.filter(*filters):
-            if game.state != 'finished':
-                continue
+        for game in self.games.filter(game.state == 'finished', *filters):
             count += 1
             whoami = 'creator' if game.creator_id == self.id else 'opponent'
             if game.winner == 'draw':
