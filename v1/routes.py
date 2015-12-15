@@ -243,7 +243,7 @@ class PlayerResource(restful.Resource):
         is_self = player == user
         ret = marshal(player,
                       self.fields(public=not is_self, stat=is_self))
-        g.winrate_filt = [] # reset
+        g.winrate_filt = None # reset
         return ret
 
     def post(self, id=None):
