@@ -16,6 +16,7 @@ def cas_login():
     url = WilliamHill.CAS_HOST
     url += '/cas/login?'+urlencode(dict(
         service = my_url(),
+        joinin_link = 'test', # FIXME remove this when going to production
     ))
     return redirect(url);
 @app.route('/cas/logout')
