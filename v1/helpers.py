@@ -845,7 +845,7 @@ def notify_users(game, justpush=False, players=None, msg=None):
                 game.root, 'betstate',
                 game = game,
                 newstate = game.state,
-                text = game.details,
+                #text = game.details, # -- use standard message for finished as well
             )
 
         # determine push&mail receivers
