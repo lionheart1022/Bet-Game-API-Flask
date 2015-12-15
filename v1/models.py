@@ -125,7 +125,7 @@ class Player(db.Model):
         return case([
             (count == 0, None), # if count == 0 then NULL else (calc)
         ], else_ =
-            (won + draw) / count
+            (won + draw/2) / count
         )
 
     @hybrid_property
