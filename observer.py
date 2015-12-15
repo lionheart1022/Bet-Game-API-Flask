@@ -446,6 +446,7 @@ class Handler:
         log.info('waiting for output')
 
         self.started()
+        self.sysevent('Twitch: starting OCR')
 
         for line in sub.stdout:
             line = line.strip().decode()
