@@ -207,6 +207,7 @@ class PlayerResource(restful.Resource):
                         if till:
                             filters.append(Game.accept_date < now-till)
                     orders.append(getattr(Player, ordername+'_impl')(*filters))
+                    g.winrate_filt = filters
                 else:
                     orders.append(getattr(Player, ordername))
                 # special handling for order by winrate:
@@ -240,8 +241,10 @@ class PlayerResource(restful.Resource):
             raise NotFound
 
         is_self = player == user
-        return marshal(player,
-                       self.fields(public=not is_self, stat=is_self))
+        ret = marshal(player,
+                      self.fields(public=not is_self, stat=is_self))
+        g.winrate_filt = [] # reset
+        return ret
 
     def post(self, id=None):
         if id:
