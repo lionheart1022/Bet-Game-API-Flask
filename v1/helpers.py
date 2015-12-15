@@ -24,15 +24,6 @@ from .models import *
 from .main import db
 from .common import *
 
-### Logging ###
-class log_cls:
-    """
-    Just a handy wrapper for current_app.logger
-    """
-    def __getattr__(self, name):
-        return getattr(current_app.logger, name)
-log = log_cls()
-
 def datadog(title, text=None, _log=True, **tags):
     """
     Call log.info and send event to datadog
