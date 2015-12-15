@@ -734,7 +734,7 @@ class FifaHandler(Handler):
 
         if len(self.__teamcheck) < 10:
             have = set((team1l, team2l))
-            self.__teamcheck.add(have)
+            self.__teamcheck.append(have)
             if len(self.__teamcheck) == 10:
                 # do the check
                 cl, ol = map(lambda u: u.casefold().translate({
