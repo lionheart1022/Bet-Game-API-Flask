@@ -961,7 +961,7 @@ class DummyPoller(Poller):
         'grand-theft-auto-5': 'Grand Theft Auto V',
         'minecraft': 'Minecraft',
         'rocket-league': 'Rocket League',
-        'diablo': 'Diablo III',
+        #'diablo': 'Diablo III', # -- we have no image..
     }
     identity_id = ''
     category = {
