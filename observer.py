@@ -446,7 +446,7 @@ class Handler:
         log.info('waiting for output')
 
         self.started()
-        self.sysevent('Twitch: starting OCR')
+        self.sysevent('Twitch Running')
 
         for line in sub.stdout:
             line = line.strip().decode()
@@ -731,6 +731,10 @@ class FifaHandler(Handler):
         log.debug('Got score data. Teams {} / {}, scores {} / {}'.format(
             team1, team2, score1, score2))
         self.sysevent_once('Twitch: got score info', 'score_got')
+
+        self.sysevent_once('Twitch: score changed: {} ({}) / {} ({})'.format(
+            score1, team1, score2, team2,
+        ), 'score_{}_{}'.format(score1, score2))
 
         if len(self.__teamcheck) < 10:
             have = set((team1l, team2l))
