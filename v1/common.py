@@ -1,3 +1,13 @@
+### Logging ###
+class log_cls:
+    """
+    Just a handy wrapper for current_app.logger
+    """
+    def __getattr__(self, name):
+        return getattr(current_app.logger, name)
+log = log_cls()
+
+
 class classproperty:
     """
     Cached class property; evaluated only once

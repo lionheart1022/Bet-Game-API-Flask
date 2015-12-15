@@ -6,6 +6,7 @@ from flask import g
 import os
 
 from .main import db
+from .common import *
 
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
