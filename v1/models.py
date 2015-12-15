@@ -79,6 +79,53 @@ class Player(db.Model):
             # no finished games, no data
             return None
         return wins / count
+    @hybrid_property
+    def mygames(cls):
+        return (
+            db.select([func.count(Game.id)])
+            .where(db.and_(
+                Game.state == 'finished',
+                *filters
+            ))
+        )
+    @hybrid_property
+    def mygamescount(cls):
+        return (
+            cls.mygames
+            .where(cls.id.in_([
+                Game.creator_id,
+                Game.opponent_id,
+            ]))
+            .label('cnt')
+        )
+    @hybrid_property
+    def mygameswon(cls):
+        return (
+            cls.mygames
+            .where(
+                (
+                    (Game.creator_id == cls.id) &
+                    (Game.winner == 'creator')
+                ) | (
+                    (Game.opponent_id == cls.id) &
+                    (Game.winner == 'opponent')
+                )
+            )
+            .label('won')
+        )
+    @hybrid_property
+    def mygamesdraw(cls):
+        return (
+            cls.mygames.with_only_columns([func.count(Game.id) / 2])
+            .where(
+                (
+                    (Game.creator_id == cls.id) |
+                    (Game.opponent_id == cls.id)
+                ) &
+                Game.winner == 'draw',
+            )
+            .label('draw')
+        )
     @winrate_impl.expression
     def winrate_impl(cls, *filters):
         mygames = (
