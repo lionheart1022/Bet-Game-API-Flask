@@ -719,6 +719,8 @@ def notify_event(root, etype, debug=False, **kwargs):
                         getattr(game, game.winner).nickname,
                     )
                 )
+            if game.state == 'finished' and game.details:
+                text += ' - ' + game.details
         evt.text = text
 
     def notify_event_push(event, players, alert):
@@ -845,7 +847,6 @@ def notify_users(game, justpush=False, players=None, msg=None):
                 game.root, 'betstate',
                 game = game,
                 newstate = game.state,
-                #text = game.details, # -- use standard message for finished as well
             )
 
         # determine push&mail receivers
