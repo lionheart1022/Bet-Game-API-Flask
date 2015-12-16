@@ -603,6 +603,7 @@ class Beta(db.Model):
 
 
 class TGT(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
     iou = db.Column(db.String, index=True)
     tgt = db.Column(db.String)
 
