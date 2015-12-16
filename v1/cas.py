@@ -80,6 +80,7 @@ def cas_pgt():
 
     # save it
     pgt_cache[iou] = pgtid
+    log.debug(pgt_cache)
 
     return 'PGT saved' # dummy
 
