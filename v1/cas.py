@@ -6,6 +6,7 @@ import requests
 import config
 from .main import app
 from .apis import WilliamHill
+from .common import *
 
 def my_url():
     return config.SITE_BASE_URL+url_for('.cas_done')
@@ -37,8 +38,8 @@ def cas_done():
             pgtUrl = my_url(),
             # TODO renew?
         ),
-    ), verify=False)
-    print(ret.text)
+    ), verify=False) # FIXME
+    log.debug(ret.text)
     lines = ret.text.splitlines()
     if not lines:
         raise ValueError('no response') # TODO
