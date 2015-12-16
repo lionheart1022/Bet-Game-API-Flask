@@ -56,8 +56,6 @@ def cas_done():
     user = e_user.text.strip()
     pgt = e_pgt.text.strip()
 
-    log.debug(pgt_cache)
-
     o_tgt = TGT.query.filter_by(iou=pgt).first()
     if not o_tgt:
         return 'Auth failure - no PGT, please retry'
