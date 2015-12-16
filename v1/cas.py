@@ -84,9 +84,10 @@ def cas_pgt():
     pgtid = request.values.get('pgtId')
 
     # save it
-    tgt = TGT(iou=iou, tgt=pgtid)
-    db.session.add(tgt)
-    db.session.commit()
+    if iou and pgtid:
+        tgt = TGT(iou=iou, tgt=pgtid)
+        db.session.add(tgt)
+        db.session.commit()
 
     return 'PGT saved' # dummy
 
