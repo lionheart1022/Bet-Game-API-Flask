@@ -31,6 +31,7 @@ def cas_done():
 
     url = WilliamHill.CAS_HOST + '/cas/serviceValidate'
     ret = requests.get(url, params=dict(
+        service = config.SITE_BASE_URL,
         ticket = ticket,
         pgtUrl = my_url(),
         # TODO renew?
@@ -41,7 +42,10 @@ def cas_done():
 
     failure = tree.find('cas:authenticationFailure', ns)
     if failure:
-        raise ValueError(failure.text.strip())
+        return 'Auth failure! Code: {}\n{}'.format(
+            failure.get('code', '<no code>'),
+            failure.text.splitlines(),
+        )
 
     lines = ret.text.splitlines()
     if not lines:
