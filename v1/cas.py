@@ -35,7 +35,7 @@ def cas_done():
         # TODO renew?
     ), verify=False) # FIXME
     log.debug(ret.request.url)
-    log.debug(ret.text)
+    log.debug(repr(ret.text))
     tree = ElementTree.fromstring(ret.text)
     ns = {'cas': 'http://www.yale.edu/tp/cas'}
 
@@ -49,6 +49,7 @@ def cas_done():
         )
     if success is None:
         return 'Auth failure, unrecognized response'
+    log.debug(success.getchildren())
     user = success.find('cas:user').text.strip()
     return 'User: '+user
 
@@ -72,3 +73,4 @@ def cas_done():
 @app.route('/cas/pgt')
 def cas_pgt():
     log.debug('PGT endpoint: '+str(dict(request.args)))
+    log.debug('PGT endpoint: '+str(dict(request.form)))
