@@ -36,6 +36,7 @@ def cas_done():
         pgtUrl = my_url(),
         # TODO renew?
     ), verify=False) # FIXME
+    log.debug(ret.request.url)
     log.debug(ret.text)
     tree = ElementTree.fromstring(ret.text)
     ns = {'cas': 'http://www.yale.edu/tp/cas'}
