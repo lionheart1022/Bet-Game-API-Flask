@@ -69,7 +69,9 @@ def cas_done():
     ).delete()
     db.session.commit()
 
-    token = 'token.will_be.here'
+    # We use TGT token here and don't generate JWT at this stage.
+    # Client should then pass received token to /federated_login endpoint.
+    token = tgt
 
     # TODO: instead return redirect to special page? (it will also hide ticket)
     return """
