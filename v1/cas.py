@@ -61,7 +61,7 @@ def cas_done():
         return 'Auth failure - no PGT, please retry'
 
     tgt = o_tgt.tgt
-    db.session.remove(o_tgt)
+    db.session.delete(o_tgt)
     db.session.commit()
 
     # TODO: redirect to special page? (it will also hide ticket)
