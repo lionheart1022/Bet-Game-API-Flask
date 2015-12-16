@@ -7,6 +7,7 @@ from xml.etree import ElementTree
 import config
 from .main import app
 from .apis import WilliamHill
+from .models import db, TGT
 from .common import *
 
 # this is a primary CAS login endpoint
@@ -23,8 +24,6 @@ def cas_login():
 def cas_logout():
     url = WilliamHill.CAS_HOST + '/cas/logout'
     return redirect(url);
-
-pgt_cache = {}
 
 @app.route('/cas/done')
 def cas_done():
@@ -59,10 +58,13 @@ def cas_done():
 
     log.debug(pgt_cache)
 
-    if pgt not in pgt_cache:
+    o_tgt = TGT.query.filter_by(iou=pgt).first()
+    if not o_tgt:
         return 'Auth failure - no PGT, please retry'
 
-    tgt = pgt_cache.pop(pgt)
+    tgt = o_tgt.tgt
+    db.session.remove(o_tgt)
+    db.session.commit()
 
     # TODO: redirect to special page? (it will also hide ticket)
 
@@ -79,8 +81,9 @@ def cas_pgt():
     pgtid = request.values.get('pgtId')
 
     # save it
-    pgt_cache[iou] = pgtid
-    log.debug(pgt_cache)
+    tgt = TGT(iou=iou, tgt=pgtid)
+    db.session.add(tgt)
+    db.session.commit()
 
     return 'PGT saved' # dummy
 

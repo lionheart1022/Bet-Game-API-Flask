@@ -602,6 +602,10 @@ class Beta(db.Model):
         return '<Beta id={}>'.format(self.id)
 
 
+class TGT(db.Model):
+    iou = db.Column(db.String, index=True)
+    tgt = db.Column(db.String)
+
 def fast_count_noexec(query):
     return query.statement.with_only_columns([func.count()]).order_by(None)
 def fast_count(query):
