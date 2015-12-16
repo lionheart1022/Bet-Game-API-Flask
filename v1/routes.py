@@ -351,7 +351,7 @@ class PlayerResource(restful.Resource):
     @secure_only
     def federated():
         parser = RequestParser()
-        parser.add_argument('svc', choices=['facebook', 'twitter'],
+        parser.add_argument('svc', choices=['facebook', 'twitter', 'williamhill'],
                             default='facebook')
         parser.add_argument('token', required=True)
         args = parser.parse_args()
@@ -403,6 +403,13 @@ class PlayerResource(restful.Resource):
             email = jret.get('email')
             identity = jret['id']
             userpic = jret.get('profile_image_url')
+        elif args.svc == 'williamhill':
+            if not args.token.startswith('TGT-'):
+                abort('Wrong token format')
+            wh = WilliamHill(args.token)
+            jret = wh.request('GET', 'profile/me', accept_simple=True)
+            log.debug(str(jret))
+            abort('Not impl')
 
         if name:
             n=1
