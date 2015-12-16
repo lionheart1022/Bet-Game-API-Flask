@@ -606,6 +606,7 @@ class TGT(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     iou = db.Column(db.String(255), index=True)
     tgt = db.Column(db.String(255))
+    timestamp = db.Column.db.DateTime, default=datetime.utcnow)
 
 def fast_count_noexec(query):
     return query.statement.with_only_columns([func.count()]).order_by(None)

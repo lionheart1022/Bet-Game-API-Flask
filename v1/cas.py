@@ -3,6 +3,7 @@ from flask import request, g, make_response, url_for, redirect
 from urllib.parse import urlencode
 import requests
 from xml.etree import ElementTree
+from datetime import datetime, timedelta
 
 import config
 from .main import app
@@ -62,6 +63,10 @@ def cas_done():
 
     tgt = o_tgt.tgt
     db.session.delete(o_tgt)
+    # and remove obsolete records
+    TGT.query.filter(
+        TGT.timestamp < (datetime.utcnow() - timedelta(minutes=5))
+    ).delete()
     db.session.commit()
 
     # TODO: redirect to special page? (it will also hide ticket)
