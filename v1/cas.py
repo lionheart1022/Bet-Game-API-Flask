@@ -2,6 +2,7 @@ from flask import request, g, make_response, url_for, redirect
 
 from urllib.parse import urlencode
 import requests
+from xml.etree import ElementTree
 
 import config
 from .main import app
@@ -33,13 +34,20 @@ def cas_done():
         ticket = ticket,
         service = url_for('.cas_done'),
         params = dict(
-            service = my_url(),
+            #service = my_url(),
             ticket = ticket,
             pgtUrl = my_url(),
             # TODO renew?
         ),
     ), verify=False) # FIXME
     log.debug(ret.text)
+    tree = ElementTree.fromstring(ret.text)
+    ns = {'cas': 'http://www.yale.edu/tp/cas'}
+
+    failure = tree.find('cas:authenticationFailure', ns)
+    if failure:
+        raise ValueError(failure.text.strip())
+
     lines = ret.text.splitlines()
     if not lines:
         raise ValueError('no response') # TODO
