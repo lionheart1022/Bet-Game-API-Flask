@@ -17,6 +17,8 @@ class Player(db.Model):
     facebook_token = db.Column(db.String(128))
     twitter_id = db.Column(db.Integer)
     twitter_token = db.Column(db.String(256))
+    williamhill_id = db.Column(db.String(128))
+    williamhill_token = db.Column(db.String(128))
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
     bio = db.Column(db.Text)
 
