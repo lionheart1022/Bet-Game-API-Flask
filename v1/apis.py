@@ -573,28 +573,13 @@ class WilliamHill:
         pass
     BASE = 'https://sandbox.whapi.com/v1/'
     CAS_HOST = 'https://auth.williamhill-test.com'
-    def __init__(self, ticket=None, username=None, password=None):
+    def __init__(self, ticket=None):
         self.session = requests.Session()
         self.session.headers.update({
             'Accept': 'application/vnd.who.Sportsbook+json;v=1;charset=utf-8',
             'who-apiKey': config.WH_KEY,
             'who-secret': config.WH_SECRET,
         })
-        if username:
-            # login
-            ret = self.request(
-                'POST', 'sessions/tickets',
-                headers={
-                    'Accept': 'application/json',
-                },
-                data=dict(
-                    username = username,
-                    password = password,
-                    extended = 'N', # valid for 2 to 8 hours; 'Y' for 60 days.
-                ),
-            )
-            if 'whoSessions' not in ret:
-                raise WilliamHill.WilliamHillError('Login failed: '+str(ret))
         if ticket:
             self.session.headers.update({
                 'who-ticket': ticket,
