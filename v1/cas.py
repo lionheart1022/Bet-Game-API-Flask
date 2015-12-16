@@ -57,6 +57,8 @@ def cas_done():
     user = e_user.text.strip()
     pgt = e_pgt.text.strip()
 
+    log.debug(pgt_cache)
+
     if pgt not in pgt_cache:
         return 'Auth failure - no PGT, please retry'
 
