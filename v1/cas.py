@@ -37,7 +37,7 @@ def cas_done():
             pgtUrl = my_url(),
             # TODO renew?
         ),
-    ))
+    ), verify=False)
     print(ret.text)
     lines = ret.text.splitlines()
     if not lines:
