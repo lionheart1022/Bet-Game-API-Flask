@@ -599,7 +599,11 @@ class WilliamHill:
             self.session.headers.update({
                 'who-ticket': ticket,
             })
-    def request(self, method, url, *args, **kwargs):
+    def request(self, method, url, accept=None, *args, **kwargs):
+        if accept:
+            if 'headers' not in kwargs:
+                kwargs['headers'] = {}
+            kwargs['headers']['accept'] = accept
         try:
             ret = self.session.request(method, self.BASE+url, *args, **kwargs)
             jret = ret.json()
