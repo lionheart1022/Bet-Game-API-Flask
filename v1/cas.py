@@ -75,7 +75,7 @@ def cas_done():
 
     return """
 <html><head>
-<title>{{"success":true, "token":{token}}}</title>
+<title>{{"success":true, "token":"{token}"}}</title>
 </head><body>
 Login successful, user is {user}, tgt is {tgt}
 </body></html>
