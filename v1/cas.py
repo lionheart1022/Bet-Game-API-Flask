@@ -23,6 +23,9 @@ def cas_login():
 def cas_logout():
     url = WilliamHill.CAS_HOST + '/cas/logout'
     return redirect(url);
+
+pgt_cache = {}
+
 @app.route('/cas/done')
 def cas_done():
     ticket = request.args.get('ticket')
@@ -47,10 +50,21 @@ def cas_done():
     if success is None:
         return 'Auth failure, unrecognized response'
     log.debug(success.getchildren())
-    user = success.find('cas:user', ns).text.strip()
-    pgt = success.find('cas:proxyGrantingTicket', ns).text.strip()
+    e_user = success.find('cas:user', ns)
+    e_pgt = success.find('cas:proxyGrantingTicket', ns)
+    if e_user is None or e_pgt is None:
+        return 'Auth failure, bad response'
+    user = e_user.text.strip()
+    pgt = e_pgt.text.strip()
 
-    return 'User: {}<br/>PGT: {}'.format(user, pgt)
+    if pgt not in pgt_cache:
+        return 'Auth failure - no PGT, please retry'
+
+    tgt = pgt_cache.pop(pgt)
+
+    # TODO: redirect to special page? (it will also hide ticket)
+
+    return 'User: {}<br/>TGT: {}'.format(user, tgt)
 
 @app.route('/cas/pgt')
 def cas_pgt():
@@ -59,4 +73,11 @@ def cas_pgt():
         request.values,
         request.cookies,
     ))
-    return 'PGT'
+    iou = request.values.get('pgtIou')
+    pgtid = request.values.get('pgtId')
+
+    # save it
+    pgt_cache[iou] = pgtid
+
+    return 'PGT saved' # dummy
+
