@@ -49,24 +49,8 @@ def cas_done():
     log.debug(success.getchildren())
     user = success.find('cas:user', ns).text.strip()
     pgt = success.find('cas:proxyGrantingTicket', ns).text.strip()
+
     return 'User: {}<br/>PGT: {}'.format(user, pgt)
-
-    # TODO - below is obsolete
-    lines = ret.text.splitlines()
-    if not lines:
-        raise ValueError('no response') # TODO
-    elif lines[0] == 'no':
-        raise ValueError('token not validated')
-    elif lines[0] != 'yes':
-        raise ValueError('malformed response')
-    # now it is 'yes'
-
-    if len(lines) < 2:
-        raise ValueError('malformed response')
-
-    user = lines[1].strip()
-
-    # FIXME tree response for validate PGT - see _validatePGT
 
 @app.route('/cas/pgt')
 def cas_pgt():
