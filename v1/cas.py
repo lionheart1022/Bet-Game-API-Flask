@@ -39,6 +39,7 @@ def cas_done():
     tree = ElementTree.fromstring(ret.text)
     ns = {'cas': 'http://www.yale.edu/tp/cas'}
 
+    log.debug(tree.getchildren())
     failure = tree.find('cas:authenticationFailure', ns)
     if failure:
         return 'Auth failure! Code: {}\n{}'.format(
