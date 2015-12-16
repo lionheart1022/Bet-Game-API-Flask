@@ -69,17 +69,16 @@ def cas_done():
     ).delete()
     db.session.commit()
 
-    # TODO: redirect to special page? (it will also hide ticket)
+    token = 'token.will_be.here'
 
-    #return 'User: {}<br/>TGT: {}'.format(user, tgt)
-
+    # TODO: instead return redirect to special page? (it will also hide ticket)
     return """
 <html><head>
 <title>{{"success":true, "token":"{token}"}}</title>
 </head><body>
 Login successful, user is {user}, tgt is {tgt}
 </body></html>
-    """.format(token='token.will_be.here', user=user, tgt=tgt)
+    """.format(token=token, user=user, tgt=tgt)
 
 @app.route('/cas/pgt')
 def cas_pgt():
