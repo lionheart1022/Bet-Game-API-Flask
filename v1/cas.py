@@ -34,12 +34,9 @@ def cas_done():
         pgtUrl = config.SITE_BASE_URL+url_for('.cas_pgt'),
         # TODO renew?
     ), verify=False) # FIXME
-    log.debug(ret.request.url)
-    log.debug(repr(ret.text))
     tree = ElementTree.fromstring(ret.text)
     ns = {'cas': 'http://www.yale.edu/tp/cas'}
 
-    log.debug(tree.getchildren())
     success = tree.find('cas:authenticationSuccess', ns)
     failure = tree.find('cas:authenticationFailure', ns)
     if failure is not None:
@@ -49,8 +46,7 @@ def cas_done():
         )
     if success is None:
         return 'Auth failure, unrecognized response'
-    log.debug(success.getchildren())
-    user = success.find('cas:user').text.strip()
+    user = success.find('cas:user', ns).text.strip()
     return 'User: '+user
 
     # TODO - below is obsolete
