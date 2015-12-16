@@ -604,8 +604,8 @@ class Beta(db.Model):
 
 class TGT(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    iou = db.Column(db.String, index=True)
-    tgt = db.Column(db.String)
+    iou = db.Column(db.String(255), index=True)
+    tgt = db.Column(db.String(255))
 
 def fast_count_noexec(query):
     return query.statement.with_only_columns([func.count()]).order_by(None)
