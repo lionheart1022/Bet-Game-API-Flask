@@ -84,7 +84,7 @@ def cas_pgt():
     pgtid = request.values.get('pgtId')
 
     # save it
-    if iou and pgtid:
+    if iou and pgtid: # because they may call us without any data
         tgt = TGT(iou=iou, tgt=pgtid)
         db.session.add(tgt)
         db.session.commit()
