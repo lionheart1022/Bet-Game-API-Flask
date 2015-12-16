@@ -9,15 +9,13 @@ from .main import app
 from .apis import WilliamHill
 from .common import *
 
-def my_url():
-    return config.SITE_BASE_URL+url_for('.cas_done')
 # this is a primary CAS login endpoint
 # https://developer.williamhill.com/cas-implementation-guidelines-developers-0
 @app.route('/cas/login')
 def cas_login():
     url = WilliamHill.CAS_HOST
     url += '/cas/login?'+urlencode(dict(
-        service = my_url(),
+        service = config.SITE_BASE_URL+url_for('.cas_done'),
         joinin_link = 'test', # FIXME remove this when going to production
     ))
     return redirect(url);
@@ -33,7 +31,7 @@ def cas_done():
     ret = requests.get(url, params=dict(
         service = config.SITE_BASE_URL,
         ticket = ticket,
-        pgtUrl = my_url(),
+        pgtUrl = config.SITE_BASE_URL+url_for('.cas_pgt'),
         # TODO renew?
     ), verify=False) # FIXME
     log.debug(ret.request.url)
@@ -64,3 +62,6 @@ def cas_done():
 
     # FIXME tree response for validate PGT - see _validatePGT
 
+@app.route('/cas/pgt')
+def cas_pgt():
+    log.debug(request.args)
