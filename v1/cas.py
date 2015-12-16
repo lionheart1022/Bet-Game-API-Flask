@@ -41,7 +41,7 @@ def cas_done():
 
     log.debug(tree.getchildren())
     failure = tree.find('cas:authenticationFailure', ns)
-    if failure:
+    if failure is not None:
         return 'Auth failure! Code: {}\n{}'.format(
             failure.get('code', '<no code>'),
             failure.text.splitlines(),
