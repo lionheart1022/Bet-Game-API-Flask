@@ -40,12 +40,17 @@ def cas_done():
     ns = {'cas': 'http://www.yale.edu/tp/cas'}
 
     log.debug(tree.getchildren())
+    success = tree.find('cas:authenticationSuccess', ns)
     failure = tree.find('cas:authenticationFailure', ns)
     if failure is not None:
-        return 'Auth failure! Code: {}\n{}'.format(
+        return 'Auth failure! Code: {}<br/>{}'.format(
             failure.get('code', '<no code>'),
             failure.text.strip(),
         )
+    if success is None:
+        return 'Auth failure, unrecognized response'
+    user = success.find('cas:user').text.strip()
+    return 'User: '+user
 
     # TODO - below is obsolete
     lines = ret.text.splitlines()
@@ -66,4 +71,4 @@ def cas_done():
 
 @app.route('/cas/pgt')
 def cas_pgt():
-    log.debug(request.args)
+    log.debug('PGT endpoint: '+str(dict(request.args)))
