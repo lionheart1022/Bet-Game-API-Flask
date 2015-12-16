@@ -32,13 +32,8 @@ def cas_done():
     url = WilliamHill.CAS_HOST + '/cas/serviceValidate'
     ret = requests.get(url, params=dict(
         ticket = ticket,
-        service = url_for('.cas_done'),
-        params = dict(
-            #service = my_url(),
-            ticket = ticket,
-            pgtUrl = my_url(),
-            # TODO renew?
-        ),
+        pgtUrl = my_url(),
+        # TODO renew?
     ), verify=False) # FIXME
     log.debug(ret.text)
     tree = ElementTree.fromstring(ret.text)
