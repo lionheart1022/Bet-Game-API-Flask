@@ -71,7 +71,15 @@ def cas_done():
 
     # TODO: redirect to special page? (it will also hide ticket)
 
-    return 'User: {}<br/>TGT: {}'.format(user, tgt)
+    #return 'User: {}<br/>TGT: {}'.format(user, tgt)
+
+    return """
+<html><head>
+<title>{"success":true, "token":{token}}</title>
+</head><body>
+Login successful, user is {user}, tgt is {tgt}
+</body></html>
+    """.format(token='token.will_be.here', user=user, tgt=tgt)
 
 @app.route('/cas/pgt')
 def cas_pgt():
