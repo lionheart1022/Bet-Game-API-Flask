@@ -46,6 +46,7 @@ def cas_done():
         )
     if success is None:
         return 'Auth failure, unrecognized response'
+    log.debug(success.getchildren())
     user = success.find('cas:user', ns).text.strip()
     return 'User: '+user
 
