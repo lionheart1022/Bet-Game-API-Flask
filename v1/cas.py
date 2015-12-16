@@ -68,5 +68,9 @@ def cas_done():
 
 @app.route('/cas/pgt')
 def cas_pgt():
-    log.debug('PGT endpoint: '+str(dict(request.args)))
-    log.debug('PGT endpoint: '+str(dict(request.form)))
+    log.debug('PGT endpoint: {}, vals={}, cookies={}'.format(
+        request.method,
+        request.values,
+        request.cookies,
+    ))
+    return 'PGT'
