@@ -48,7 +48,8 @@ def cas_done():
         return 'Auth failure, unrecognized response'
     log.debug(success.getchildren())
     user = success.find('cas:user', ns).text.strip()
-    return 'User: '+user
+    pgt = success.find('cas:proxyGrantingTicket', ns).text.strip()
+    return 'User: {}<br/>PGT: {}'.format(user, pgt)
 
     # TODO - below is obsolete
     lines = ret.text.splitlines()
