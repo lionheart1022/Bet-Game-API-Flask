@@ -425,8 +425,17 @@ class Game(db.Model):
         'new', 'cancelled', 'accepted', 'declined', 'finished', 'aborted',
     ), default='new')
     accept_date = db.Column(db.DateTime, nullable=True)
+
     aborter_id = db.Column(db.Integer, db.ForeignKey('player.id'))
     aborter = db.relationship(Player, foreign_keys='Game.aborter_id')
+    report_creator = db.Column(db.Enum('creator', 'opponent', 'draw'),
+                               nullable=True)
+    report_creator_date = db.Column(db.DateTime, nullable=True)
+    report_opponent = db.Column(db.Enum('creator', 'opponent', 'draw'),
+                                nullable=True)
+    report_opponent_date = db.Column(db.DateTime, nullable=True)
+    report_try = db.Column(db.Integer, defualt=0)
+
     winner = db.Column(db.Enum('creator', 'opponent', 'draw'), nullable=True)
     details = db.Column(db.Text, nullable=True)
     finish_date = db.Column(db.DateTime, nullable=True)

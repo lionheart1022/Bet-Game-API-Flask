@@ -1564,7 +1564,59 @@ class GameResultResource(restful.Resource):
         game = Game.query.get_or_404(id)
         if not game.is_game_player(user):
             raise Forbidden('You cannot access this challenge')
-        # TODO
+
+        role = 'creator' if user == game.creator else 'opponent'
+        other = 'creator' if role == 'opponent' else 'opponent'
+
+        parser = RequestParser()
+        parser.add_argument('winner', choices=[
+            'creator', 'opponent', 'draw',
+        ], required=False)
+        parser.add_argument('result', choices=[
+            'won', 'lost', 'draw',
+        ], required=False)
+        args = parser.parse_args()
+
+        if not (args.winner ^ args.result):
+            abort('Please provide one of (winner, result) options')
+        if args.result:
+            if args.result == 'won':
+                args.winner = role
+            elif args.result == 'lost':
+                args.winner = other
+            else:
+                args.winner = 'draw'
+
+        setattr(game, 'report_%s'%role, args.winner)
+        setattr(game, 'report_%s_date'%role, datetime.utcnow())
+
+        # TODO: produce event
+
+        if not getattr(game, 'report_%s'%other):
+            # no need to process further
+            return dict(
+                saved = True,
+            )
+
+        game.report_try += 1
+
+        crr = game.report_creator
+        opr = game.report_opponent
+        if crr == opr == 'draw' or ('creator','opponent') in (crr,opr),(opr,crr):
+            # good
+            poller = Poller.findPoller(game.gametype)
+            endtime = min(game.report_creator_date, game.report_opponent_date)
+            poller.gameDone(game, args.winner, endtime)
+            return dict(
+                success = True,
+            )
+
+        # TODO produce an event
+        return jsonify(
+            success = False,
+            reason = 'Your reports don\'t match! '
+                    'Please consider changing, or contact support.',
+        )
 
 @api.resource(
     '/games/<int:id>/msg',
