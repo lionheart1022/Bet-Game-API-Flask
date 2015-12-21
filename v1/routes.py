@@ -1557,6 +1557,15 @@ class GameResource(restful.Resource):
             aborted = True,
         )
 
+@api.resource('/games/<int:id>/result')
+class GameResultResource(restful.Resource):
+    @require_auth
+    def post(self, user, id):
+        game = Game.query.get_or_404(id)
+        if not game.is_game_player(user):
+            raise Forbidden('You cannot access this challenge')
+        # TODO
+
 @api.resource(
     '/games/<int:id>/msg',
     '/games/<int:id>/msg.mp4',
