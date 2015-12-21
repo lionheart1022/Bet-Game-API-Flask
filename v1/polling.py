@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import sys
+import sys, os
 from datetime import datetime, timedelta
 from types import SimpleNamespace
 import math
@@ -16,6 +16,7 @@ if __name__ == '__main__':
     from apis import *
     from mock import log, config, dummyfunc, db
     from common import *
+    ROOT = '.'
     try:
         sys.path.append('..')
         import config as config_module
@@ -30,6 +31,7 @@ else:
     from .models import *
     from .apis import *
     from .common import *
+    ROOT = os.path.dirname(__file__)+'/../'
 
 class Identity(namedtuple('Identity', 'id name checker choices formatter')):
     # Formatter is needed for identities which use non-readable format
@@ -372,7 +374,7 @@ class FifaPoller(Poller, LimitedApi):
             log.error('Allowing it...')
             #raise ValueError('Couldn\'t validate this gamertag: {}'.format(nick))
             return nick
-    with open(os.path.dirname(__file__)+'/../fifa_teams.csv') as teamsfile:
+    with open(ROOT+'/fifa_teams.csv') as teamsfile:
         fifa_teams = {
             name: abbr for name,abbr in
             map(lambda x: x.strip().split(','), teamsfile)
