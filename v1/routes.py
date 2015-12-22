@@ -1602,7 +1602,10 @@ class GameResultResource(restful.Resource):
 
         crr = game.report_creator
         opr = game.report_opponent
-        if crr == opr == 'draw' or ('creator','opponent') in (crr,opr),(opr,crr):
+        if(
+            crr == opr == 'draw' or
+            ('creator','opponent') in ((crr,opr),(opr,crr))
+        ):
             # good
             poller = Poller.findPoller(game.gametype)
             endtime = min(game.report_creator_date, game.report_opponent_date)

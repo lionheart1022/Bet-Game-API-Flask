@@ -434,7 +434,7 @@ class Game(db.Model):
     report_opponent = db.Column(db.Enum('creator', 'opponent', 'draw'),
                                 nullable=True)
     report_opponent_date = db.Column(db.DateTime, nullable=True)
-    report_try = db.Column(db.Integer, defualt=0)
+    report_try = db.Column(db.Integer, default=0)
 
     winner = db.Column(db.Enum('creator', 'opponent', 'draw'), nullable=True)
     details = db.Column(db.Text, nullable=True)
