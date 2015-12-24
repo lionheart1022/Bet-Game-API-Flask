@@ -409,7 +409,17 @@ class PlayerResource(restful.Resource):
             wh = WilliamHill(args.token)
             jret = wh.request('GET', 'profile/me', accept_simple=True)
             log.debug(str(jret))
-            abort('Not implemented')
+            try:
+                jret = jret['whoAccounts']
+                williamhill_currency = jret['currencyCode'] # TODO handle it
+                name = ' '.join(filter(None, [
+                    jret.get('firstName'), jret.get('lastName'),
+                ]))
+                email = jret['email']
+                identity = jret['accountId']
+                # no userpic for WH
+            except KeyError:
+                abort('Failed to fetch account information from WilliamHill')
 
         if name:
             n=1
