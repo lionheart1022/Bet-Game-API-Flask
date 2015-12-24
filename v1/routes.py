@@ -423,8 +423,9 @@ class PlayerResource(restful.Resource):
 
         if name:
             n=1
+            oname = name
             while Player.query.filter_by(nickname=name).count():
-                name = '{} {}'.format(jret['name'], n)
+                name = '{} {}'.format(oname, n)
                 n+=1
 
         if email:
