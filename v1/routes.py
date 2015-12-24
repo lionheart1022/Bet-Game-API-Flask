@@ -409,7 +409,7 @@ class PlayerResource(restful.Resource):
             wh = WilliamHill(args.token)
             jret = wh.request('GET', 'profile/me', accept_simple=True)
             log.debug(str(jret))
-            abort('Not impl')
+            abort('Not implemented')
 
         if name:
             n=1
