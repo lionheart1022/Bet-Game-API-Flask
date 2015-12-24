@@ -410,7 +410,7 @@ class PlayerResource(restful.Resource):
             jret = wh.request('GET', 'accounts/me', accept_simple=True)
             log.debug(str(jret))
             try:
-                jret = jret['whoAccounts']
+                jret = jret['whoAccounts']['account']
                 williamhill_currency = jret['currencyCode'] # TODO handle it
                 name = ' '.join(filter(None, [
                     jret.get('firstName'), jret.get('lastName'),
