@@ -417,7 +417,7 @@ class PlayerResource(restful.Resource):
                 ]))
                 email = jret['email']
                 identity = jret['accountId']
-                # no userpic for WH
+                userpic = None # no userpic for WH
             except KeyError:
                 abort('Failed to fetch account information from WilliamHill')
 
