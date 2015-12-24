@@ -407,7 +407,7 @@ class PlayerResource(restful.Resource):
             if not args.token.startswith('TGT-'):
                 abort('Wrong token format')
             wh = WilliamHill(args.token)
-            jret = wh.request('GET', 'profile/me', accept_simple=True)
+            jret = wh.request('GET', 'accounts/me', accept_simple=True)
             log.debug(str(jret))
             try:
                 jret = jret['whoAccounts']
