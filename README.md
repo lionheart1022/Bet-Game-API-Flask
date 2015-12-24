@@ -315,10 +315,11 @@ If the user has no userpic provided (wheter it is newly created user or existing
 this api call will try to fetch userpic from social service.
 
 For WilliamHill, token should be requested by sending user to `https://betgame.co.uk/v1/cas/login' address in a webview.
-Then you shall monitor that webview and catch a moment when it will load `https://betgame.co.uk/v1/cas/done` url.
+Then you shall monitor that webview and catch a moment when it will load url starting with `https://betgame.co.uk/v1/cas/result?`.
 After that, if no error occured, webview's `title` will contain a JSON object with the following format:
 `{"success": true, "token": "TGT-Some-Token"}`. You should take a `token` from that string (starting with `TGT-`)
 and pass it to `POST /federated_login` endpoint to continue.
+Alternatively you can parse token from url parameters.
 
 This endpoint returns object identical to `POST /players` or `POST /players/<nick>/login`,
 depending on whether this player was already registered or not.
