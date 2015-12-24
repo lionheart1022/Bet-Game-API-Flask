@@ -71,10 +71,7 @@ def cas_done():
 
     # We use TGT token here and don't generate JWT at this stage.
     # Client should then pass received token to /federated_login endpoint.
-    return redirect(url_for('.cas_result') + '?' + urlencode(dict(
-        token = tgt,
-        user = user,
-    )))
+    return redirect(url_for('.cas_result', token = tgt, user = user))
 
 @app.route('/cas/pgt')
 def cas_pgt():
