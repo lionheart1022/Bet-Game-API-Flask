@@ -5,7 +5,7 @@ if [ "$1" == "-d" ]; then
 	workers=1
 	app='main:debug()'
 	opts="--reload"
-	shift 2
+	shift; shift
 else
 	# deploy
 	if [[ "$PWD" == *"test"* ]]
