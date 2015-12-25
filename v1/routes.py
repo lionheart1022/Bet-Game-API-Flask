@@ -41,7 +41,7 @@ class PlayerResource(restful.Resource):
             # name, type, required
             ('_force', gamertag_force_field, False),
             ('nickname', None, True),
-            ('email', email, True),
+            ('email', email_validator, True),
             ('password', encrypt_password, True),
             ('facebook_token', federatedRenewFacebook, False), # should be last to avoid extra queries
             ('twitter_token', federatedRenewTwitter, False), # should be last to avoid extra queries

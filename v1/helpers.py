@@ -367,7 +367,7 @@ def country(val):
     # TODO: check if country is valid
     return val.upper()
 
-def email(val):
+def email_validator(val):
     """
     Should be 3 parts separated by @ and .,
     none of these parts can be empty.
