@@ -579,6 +579,7 @@ class Event(db.Model):
         'system', # system notification about game state, bet state unchanged
         'betstate', # some bet changed its state, or was created
         'abort', # request to abort one of bets in this session
+        'report', # user reported about game result
     ), nullable=False)
 
     # for 'message' type
