@@ -417,14 +417,15 @@ class PlayerResource(restful.Resource):
                 ]))
                 email = jret['email']
                 identity = jret['accountId']
-                # no userpic for WH
+                userpic = None # no userpic for WH
             except KeyError:
                 abort('Failed to fetch account information from WilliamHill')
 
         if name:
             n=1
+            oname = name
             while Player.query.filter_by(nickname=name).count():
-                name = '{} {}'.format(jret['name'], n)
+                name = '{} {}'.format(oname, n)
                 n+=1
 
         if email:
