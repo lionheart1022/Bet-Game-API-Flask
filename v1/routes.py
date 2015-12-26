@@ -1588,7 +1588,7 @@ class GameResultResource(restful.Resource):
         ], required=False)
         args = parser.parse_args()
 
-        if not (args.winner ^ args.result):
+        if not (args.winner or args.result):
             abort('Please provide one of (winner, result) options')
         if args.result:
             if args.result == 'won':
@@ -1597,11 +1597,21 @@ class GameResultResource(restful.Resource):
                 args.winner = other
             else:
                 args.winner = 'draw'
+        else:
+            if args.winner == role:
+                args.result = 'won'
+            elif args.winner == other:
+                args.result = 'lost'
+            else:
+                args.result = 'draw'
 
         setattr(game, 'report_%s'%role, args.winner)
         setattr(game, 'report_%s_date'%role, datetime.utcnow())
 
-        # TODO: produce event
+        notify_event(game, 'report', message='{user} reported {result}'.format(
+            user=user.nickname,
+            result=args.result,
+        ))
 
         if not getattr(game, 'report_%s'%other):
             # no need to process further
@@ -1625,7 +1635,7 @@ class GameResultResource(restful.Resource):
                 success = True,
             )
 
-        # TODO produce an event
+        notify_event(game, 'system', message='reports don\' match')
         return jsonify(
             success = False,
             reason = 'Your reports don\'t match! '
