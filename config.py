@@ -43,6 +43,7 @@ CORS_ORIGINS = [
     'http://betgame.co.uk',
     'https://www.betgame.co.uk',
     'http://www.betgame.co.uk',
+    'http://dev.betgame.co.uk',
     'http://127.0.0.1:8080',
     'http://localhost:8080',
 ]
