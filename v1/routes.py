@@ -1588,7 +1588,7 @@ class GameResultResource(restful.Resource):
         ], required=False)
         args = parser.parse_args()
 
-        if not (args.winner or args.result):
+        if not (args.winner ^ args.result): # we need XOR here, not OR
             abort('Please provide one of (winner, result) options')
         if args.result:
             if args.result == 'won':
