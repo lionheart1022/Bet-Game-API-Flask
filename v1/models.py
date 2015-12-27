@@ -8,6 +8,7 @@ import os
 from .main import db
 from .common import *
 
+
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nickname = db.Column(db.String(64), unique=True)
@@ -19,7 +20,7 @@ class Player(db.Model):
     twitter_token = db.Column(db.String(256))
     williamhill_id = db.Column(db.String(128))
     williamhill_token = db.Column(db.String(128))
-    #williamhill_currency = db.Column(db.String(3)) # TODO handle&save it?
+    # williamhill_currency = db.Column(db.String(3)) # TODO handle&save it?
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
     bio = db.Column(db.Text)
 
@@ -37,6 +38,7 @@ class Player(db.Model):
     @property
     def available(self):
         return self.balance - self.locked
+
     @property
     def balance_obj(self):
         return {
@@ -48,14 +50,17 @@ class Player(db.Model):
     @property
     def complete(self):
         return (self.email != None) & (self.nickname != None)
+
     @hybrid_property
     def games(self):
         return Game.query.filter(
-            (Game.creator_id == self.id) | # OR
+            (Game.creator_id == self.id) |  # OR
             (Game.opponent_id == self.id))
+
     @hybrid_method
     def gamecount_impl(self, *filters):
         return fast_count(self.games.filter(*filters))
+
     @gamecount_impl.expression
     def gamecount_impl(cls, *filters):
         return (
@@ -64,9 +69,11 @@ class Player(db.Model):
             .with_entities(func.count('*'))
             .as_scalar()
         )
+
     @hybrid_property
     def gamecount(self):
         return self.gamecount_impl()
+
     @hybrid_method
     def winrate_impl(self, *filters):
         count = 0
@@ -82,6 +89,7 @@ class Player(db.Model):
             # no finished games, no data
             return None
         return wins / count
+
     @hybrid_property
     def mygames(cls):
         return (
@@ -90,6 +98,7 @@ class Player(db.Model):
                 Game.state == 'finished',
             ))
         )
+
     @hybrid_property
     def mygamescount(cls):
         return (
@@ -100,6 +109,7 @@ class Player(db.Model):
             ]))
             .label('cnt')
         )
+
     @hybrid_property
     def mygameswon(cls):
         return (
@@ -115,6 +125,7 @@ class Player(db.Model):
             )
             .label('won')
         )
+
     @hybrid_property
     def mygamesdraw(cls):
         return (
@@ -128,6 +139,7 @@ class Player(db.Model):
             )
             .label('draw')
         )
+
     @winrate_impl.expression
     def winrate_impl(cls, *filters):
         mygames = (
@@ -170,21 +182,22 @@ class Player(db.Model):
             .label('draw')
         )
         return case([
-            (count == 0, None), # if count == 0 then NULL else (calc)
-        ], else_ =
-            (won + draw) / count
+            (count == 0, None),  # if count == 0 then NULL else (calc)
+        ], else_=
+        (won + draw) / count
         )
 
     @hybrid_property
     def winrate(self):
         if 'winrate_filt' in g and g.winrate_filt:
-            log.debug('winrate: using filt '+','.join(
+            log.debug('winrate: using filt ' + ','.join(
                 str(f) for f in g.winrate_filt
             ))
             return self.winrate_impl(*g.winrate_filt)
         log.debug('winrate: no filt')
         return self.winrate_impl()
-    #@hybrid_method
+
+    # @hybrid_method
     def winratehist(self, days=None, weeks=None, months=None):
         count = days or weeks or months
         if not count:
@@ -198,9 +211,9 @@ class Player(db.Model):
 
             count, wins = 0, 0
             for game in self.games.filter(
-                Game.state == 'finished',
-                Game.finish_date > prev,
-                Game.finish_date <= now,
+                            Game.state == 'finished',
+                            Game.finish_date > prev,
+                            Game.finish_date <= now,
             ):
                 count += 1
                 whoami = 'creator' if game.creator_id == self.id else 'opponent'
@@ -213,9 +226,11 @@ class Player(db.Model):
             ret.append((prev, count, wins, rate))
             now = prev
         return ret
+
     @hybrid_property
     def lastbet(self):
         return self.games.order_by(Game.create_date.desc()).first().create_date
+
     @lastbet.expression
     def lastbet(cls):
         return (
@@ -237,6 +252,7 @@ class Player(db.Model):
                 *filters
             )
         )
+
     @popularity_impl.expression
     def popularity_impl(cls, *filters):
         return (
@@ -253,17 +269,19 @@ class Player(db.Model):
             )
             .label('popularity')
         )
+
     @hybrid_property
     def popularity(self):
-        return self.popularity_impl() # without filters
+        return self.popularity_impl()  # without filters
 
-    _leadercache = {} # is a class field
+    _leadercache = {}  # is a class field
     _leadercachetime = None
+
     @property
     def leaderposition(self):
         if not self._leadercache or self._leadercachetime < datetime.utcnow():
             self._leadercachetime = datetime.utcnow() + \
-                timedelta(minutes=5)
+                                    timedelta(minutes=5)
             self._leadercache = {}
             # This is dirty way, but "db-related" one did not work..
             # http://stackoverflow.com/questions/7057772/get-row-position-in-mysql-query
@@ -281,17 +299,18 @@ class Player(db.Model):
                 Player.id.desc(),
             )
             self._leadercache = {
-                row[0]: n+1
+                row[0]: n + 1
                 for n, row in enumerate(q)
             }
         return self._leadercache[self.id]
+
     @hybrid_property
     def recent_opponents(self):
         # last 5 sent and 5 received
         sent, recv = [
             Game.query.filter(field == self.id)
-            .order_by(Game.create_date.desc())
-            .limit(5).with_entities(other).subquery()
+                .order_by(Game.create_date.desc())
+                .limit(5).with_entities(other).subquery()
             for field, other in [
                 (Game.creator_id, Game.opponent_id),
                 (Game.opponent_id, Game.creator_id),
@@ -305,12 +324,14 @@ class Player(db.Model):
     @property
     def has_userpic(self):
         from .routes import UserpicResource
+
         return bool(UserpicResource.findfile(self))
 
     _identities = [
         'nickname',
         'ea_gamertag', 'riot_summonerName', 'steam_id',
     ]
+
     @classmethod
     def find(cls, key):
         """
@@ -319,6 +340,7 @@ class Player(db.Model):
         """
         if key == '_':
             from .helpers import MyRequestParser as RequestParser
+
             parser = RequestParser()
             parser.add_argument('id')
             args = parser.parse_args()
@@ -333,7 +355,8 @@ class Player(db.Model):
         p = None
         try:
             p = cls.query.get(int(key))
-        except ValueError: pass
+        except ValueError:
+            pass
         for identity in cls._identities:
             if p:
                 return p
@@ -364,6 +387,7 @@ class Player(db.Model):
                 for identity in cls._identities
             ])
         )
+
     def __repr__(self):
         return '<Player id={} nickname={} balance={}>'.format(
             self.id, self.nickname, self.balance)
@@ -374,15 +398,16 @@ class Transaction(db.Model):
     player_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
     player = db.relationship(Player,
                              backref=db.backref('transactions',
-                                                lazy='dynamic') # return query, not list
+                                                lazy='dynamic')  # return query, not list
                              )
     date = db.Column(db.DateTime, default=datetime.utcnow)
     type = db.Column(db.Enum('deposit', 'withdraw', 'won', 'lost', 'other'), nullable=False)
     sum = db.Column(db.Float, nullable=False)
-    balance = db.Column(db.Float, nullable=False) # new balance
+    balance = db.Column(db.Float, nullable=False)  # new balance
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'), nullable=True)
     game = db.relationship('Game', backref=db.backref('transaction', uselist=False))
     comment = db.Column(db.Text)
+
     def __repr__(self):
         return '<Transaction id={} sum={}>'.format(self.id, self.sum)
 
@@ -395,8 +420,25 @@ class Device(db.Model):
     push_token = db.Column(db.String(128), nullable=True)
     last_login = db.Column(db.DateTime, default=datetime.utcnow)
     failed = db.Column(db.Boolean, default=False)
+
     def __repr__(self):
         return '<Device id={}, failed={}>'.format(self.id, self.failed)
+
+
+class Tournament(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    bet = db.Column(db.Float, nullable=False)
+    payout = db.Column(db.Float, nullable=False)
+
+    players = db.relationship(Player, secondary='participant', backref='tournaments')
+
+
+class Participant(db.Model):
+    player_id = db.Column(db.Integer(), db.ForeignKey(Player.id), index=True)
+    tournament_id = db.Column(db.Integer(), db.ForeignKey(Tournament.id), index=True)
+
+    tournament = db.relationship(Tournament, backref='participants')
+    player = db.relationship(Tournament, backref='participations')
 
 
 class Game(db.Model):
@@ -418,7 +460,7 @@ class Game(db.Model):
 
     gametype = db.Column(db.String(64), nullable=False)
     gamemode = db.Column(db.String(64), nullable=False)
-    meta = db.Column(db.Text) # for poller to use
+    meta = db.Column(db.Text)  # for poller to use
 
     bet = db.Column(db.Float, nullable=False)
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
@@ -441,18 +483,24 @@ class Game(db.Model):
     details = db.Column(db.Text, nullable=True)
     finish_date = db.Column(db.DateTime, nullable=True)
 
+    tournament_id = db.Column(db.Integer(), db.ForeignKey(Tournament.id), index=True, nullable=True)
+    tournament = db.relationship(Tournament, backref='games')
+
     def _make_identity_getter(kind, prop):
         def _getter(self):
             if not self.gametype:
                 return None
             from .polling import Poller
+
             poller = Poller.findPoller(self.gametype)
             identity = getattr(poller, kind)
             if not identity:
                 return None
             return getattr(identity, prop)
-        _getter.__name__ = '_'.join((kind,prop))
+
+        _getter.__name__ = '_'.join((kind, prop))
         return _getter
+
     for kind in 'identity', 'twitch_identity':
         for prop in 'id', 'name':
             # I know it is not good to modify locals(),
@@ -462,13 +510,17 @@ class Game(db.Model):
                 _make_identity_getter(kind, prop)
             )
     del _make_identity_getter
+
     def _make_identity_splitter(role, prop):
-        attr = 'gamertag_'+role
-        seq = {'val':0,'text':1}[prop]
+        attr = 'gamertag_' + role
+        seq = {'val': 0, 'text': 1}[prop]
+
         def _getter(self):
             # formatter returns tuple (internal, human_readable)
             return self.identity.formatter(getattr(self, attr))[seq]
+
         return _getter
+
     for role in 'creator', 'opponent':
         for prop in 'val', 'text':
             locals()['gamertag_{}_{}'.format(role, prop)] = property(
@@ -495,15 +547,20 @@ class Game(db.Model):
     @property
     def has_message(self):
         from .routes import GameMessageResource
+
         return bool(GameMessageResource.findfile(self))
+
     @property
     def is_ingame(self):
         from .polling import Poller
+
         return (self.gamemode in
                 Poller.findPoller(self.gametype).gamemodes_ingame)
+
     @hybrid_method
     def is_game_player(self, player):
         return (player.id == self.creator_id) | (player.id == self.opponent_id)
+
     @hybrid_method
     def other(self, player):
         if player.id == self.creator_id:
@@ -511,12 +568,13 @@ class Game(db.Model):
         if player.id == self.opponent_id:
             return self.creator
         return None
+
     @other.expression
     def other(cls, player):
         return case([
             (player.id == cls.creator_id, cls.opponent),
             (player.id == cls.opponent_id, cls.creator),
-        ], else_ = None)
+        ], else_=None)
 
     def __repr__(self):
         return '<Game id={} state={}>'.format(self.id, self.state)
@@ -538,24 +596,28 @@ class ChatMessage(db.Model):
     @hybrid_method
     def is_for(self, user):
         return (user.id == self.sender_id) | (user.id == self.receiver_id)
+
     def other(self, user):
         if user == self.sender:
             return self.receiver
         if user == self.receiver:
             return self.sender
         raise ValueError('Message is unrelated to user %d' % user.id)
+
     @classmethod
     def for_user(cls, user):
         return cls.query.filter(or_(
             cls.sender_id == user.id,
             cls.receiver_id == user.id,
         ))
+
     @classmethod
     def for_users(cls, a, b):
         return cls.query.filter(
             cls.sender_id.in_([a.id, b.id]),
             cls.receiver_id.in_([a.id, b.id]),
         )
+
     def __repr__(self):
         return '<ChatMessage id={} text={}>'.format(self.id, self.text)
 
@@ -568,18 +630,20 @@ class Event(db.Model):
     root_id = db.Column(db.Integer, db.ForeignKey('game.id'),
                         index=True, nullable=False)
     root = db.relationship(Game, backref='events', foreign_keys='Event.root_id')
+
     @db.validates('root')
     def validate_root(self, key, game):
         # ensure it is the root of game session
         return game.root
+
     time = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
     type = db.Column(db.Enum(
-        'message', # one user sent message to another
-        'system', # system notification about game state, bet state unchanged
-        'betstate', # some bet changed its state, or was created
-        'abort', # request to abort one of bets in this session
-        'report', # user reported about game result
+        'message',  # one user sent message to another
+        'system',  # system notification about game state, bet state unchanged
+        'betstate',  # some bet changed its state, or was created
+        'abort',  # request to abort one of bets in this session
+        'report',  # user reported about game result
     ), nullable=False)
 
     # for 'message' type
@@ -609,8 +673,9 @@ class Beta(db.Model):
     ]
     console = db.Column(db.String(128))
     create_date = db.Column(db.DateTime, default=datetime.utcnow)
-    flags = db.Column(db.Text, default='') # probably json
+    flags = db.Column(db.Text, default='')  # probably json
     backup = db.Column(db.Text)
+
     def __repr__(self):
         return '<Beta id={}>'.format(self.id)
 
@@ -621,8 +686,11 @@ class TGT(db.Model):
     tgt = db.Column(db.String(255))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+
 def fast_count_noexec(query):
     return query.statement.with_only_columns([func.count()]).order_by(None)
+
+
 def fast_count(query):
     """
     Get count of queried items avoiding using subquery (like query.count() does)

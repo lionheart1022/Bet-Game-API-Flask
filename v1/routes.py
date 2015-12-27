@@ -2057,6 +2057,13 @@ class BetaResource(restful.Resource):
 
         return marshal(beta, self.fields)
 
+@api.resource(
+    '/tournaments',
+    '/tournaments/<int:id>',
+)
+class TournamentsResource(restful.Resource):
+    pass
+
 
 # Debugging-related endpoints
 @app.route('/debug/push_state/<state>', methods=['POST'])
