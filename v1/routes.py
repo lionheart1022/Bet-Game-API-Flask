@@ -2258,5 +2258,5 @@ def debug_socksend():
     return 'ok'
 @app.route('/debug/redissend')
 def debug_redissend():
-    redis.publish('prod.event.test', 'Hello World!')
+    redis.publish('prod.event.test', 'Hello World.')
     return 'ok'
