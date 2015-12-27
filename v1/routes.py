@@ -2252,3 +2252,11 @@ def debug_fake_result(id, winner):
         abort('No poller found for gt '+game.gametype)
     poller.gameDone(game, winner, datetime.utcnow())
     return jsonify(success=True)
+@app.route('/debug/socksend')
+def debug_socksend():
+    socketio.send({'hello': 'world'})
+    return 'ok'
+@app.route('/debug/redissend')
+def debug_socksend():
+    redis.publish('prod.event.test', 'Hello World!')
+    return 'ok'
