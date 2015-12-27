@@ -2062,7 +2062,7 @@ class BetaResource(restful.Resource):
 def socketio_conn():
     log.info('socket connected')
     # TODO check auth...
-    return False # if auth failed
+    #return False # if auth failed
 @socketio.on('auth')
 def socketio_auth(json):
     log.info('socket auth')
