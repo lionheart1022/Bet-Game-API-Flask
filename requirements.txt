@@ -15,6 +15,7 @@ pytz
 aniso8601
 
 flask_socketio
+flask_redis
 
 apns-clerk
 
