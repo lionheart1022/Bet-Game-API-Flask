@@ -737,6 +737,14 @@ Message receiver will be your opponent for this game.
 ### PATCH /games/<id>/messages/<id>
 Mark chat message as read.
 
+### POST /games/<id>/result
+Report game result
+*Arguments*:
+
+ * `winner`: 'creator', 'opponent' or 'draw'
+ * `result`: won', 'lost' or 'draw'
+At least one and only one of this (`winner`, `result`) arguments should be supplied
+
 ### GET /games/<id>/events
 Retrieve events for given *gaming session*.
 Game denoted by an ID passed should be the `root` one.
