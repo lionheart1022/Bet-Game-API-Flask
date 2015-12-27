@@ -16,6 +16,7 @@ import itertools
 import operator
 import requests
 from PIL import Image
+import eventlet
 
 import config
 from .models import *
@@ -23,7 +24,7 @@ from .helpers import *
 from .apis import *
 from .polling import *
 from .helpers import MyRequestParser as RequestParser # instead of system one
-from .main import app, db, api, before_first_request
+from .main import app, db, api, before_first_request, socketio, redis
 
 # Players
 @api.resource(
@@ -2056,6 +2057,34 @@ class BetaResource(restful.Resource):
         db.session.commit()
 
         return marshal(beta, self.fields)
+
+@socketio.on('connect')
+def socketio_conn():
+    log.info('socket connected')
+    # TODO check auth...
+    return False # if auth failed
+@socketio.on('auth')
+def socketio_auth(json):
+    log.info('socket auth')
+@before_first_request
+def socketio_sender():
+    def sender():
+        p = redis.pubsub()
+        p.subscribe('prod.event.*')
+        try:
+            while True:
+                msg = p.get_message()
+                if msg.get('type') != 'message':
+                    continue
+                log.debug('got msg: '+str(msg))
+                # TODO broadcast msg.data
+                # TODO handle user etc
+                socketio.send(msg.get('data'))
+        finally:
+            p.unsubscribe()
+        # TODO: catch final exception?
+    eventlet.spawn(sender)
+
 
 
 # Debugging-related endpoints
