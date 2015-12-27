@@ -2257,6 +2257,6 @@ def debug_socksend():
     socketio.send({'hello': 'world'})
     return 'ok'
 @app.route('/debug/redissend')
-def debug_socksend():
+def debug_redissend():
     redis.publish('prod.event.test', 'Hello World!')
     return 'ok'
