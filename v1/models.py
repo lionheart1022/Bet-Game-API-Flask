@@ -427,17 +427,36 @@ class Device(db.Model):
 
 class Tournament(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    bet = db.Column(db.Float, nullable=False)
+
+    payin = db.Column(db.Float, nullable=False)
     payout = db.Column(db.Float, nullable=False)
 
-    players = db.relationship(Player, secondary='participant', backref='tournaments')
+    player_id = db.Column(db.Integer, nullable=True)
+    players = db.relationship(Player, secondary='participant', backref='tournaments', lazy='dynamic')
+
+    participants_cap = db.Column(db.Integer)
+
+    @hybrid_property
+    def participants_count(self):
+        return self.participants.count()
+
+    open_date = db.Column(db.DateTime, nullable=False)
+    start_date = db.Column(db.DateTime, nullable=False)
+    finish_date = db.Column(db.DateTime, nullable=False)
+
+    @hybrid_property
+    def open(self):
+        return self.open_date < datetime.utcnow() and (
+            self.participants_count < self.participants_cap or not self.participants_cap
+        )
+
 
 
 class Participant(db.Model):
     player_id = db.Column(db.Integer(), db.ForeignKey(Player.id), index=True)
     tournament_id = db.Column(db.Integer(), db.ForeignKey(Tournament.id), index=True)
 
-    tournament = db.relationship(Tournament, backref='participants')
+    tournament = db.relationship(Tournament, backref=db.backref('participants', lazy='dynamic'))
     player = db.relationship(Tournament, backref='participations')
 
 

@@ -22,7 +22,7 @@ from .models import *
 from .helpers import *
 from .apis import *
 from .polling import *
-from .helpers import MyRequestParser as RequestParser # instead of system one
+from .helpers import MyRequestParser as RequestParser  # instead of system one
 from .main import app, db, api, before_first_request
 
 # Players
@@ -43,8 +43,8 @@ class PlayerResource(restful.Resource):
             ('nickname', None, True),
             ('email', email_validator, True),
             ('password', encrypt_password, True),
-            ('facebook_token', federatedRenewFacebook, False), # should be last to avoid extra queries
-            ('twitter_token', federatedRenewTwitter, False), # should be last to avoid extra queries
+            ('facebook_token', federatedRenewFacebook, False),  # should be last to avoid extra queries
+            ('twitter_token', federatedRenewTwitter, False),  # should be last to avoid extra queries
             ('bio', None, False),
         ]
         identities = set()
@@ -56,12 +56,12 @@ class PlayerResource(restful.Resource):
                 type = string_field(getattr(Player, name), ftype=type)
             parser.add_argument(
                 name,
-                required = required,
+                required=required,
                 type=type,
             )
             partial.add_argument(
                 name,
-                required = False,
+                required=False,
                 type=type,
             )
         login.add_argument('push_token',
@@ -71,40 +71,41 @@ class PlayerResource(restful.Resource):
                            required=False)
         partial.add_argument('old_password', required=False)
         return parser
+
     @classmethod
     def fields(cls, public=True, stat=False, leaders=False):
         ret = dict(
-            id = fields.Integer,
-            nickname = fields.String,
-            email = fields.String,
-            facebook_connected = fields.Boolean(attribute='facebook_token'),
-            twitter_connected = fields.Boolean(attribute='twitter_token'),
-            bio = fields.String,
-            has_userpic = fields.Boolean,
+            id=fields.Integer,
+            nickname=fields.String,
+            email=fields.String,
+            facebook_connected=fields.Boolean(attribute='facebook_token'),
+            twitter_connected=fields.Boolean(attribute='twitter_token'),
+            bio=fields.String,
+            has_userpic=fields.Boolean,
 
-            ea_gamertag = fields.String,
-            fifa_team = fields.String,
-            riot_summonerName = fields.String,
-            steam_id = fields.String,
-            starcraft_uid = fields.String,
-            tibia_character = fields.String,
+            ea_gamertag=fields.String,
+            fifa_team=fields.String,
+            riot_summonerName=fields.String,
+            steam_id=fields.String,
+            starcraft_uid=fields.String,
+            tibia_character=fields.String,
         )
         if not public: ret.update(dict(
-            balance = fields.Float,
-            balance_info = fields.Raw(attribute='balance_obj'), # because it is already JSON
-            devices = fields.List(fields.Nested(dict(
-                id = fields.Integer,
-                last_login = fields.DateTime,
+            balance=fields.Float,
+            balance_info=fields.Raw(attribute='balance_obj'),  # because it is already JSON
+            devices=fields.List(fields.Nested(dict(
+                id=fields.Integer,
+                last_login=fields.DateTime,
             ))),
         ))
         if stat: ret.update(dict(
             # some stats
-            gamecount = fields.Integer, # FIXME: optimize query somehow?
-            winrate = fields.Float,
-            #popularity = fields.Integer,
+            gamecount=fields.Integer,  # FIXME: optimize query somehow?
+            winrate=fields.Float,
+            # popularity = fields.Integer,
         ))
         if leaders: ret.update(dict(
-            leaderposition = fields.Integer,
+            leaderposition=fields.Integer,
         ))
         return ret
 
@@ -112,8 +113,8 @@ class PlayerResource(restful.Resource):
     def login_do(cls, player, args=None, created=False):
         if not args:
             args = cls.parser.login.parse_args()
-        dev = Device.query.filter_by(player = player,
-                                     push_token = args.push_token
+        dev = Device.query.filter_by(player=player,
+                                     push_token=args.push_token
                                      ).first()
         if not dev:
             dev = Device()
@@ -129,12 +130,12 @@ class PlayerResource(restful.Resource):
                 ).delete()
         dev.last_login = datetime.utcnow()
 
-        db.session.commit() # to create device id
+        db.session.commit()  # to create device id
 
         ret = jsonify(
-            player = marshal(player, cls.fields(public=False)),
-            token = makeToken(player, device=dev),
-            created = created,
+            player=marshal(player, cls.fields(public=False)),
+            token=makeToken(player, device=dev),
+            created=created,
         )
         if created:
             ret.status_code = 201
@@ -154,7 +155,7 @@ class PlayerResource(restful.Resource):
             parser.add_argument(
                 'order',
                 choices=sum(
-                    [[s, '-'+s]
+                    [[s, '-' + s]
                      for s in
                      ('id',
                       'lastbet',
@@ -172,7 +173,7 @@ class PlayerResource(restful.Resource):
                                 choices=[
                                     'today', 'yesterday', 'week', 'month',
                                 ])
-            #parser.add_argument('names_only', type=boolean_field)
+            # parser.add_argument('names_only', type=boolean_field)
             args = parser.parse_args()
 
             if args.filter:
@@ -183,7 +184,7 @@ class PlayerResource(restful.Resource):
             orders = []
             if args.order:
                 ordername = args.order.lstrip('-')
-                if hasattr(Player, ordername+'_impl'):
+                if hasattr(Player, ordername + '_impl'):
                     # this parameter depends on games,
                     # so calculate and apply corresponding filters
                     filters = []
@@ -201,12 +202,12 @@ class PlayerResource(restful.Resource):
                         elif args.period == 'month':
                             since = timedelta(days=30)
                         else:
-                            raise ValueError('unknown period '+args.period)
+                            raise ValueError('unknown period ' + args.period)
                         now = datetime.utcnow()
-                        filters.append(Game.accept_date >= now-since)
+                        filters.append(Game.accept_date >= now - since)
                         if till:
-                            filters.append(Game.accept_date < now-till)
-                    orders.append(getattr(Player, ordername+'_impl')(*filters))
+                            filters.append(Game.accept_date < now - till)
+                    orders.append(getattr(Player, ordername + '_impl')(*filters))
                     g.winrate_filt = filters
                 else:
                     orders.append(getattr(Player, ordername))
@@ -214,7 +215,7 @@ class PlayerResource(restful.Resource):
                 if args.order.endswith('winrate'):
                     # sort also by game count
                     orders.append(Player.gamecount)
-                # ...and always add player.id to stabilize order
+                    # ...and always add player.id to stabilize order
             if not args.order or not args.order.endswith('id'):
                 orders.append(Player.id)
             if args.order:
@@ -228,7 +229,7 @@ class PlayerResource(restful.Resource):
             query = query.limit(20)
 
             return jsonify(
-                players = fields.List(
+                players=fields.List(
                     fields.Nested(
                         self.fields(public=True, stat=True,
                                     leaders='winrate' in (args.order or ''))
@@ -243,16 +244,16 @@ class PlayerResource(restful.Resource):
         is_self = player == user
         ret = marshal(player,
                       self.fields(public=not is_self, stat=is_self))
-        g.winrate_filt = None # reset
+        g.winrate_filt = None  # reset
         return ret
 
     def post(self, id=None):
         if id:
             raise MethodNotAllowed
 
-        log.debug('NEW USER: '+repr(request.get_data()))
+        log.debug('NEW USER: ' + repr(request.get_data()))
 
-        args_login = self.parser.login.parse_args() # check before others
+        args_login = self.parser.login.parse_args()  # check before others
         args = self.parser.parse_args()
 
         player = Player()
@@ -289,7 +290,7 @@ class PlayerResource(restful.Resource):
         # we don't check result as it is not critical if this email is not sent
         mailsend(user, 'greet_personal',
                  sender='Doug from BetGame <doug@betgame.co.uk>',
-                 delayed = timedelta(days=1),
+                 delayed=timedelta(days=1),
                  )
 
     @require_auth(allow_nonfilled=True)
@@ -347,6 +348,7 @@ class PlayerResource(restful.Resource):
 
         return PlayerResource.login_do(player)
 
+    @staticmethod
     @app.route('/federated_login', methods=['POST'])
     @secure_only
     def federated():
@@ -368,9 +370,9 @@ class PlayerResource(restful.Resource):
             # get identity and name
             ret = requests.get(
                 'https://graph.facebook.com/v2.3/me',
-                params = dict(
-                    access_token = args.token,
-                    fields = 'id,email,name,picture',
+                params=dict(
+                    access_token=args.token,
+                    fields='id,email,name,picture',
                 ),
             )
             jret = ret.json()
@@ -388,7 +390,7 @@ class PlayerResource(restful.Resource):
             else:
                 abort('Facebook didn\'t return neither email nor user id')
 
-            userpic = jret.get('picture',{}).get('data')
+            userpic = jret.get('picture', {}).get('data')
             if userpic:
                 userpic = None if userpic['is_silhouette'] else userpic['url']
 
@@ -411,33 +413,33 @@ class PlayerResource(restful.Resource):
             log.debug(str(jret))
             try:
                 jret = jret['whoAccounts']['account']
-                williamhill_currency = jret['currencyCode'] # TODO handle it
+                williamhill_currency = jret['currencyCode']  # TODO handle it
                 name = ' '.join(filter(None, [
                     jret.get('firstName'), jret.get('lastName'),
                 ]))
                 email = jret['email']
                 identity = jret['accountId']
-                userpic = None # no userpic for WH
+                userpic = None  # no userpic for WH
             except KeyError:
                 abort('Failed to fetch account information from WilliamHill')
 
         if name:
-            n=1
+            n = 1
             oname = name
             while Player.query.filter_by(nickname=name).count():
                 name = '{} {}'.format(oname, n)
-                n+=1
+                n += 1
 
         if email:
             player = Player.query.filter_by(email=email).first()
         else:
-            player = Player.query.filter_by(**{args.svc+'_id': identity}).first()
+            player = Player.query.filter_by(**{args.svc + '_id': identity}).first()
         created = False
         if not player:
             created = True
             player = Player()
             player.email = email
-            player.password = encrypt_password(None) # random salt
+            player.password = encrypt_password(None)  # random salt
             player.nickname = name
             db.session.add(player)
         if userpic and not player.has_userpic:
@@ -446,7 +448,7 @@ class PlayerResource(restful.Resource):
         setattr(player, '{}_id'.format(args.svc), identity)
         setattr(player, '{}_token'.format(args.svc), args.token)
 
-        datadog('Player federated '+('registration' if created else 'login'),
+        datadog('Player federated ' + ('registration' if created else 'login'),
                 'nickname: {}, service: {}, id: {}, email: {}'.format(
                     player.nickname,
                     args.svc,
@@ -454,7 +456,7 @@ class PlayerResource(restful.Resource):
                     email,
                 ),
                 service=args.svc)
-        dd_stat.increment('user.login_'+args.svc)
+        dd_stat.increment('user.login_' + args.svc)
         if created:
             dd_stat.increment('user.registration')
 
@@ -468,11 +470,11 @@ class PlayerResource(restful.Resource):
 
         # send password recovery link
         ret = mailsend(player, 'recover',
-                 link='https://betgame.co.uk/password.html'
-                 '#userid={}&token={}'.format(
-                     player.id,
-                     makeToken(player)
-                 ))
+                       link='https://betgame.co.uk/password.html'
+                            '#userid={}&token={}'.format(
+                           player.id,
+                           makeToken(player)
+                       ))
         if not ret:
             return jsonify(success=False, message='Couldn\'t send mail')
 
@@ -492,13 +494,13 @@ class PlayerResource(restful.Resource):
 
         parser = RequestParser()
         parser.add_argument('push_token',
-                            type=hex_field(64), # = 32 bytes
+                            type=hex_field(64),  # = 32 bytes
                             required=True)
         args = parser.parse_args()
 
         # first try find device which already uses this token
-        dev = Device.query.filter_by(player = user,
-                                     push_token = args.push_token
+        dev = Device.query.filter_by(player=user,
+                                     push_token=args.push_token
                                      ).first()
         # if we found it, then we will actually just update its last login date
         if not dev:
@@ -509,7 +511,7 @@ class PlayerResource(restful.Resource):
             if dev.push_token:
                 abort('This device already has push token specified')
             dev.push_token = args.push_token
-            dev.failed = False # just to ensure
+            dev.failed = False  # just to ensure
 
             # and remove that token from other devices
             Device.query.filter(
@@ -534,7 +536,7 @@ class PlayerResource(restful.Resource):
 
         parser = RequestParser()
         parser.add_argument('push_token',
-                            type=hex_field(64), # = 32 bytes
+                            type=hex_field(64),  # = 32 bytes
                             required=False)
         args = parser.parse_args()
 
@@ -542,8 +544,8 @@ class PlayerResource(restful.Resource):
         dev = None
         if args.push_token:
             dev = Device.query.filter_by(
-                player = user,
-                push_token = args.push_token
+                player=user,
+                push_token=args.push_token
             ).first()
         if not dev:
             dev = Device.query.get(g.device_id)
@@ -567,9 +569,10 @@ class PlayerResource(restful.Resource):
         if Player.find(id) != user:
             raise Forbidden
 
-        return jsonify(opponents = fields.List(fields.Nested(
+        return jsonify(opponents=fields.List(fields.Nested(
             PlayerResource.fields(public=True)
         )).format(user.recent_opponents))
+
     @app.route('/players/<id>/winratehist')
     @require_auth
     def winratehist(user, id):
@@ -582,16 +585,16 @@ class PlayerResource(restful.Resource):
         args = parser.parse_args()
 
         params = {
-            args.interval+'s': args.range,
+            args.interval + 's': args.range,
         }
         return jsonify(
-            history = [
+            history=[
                 dict(
-                    date = date,
-                    games = total,
-                    wins = float(wins),
-                    rate = float(rate),
-                ) for date,total,wins,rate in user.winratehist(**params)
+                    date=date,
+                    games=total,
+                    wins=float(wins),
+                    rate=float(rate),
+                ) for date, total, wins, rate in user.winratehist(**params)
             ],
         )
 
@@ -602,22 +605,24 @@ class PlayerResource(restful.Resource):
         if not player:
             raise NotFound
         return jsonify(
-            position = player.leaderposition,
+            position=player.leaderposition,
         )
 
 
 # Userpic
 class UploadableResource(restful.Resource):
     PARAM = None
-    ROOT = os.path.dirname(__file__)+'/../uploads'
+    ROOT = os.path.dirname(__file__) + '/../uploads'
     SUBDIR = None
-    ALLOWED=None
+    ALLOWED = None
+
     @classmethod
     def url_for(cls, entity, ext):
         return '/uploads/{}/{}'.format(
             cls.SUBDIR,
             '{}.{}'.format(entity.id, ext),
         )
+
     @classmethod
     def file_for(cls, entity, ext):
         return os.path.join(
@@ -625,6 +630,7 @@ class UploadableResource(restful.Resource):
             cls.SUBDIR,
             '{}.{}'.format(entity.id, ext),
         )
+
     @classmethod
     def findfile(cls, entity):
         for ext in cls.ALLOWED:
@@ -636,12 +642,15 @@ class UploadableResource(restful.Resource):
     @classmethod
     def onupload(cls, entity, ext):
         pass
+
     @classmethod
     def ondelete(cls, entity):
         pass
+
     @classmethod
     def found(cls, entity, ext):
         pass
+
     @classmethod
     def notfound(cls, entity):
         pass
@@ -657,9 +666,10 @@ class UploadableResource(restful.Resource):
                 deleted = True
                 cls.ondelete(entity)
         return deleted
+
     @classmethod
     def upload(cls, f, entity):
-        ext = f.filename.lower().rsplit('.',1)[-1]
+        ext = f.filename.lower().rsplit('.', 1)[-1]
         if ext not in cls.ALLOWED:
             abort('[{}]: {} files are not allowed'.format(
                 cls.PARAM, ext.upper()))
@@ -692,7 +702,7 @@ class UploadableResource(restful.Resource):
             f.filename, url))
 
     def get_entity(self, kwargs, is_put):
-        raise NotImplementedError # override this!
+        raise NotImplementedError  # override this!
 
     def get(self, **kwargs):
         entity = self.get_entity(kwargs, False)
@@ -702,11 +712,12 @@ class UploadableResource(restful.Resource):
                 self.found(entity, ext)
                 response = make_response()
                 response.headers['X-Accel-Redirect'] = self.url_for(entity, ext)
-                response.headers['Content-Type'] = '' # autodetect by nginx
+                response.headers['Content-Type'] = ''  # autodetect by nginx
                 return response
         else:
             self.notfound(entity)
-            return (None, 204) # HTTP code 204 NO CONTENT
+            return (None, 204)  # HTTP code 204 NO CONTENT
+
     def put(self, **kwargs):
         entity = self.get_entity(kwargs, True)
         f = request.files.get(self.PARAM)
@@ -716,17 +727,22 @@ class UploadableResource(restful.Resource):
         self.upload(f, entity)
 
         return dict(success=True)
+
     def post(self, *args, **kwargs):
         return self.put(*args, **kwargs)
+
     def delete(self, **kwargs):
         return dict(
-            deleted = self.delfile(self.get_entity(kwargs, True)),
+            deleted=self.delfile(self.get_entity(kwargs, True)),
         )
+
+
 @api.resource('/players/<id>/userpic')
 class UserpicResource(UploadableResource):
     PARAM = 'userpic'
     SUBDIR = 'userpics'
     ALLOWED = ['png']
+
     @require_auth
     def get_entity(self, args, is_put, user):
         player = Player.find(args['id'])
@@ -742,8 +758,10 @@ class UserpicResource(UploadableResource):
 @require_auth
 def balance_get(user):
     return jsonify(
-        balance = user.balance_obj,
+        balance=user.balance_obj,
     )
+
+
 @app.route('/balance/history', methods=['GET'])
 @require_auth
 def balance_history(user):
@@ -761,19 +779,21 @@ def balance_history(user):
                            error_out=False).items
 
     return jsonify(
-        transactions = fields.List(fields.Nested(dict(
-            id = fields.Integer,
-            date = fields.DateTime,
-            type = fields.String,
-            sum = fields.Float,
-            balance = fields.Float,
-            game_id = fields.Integer,
-            comment = fields.String,
+        transactions=fields.List(fields.Nested(dict(
+            id=fields.Integer,
+            date=fields.DateTime,
+            type=fields.String,
+            sum=fields.Float,
+            balance=fields.Float,
+            game_id=fields.Integer,
+            comment=fields.String,
         ))).format(query),
-        num_results = total_count,
-        total_pages = math.ceil(total_count/args.results_per_page),
-        page = args.page,
+        num_results=total_count,
+        total_pages=math.ceil(total_count / args.results_per_page),
+        page=args.page,
     )
+
+
 @app.route('/balance/deposit', methods=['POST'])
 @require_auth
 def balance_deposit(user):
@@ -787,7 +807,7 @@ def balance_deposit(user):
     datadog(
         'Payment received',
         ' '.join(
-            ['{}: {}'.format(k,v) for k,v in args.items()]
+            ['{}: {}'.format(k, v) for k, v in args.items()]
         ),
     )
 
@@ -801,7 +821,7 @@ def balance_deposit(user):
         if not args.payment_id:
             abort('[payment_id]: required unless dry_run is true')
         # verify payment...
-        ret = PayPal.call('GET', 'payments/payment/'+args.payment_id)
+        ret = PayPal.call('GET', 'payments/payment/' + args.payment_id)
         if ret.get('state') != 'approved':
             abort('Payment not approved: {} - {}'.format(
                 ret.get('name', '(no error code)'),
@@ -812,8 +832,8 @@ def balance_deposit(user):
         for tr in ret.get('transactions', []):
             amount = tr.get('amount')
             if (
-                (float(amount['total']), amount['currency']) ==
-                (args.total, args.currency)
+                        (float(amount['total']), amount['currency']) ==
+                        (args.total, args.currency)
             ):
                 transaction = tr
                 break
@@ -834,11 +854,11 @@ def balance_deposit(user):
 
         user.balance += coins
         db.session.add(Transaction(
-            player = user,
-            type = 'deposit',
-            sum = coins,
-            balance = user.balance,
-            comment = 'Converted from {} {}'.format(args.total, args.currency),
+            player=user,
+            type='deposit',
+            sum=coins,
+            balance=user.balance,
+            comment='Converted from {} {}'.format(args.total, args.currency),
         ))
         db.session.commit()
     return jsonify(
@@ -847,6 +867,7 @@ def balance_deposit(user):
         added=coins,
         balance=user.balance_obj,
     )
+
 
 @app.route('/balance/withdraw', methods=['POST'])
 @require_auth
@@ -864,10 +885,10 @@ def balance_withdraw(user):
 
     try:
         amount = dict(
-            value = args.coins
-                * Fixer.latest('USD', args.currency)
-                * config.WITHDRAW_COEFFICIENT,
-            currency = args.currency,
+            value=args.coins
+                  * Fixer.latest('USD', args.currency)
+                  * config.WITHDRAW_COEFFICIENT,
+            currency=args.currency,
         )
     except (TypeError, ValueError):
         # for bad currencies, Fixer will return None
@@ -879,10 +900,10 @@ def balance_withdraw(user):
 
     if args.dry_run:
         return jsonify(
-            success = True,
-            paid = amount,
-            dry_run = True,
-            balance = user.balance_obj,
+            success=True,
+            paid=amount,
+            dry_run=True,
+            balance=user.balance_obj,
         )
     if not args.paypal_email:
         abort('[paypal_email] should be specified unless you are running dry-run')
@@ -890,11 +911,11 @@ def balance_withdraw(user):
     # first withdraw coins...
     user.balance -= args.coins
     db.session.add(Transaction(
-        player = user,
-        type = 'withdraw',
-        sum = -coins,
-        balance = user.balance,
-        comment = 'Converted to {} {}'.format(
+        player=user,
+        type='withdraw',
+        sum=-coins, #  FIXME: coins not defined
+        balance=user.balance,
+        comment='Converted to {} {}'.format(
             amount,
             args.currency,
         ),
@@ -906,18 +927,18 @@ def balance_withdraw(user):
 
     try:
         ret = PayPal.call('POST', 'payments/payouts', dict(
-            sync_mode = True,
+            sync_mode=True,
         ), dict(
-            sender_batch_header = dict(
-#                sender_batch_id = None,
-                email_subject = 'Payout from BetGame',
-                recipient_type = 'EMAIL',
+            sender_batch_header=dict(
+                # sender_batch_id = None,
+                email_subject='Payout from BetGame',
+                recipient_type='EMAIL',
             ),
-            items = [
+            items=[
                 dict(
-                    recipient_type = 'EMAIL',
-                    amount = amount,
-                    receiver = args.paypal_email,
+                    recipient_type='EMAIL',
+                    amount=amount,
+                    receiver=args.paypal_email,
                 ),
             ],
         ))
@@ -933,9 +954,9 @@ def balance_withdraw(user):
             )
             return jsonify(success=True,
                            dry_run=False,
-                           paid = amount,
+                           paid=amount,
                            transaction_id=trinfo.get('payout_item_id'),
-                           balance = user.balance_obj,
+                           balance=user.balance_obj,
                            )
         # TODO: add transaction id to our Transaction object
         log.debug(str(ret))
@@ -945,8 +966,8 @@ def balance_withdraw(user):
             # TODO: wait and retry
             pass
 
-        abort('Couldn\'t complete payout: '+
-              trinfo.get('errors',{}).get('message', 'Unknown error'),
+        abort('Couldn\'t complete payout: ' +
+              trinfo.get('errors', {}).get('message', 'Unknown error'),
               500,
               status=stat,
               transaction_id=trinfo.get('payout_item_id'),
@@ -958,11 +979,11 @@ def balance_withdraw(user):
         # restore balance
         user.balance += args.coins
         db.session.add(Transaction(
-            player = user,
-            type = 'withdraw',
-            sum = coins,
-            balance = user.balance,
-            comment = 'Withdraw operation aborted due to error',
+            player=user,
+            type='withdraw',
+            sum=coins,  # FIXME: coins not defined
+            balance=user.balance,
+            comment='Withdraw operation aborted due to error',
         ))
         db.session.commit()
 
@@ -999,7 +1020,7 @@ def gametypes():
                                 func.max(Game.create_date),
                                 )
                .group_by(Game.gametype).all())
-        counts = {k: (c, d) for k,c,d in bca}
+        counts = {k: (c, d) for k, c, d in bca}
     times = []
     if args.latest:
         bta = (Game.query
@@ -1007,7 +1028,7 @@ def gametypes():
                .group_by(Game.gametype)
                .order_by(Game.create_date.desc())
                .all())
-        times = bta # in proper order
+        times = bta  # in proper order
 
     global _gamedata_cache
     if _gamedata_cache:
@@ -1018,13 +1039,13 @@ def gametypes():
             if poller is TestPoller:
                 continue
             for gametype, gametype_name in poller.gametypes.items():
-                _getsub = lambda f: f.get(gametype) if isinstance(f,dict) else f
+                _getsub = lambda f: f.get(gametype) if isinstance(f, dict) else f
                 data = dict(
-                    id = gametype,
-                    name = gametype_name,
-                    subtitle = _getsub(poller.subtitle),
-                    category = _getsub(poller.category),
-                    description = _getsub(poller.description),
+                    id=gametype,
+                    name=gametype_name,
+                    subtitle=_getsub(poller.subtitle),
+                    category=_getsub(poller.category),
+                    description=_getsub(poller.description),
                 )
                 if data['description']:
                     # strip enclosing whites,
@@ -1039,20 +1060,20 @@ def gametypes():
                     ))
                 if poller.identity or poller.twitch_identity:
                     data.update(dict(
-                        supported = True,
-                        gamemodes = poller.gamemodes,
-                        identity = poller.identity_id,
-                        identity_name = poller.identity_name,
-                        twitch = poller.twitch,
-                        twitch_identity = None, # may be updated below
-                        twitch_identity_name = None,
+                        supported=True,
+                        gamemodes=poller.gamemodes,
+                        identity=poller.identity_id,
+                        identity_name=poller.identity_name,
+                        twitch=poller.twitch,
+                        twitch_identity=None,  # may be updated below
+                        twitch_identity_name=None,
                     ))
                     if poller.twitch_identity:
                         data['twitch_identity'] = poller.twitch_identity.id
                         data['twitch_identity_name'] = poller.twitch_identity.name
-                else: # DummyPoller
+                else:  # DummyPoller
                     data.update(dict(
-                        supported = False,
+                        supported=False,
                     ))
                 gamedata.append(data)
         _gamedata_cache = gamedata.copy()
@@ -1080,18 +1101,19 @@ def gametypes():
         ))
 
     ret = dict(
-        gametypes = gamedata,
+        gametypes=gamedata,
     )
     if args.identities:
         ret['identities'] = {i.id: i.name for i in Identity.all}
     if args.latest:
         ret['latest'] = [
             dict(
-                gametype = gametype,
-                date = date,
+                gametype=gametype,
+                date=date,
             ) for gametype, date in times
         ]
     return jsonify(**ret)
+
 
 @app.route('/gametypes/<id>/image')
 @app.route('/gametypes/<id>/background')
@@ -1111,10 +1133,10 @@ def gametype_image(id):
     try:
         img = Image.open(filename)
     except FileNotFoundError:
-        raise NotFound # 404
+        raise NotFound  # 404
     ow, oh = img.size
     if args.w or args.h:
-        if not args.h or (args.w and args.h and (args.w/args.h) > (ow/oh)):
+        if not args.h or (args.w and args.h and (args.w / args.h) > (ow / oh)):
             dw = args.w
             dh = round(oh / ow * dw)
         else:
@@ -1128,29 +1150,30 @@ def gametype_image(id):
         if args.w and args.h:
             if args.w != dw:
                 # crop horizontally
-                cw = (dw-args.w)/2
+                cw = (dw - args.w) / 2
                 cl, cr = math.floor(cw), math.ceil(cw)
-                img = img.crop(box=(cl, 0, img.width-cr, img.height))
+                img = img.crop(box=(cl, 0, img.width - cr, img.height))
             elif args.h != dh:
                 # crop vertically
-                ch = (dh-args.h)/2
+                ch = (dh - args.h) / 2
                 cu, cd = math.floor(ch), math.ceil(ch)
-                img = img.crop(box=(0, cu, img.width, img.height-cd))
+                img = img.crop(box=(0, cu, img.width, img.height - cd))
 
     img_file = BytesIO()
     img.save(img_file, 'png')
     img_file.seek(0)
     return send_file(img_file, mimetype='image/png')
 
+
 @app.route('/identities', methods=['GET'])
 def identities():
     os.path.dirname(__file__)
     return jsonify(
-        identities = [
+        identities=[
             dict(
-                id = i.id,
-                name = i.name,
-                choices = i.choices,
+                id=i.id,
+                name=i.name,
+                choices=i.choices,
             ) for i in Identity.all
         ],
     )
@@ -1194,6 +1217,7 @@ class GameResource(restful.Resource):
             'details': fields.String,
             'finish_date': fields.DateTime,
         }
+
     @classproperty
     def fields(cls):
         ret = cls.fields_lite.copy()
@@ -1201,6 +1225,7 @@ class GameResource(restful.Resource):
             'children': fields.List(fields.Nested(cls.fields_lite)),
         })
         return ret
+
     @require_auth
     def get(self, user, id=None):
         if id:
@@ -1218,7 +1243,7 @@ class GameResource(restful.Resource):
         parser.add_argument(
             'order',
             choices=sum(
-                [[s, '-'+s]
+                [[s, '-' + s]
                  for s in
                  ('create_date',
                   'accept_date',
@@ -1243,16 +1268,15 @@ class GameResource(restful.Resource):
                 order = getattr(Game, args.order).asc()
             query = query.order_by(order)
 
-
         total_count = query.count()
         query = query.paginate(args.page, args.results_per_page,
-                               error_out = False).items
+                               error_out=False)
 
         return dict(
-            games = fields.List(fields.Nested(self.fields)).format(query),
-            num_results = total_count,
-            total_pages = math.ceil(total_count/args.results_per_page),
-            page = args.page,
+            games=fields.List(fields.Nested(self.fields)).format(query.items),
+            num_results=total_count,
+            total_pages=math.ceil(total_count / args.results_per_page),
+            page=args.page,
         )
 
     @classproperty
@@ -1292,7 +1316,7 @@ class GameResource(restful.Resource):
         if poller.gamemodes:
             gmparser = RequestParser()
             gmparser.add_argument('gamemode', choices=poller.gamemodes,
-                                required=True)
+                                  required=True)
             gmargs = gmparser.parse_args()
             args.gamemode = gmargs.gamemode
 
@@ -1303,18 +1327,18 @@ class GameResource(restful.Resource):
         # and pre-load them from user profiles if possible
         had_creatag = args.gamertag_creator
         for name, identity, mandatory in (
-            ('gamertag', poller.identity, True),
-            ('twitch_identity', poller.twitch_identity, poller.twitch == 2),
+                ('gamertag', poller.identity, True),
+                ('twitch_identity', poller.twitch_identity, poller.twitch == 2),
         ):
             if not identity:
                 for role in 'creator', 'opponent':
-                    if args['{}_{}'.format(name,role)]:
+                    if args['{}_{}'.format(name, role)]:
                         abort('[{}_{}]: not supported for this game type'.format(
                             name, role), problem=argname)
                 continue
             for role, ruser in (
-                ('creator', user),
-                ('opponent', args.opponent),
+                    ('creator', user),
+                    ('opponent', args.opponent),
             ):
                 argname = '{}_{}'.format(name, role)
                 if args[argname]:
@@ -1324,12 +1348,12 @@ class GameResource(restful.Resource):
                         abort('[{}]: {}'.format(argname, e), problem=argname)
                 else:
                     args[argname] = getattr(ruser, identity.id)
-                    if mandatory and role == 'creator'\
-                            and not args[argname]: # not provided
+                    if mandatory and role == 'creator' \
+                            and not args[argname]:  # not provided
                         abort('Please specify your {}'.format(
                             identity.name,
                         ), problem=argname)
-            if args[name+'_creator'] == args[name+'_opponent']:
+            if args[name + '_creator'] == args[name + '_opponent']:
                 abort('Your and your opponent\'s {} should be different!'.format(
                     identity.name,
                 ))
@@ -1352,12 +1376,12 @@ class GameResource(restful.Resource):
         # Perform sameregion check
         if args.gamertag_opponent and poller.sameregion:
             # additional check for regions
-            region1 = args['gamertag_creator'].split('/',1)[0]
-            region2 = args['gamertag_opponent'].split('/',1)[0]
+            region1 = args['gamertag_creator'].split('/', 1)[0]
+            region2 = args['gamertag_opponent'].split('/', 1)[0]
             if region1 != region2:
                 abort('You and your opponent should be in the same region; '
                       'but actually you are in {} and your opponent is in {}'.format(
-                          region1, region2))
+                    region1, region2))
 
         if poller.twitch == 2 and not args.twitch_handle:
             abort('Please specify your twitch stream URL',
@@ -1375,7 +1399,7 @@ class GameResource(restful.Resource):
         game.opponent = args.opponent
         log.debug('setting parent')
         if args.root:
-            game.parent = args.root.root # ensure we use real root
+            game.parent = args.root.root  # ensure we use real root
         game.gamertag_creator = args.gamertag_creator
         game.gamertag_opponent = args.gamertag_opponent
         game.twitch_handle = args.twitch_handle
@@ -1433,8 +1457,8 @@ class GameResource(restful.Resource):
 
         if args.state == 'accepted':
             for name, identity in (
-                ('gamertag', poller.identity),
-                ('twitch_identity', poller.twitch_identity),
+                    ('gamertag', poller.identity),
+                    ('twitch_identity', poller.twitch_identity),
             ):
                 argname = '{}_opponent'.format(name)
                 if not identity:
@@ -1471,12 +1495,12 @@ class GameResource(restful.Resource):
             # Perform sameregion check
             if poller.sameregion:
                 # additional check for regions
-                region1 = game.gamertag_creator.split('/',1)[0]
-                region2 = args['gamertag_opponent'].split('/',1)[0]
+                region1 = game.gamertag_creator.split('/', 1)[0]
+                region2 = args['gamertag_opponent'].split('/', 1)[0]
                 if region1 != region2:
                     abort('You and your opponent should be in the same region; '
-                        'but actually you are in {} and your opponent is in {}'.format(
-                            region2, region1))
+                          'but actually you are in {} and your opponent is in {}'.format(
+                        region2, region1))
 
 
         # now all checks are done, perform actual logic
@@ -1499,14 +1523,14 @@ class GameResource(restful.Resource):
                         game.twitch_handle,
                         game.gametype,
                     ),
-                    data = dict(
-                        game_id = game.id,
-                        creator = game.twitch_identity_creator
-                                if poller.twitch_identity else
-                                game.gamertag_creator,
-                        opponent = game.twitch_identity_opponent
-                                if poller.twitch_identity else
-                                game.gamertag_opponent,
+                    data=dict(
+                        game_id=game.id,
+                        creator=game.twitch_identity_creator
+                        if poller.twitch_identity else
+                        game.gamertag_creator,
+                        opponent=game.twitch_identity_opponent
+                        if poller.twitch_identity else
+                        game.gamertag_opponent,
                     ),
                 )
                 retstatus = ret.status_code
@@ -1515,14 +1539,14 @@ class GameResource(restful.Resource):
                 abort('Cannot start twitch observing - internal error', 500)
             if ret.status_code not in (200, 201):
                 jret = ret.json()
-                if ret.status_code == 409: # dup
+                if ret.status_code == 409:  # dup
                     # TODO: check it on creation??
                     abort('This twitch stream is already watched '
                           'for another game (or another players)')
-                elif ret.status_code == 507: # full
+                elif ret.status_code == 507:  # full
                     abort('Cannot start twitch observing, all servers are busy now; '
                           'please retry later', 500)
-                abort('Couldn\'t start Twitch: '+jret.get('error', 'Unknown err'))
+                abort('Couldn\'t start Twitch: ' + jret.get('error', 'Unknown err'))
 
         game.state = args.state
         game.accept_date = datetime.utcnow()
@@ -1554,19 +1578,20 @@ class GameResource(restful.Resource):
             game.aborter = user
             notify_event(
                 game.root, 'abort',
-                game = game,
+                game=game,
             )
             return dict(
-                started = True,
+                started=True,
             )
         if game.aborter != game.other(user):
             abort('Internal error, wrong aborter', 500)
         Poller.gameDone(game, 'aborted',
-                        details='Challenge was aborted by request of '+game.aborter.nickname,
+                        details='Challenge was aborted by request of ' + game.aborter.nickname,
                         )
         return dict(
-            aborted = True,
+            aborted=True,
         )
+
 
 @api.resource('/games/<int:id>/result')
 class GameResultResource(restful.Resource):
@@ -1606,42 +1631,43 @@ class GameResultResource(restful.Resource):
             else:
                 args.result = 'draw'
 
-        setattr(game, 'report_%s'%role, args.winner)
-        setattr(game, 'report_%s_date'%role, datetime.utcnow())
+        setattr(game, 'report_%s' % role, args.winner)
+        setattr(game, 'report_%s_date' % role, datetime.utcnow())
 
         notify_event(game, 'report', message='{user} reported {result}'.format(
             user=user.nickname,
             result=args.result,
         ))
 
-        if not getattr(game, 'report_%s'%other):
+        if not getattr(game, 'report_%s' % other):
             # no need to process further
             return dict(
-                saved = True,
+                saved=True,
             )
 
         game.report_try += 1
 
         crr = game.report_creator
         opr = game.report_opponent
-        if(
-            crr == opr == 'draw' or
-            ('creator','opponent') in ((crr,opr),(opr,crr))
+        if (
+                            crr == opr == 'draw' or
+                        ('creator', 'opponent') in ((crr, opr), (opr, crr))
         ):
             # good
             poller = Poller.findPoller(game.gametype)
             endtime = min(game.report_creator_date, game.report_opponent_date)
             poller.gameDone(game, args.winner, endtime)
             return dict(
-                success = True,
+                success=True,
             )
 
         notify_event(game, 'system', message='reports don\' match')
         return jsonify(
-            success = False,
-            reason = 'Your reports don\'t match! '
-                    'Please consider changing, or contact support.',
+            success=False,
+            reason='Your reports don\'t match! '
+                   'Please consider changing, or contact support.',
         )
+
 
 @api.resource(
     '/games/<int:id>/msg',
@@ -1651,7 +1677,8 @@ class GameResultResource(restful.Resource):
 class GameMessageResource(UploadableResource):
     PARAM = 'msg'
     SUBDIR = 'messages'
-    ALLOWED = ['mpg','mp3','ogg','ogv', 'mp4', 'm4a']
+    ALLOWED = ['mpg', 'mp3', 'ogg', 'ogv', 'mp4', 'm4a']
+
     @require_auth
     def get_entity(self, args, is_put, user):
         game = Game.query.get_or_404(args['id'])
@@ -1677,15 +1704,16 @@ class ChatMessageResource(restful.Resource):
     @classproperty
     def fields(cls):
         return dict(
-            id = fields.Integer,
-            sender = fields.Nested(PlayerResource.fields()),
-            receiver = fields.Nested(PlayerResource.fields()),
-            #game = fields.Nested(GameResource.fields),
-            text = fields.String,
-            time = fields.DateTime,
-            has_attachment = fields.Boolean,
-            viewed = fields.Boolean,
+            id=fields.Integer,
+            sender=fields.Nested(PlayerResource.fields()),
+            receiver=fields.Nested(PlayerResource.fields()),
+            # game = fields.Nested(GameResource.fields),
+            text=fields.String,
+            time=fields.DateTime,
+            has_attachment=fields.Boolean,
+            viewed=fields.Boolean,
         )
+
     @require_auth
     def get(self, user, game_id=None, player_id=None, id=None):
         player = None
@@ -1710,7 +1738,7 @@ class ChatMessageResource(restful.Resource):
             if player:
                 if user != player and not msg.is_for(player):
                     abort('Player ID mismatch', 404)
-                # else don't check message's other party
+                    # else don't check message's other party
             elif game:
                 if msg.game != game:
                     abort('Wrong msg id for this game', 404)
@@ -1742,10 +1770,10 @@ class ChatMessageResource(restful.Resource):
         parser.add_argument(
             'order', default='time',
             choices=sum(
-                [[s, '-'+s]
+                [[s, '-' + s]
                  for s in (
-                     'time',
-                 )], []),
+                    'time',
+                )], []),
         )
         args = parser.parse_args()
         if args.results_per_page > 50:
@@ -1768,9 +1796,9 @@ class ChatMessageResource(restful.Resource):
             dict(messages=fields.List(fields.Nested(self.fields))),
         )
         ret.update(dict(
-            num_results = total_count,
-            total_pages = math.ceil(total_count/args.results_per_page),
-            page = args.page,
+            num_results=total_count,
+            total_pages=math.ceil(total_count / args.results_per_page),
+            page=args.page,
         ))
         return ret
 
@@ -1793,7 +1821,7 @@ class ChatMessageResource(restful.Resource):
             player = game.other(user)
             if not player:
                 raise Forbidden('You cannot access this game', 403)
-            game = game.root # always attach messages to root game in session
+            game = game.root  # always attach messages to root game in session
 
         parser = RequestParser()
         parser.add_argument('text', required=False)
@@ -1807,7 +1835,7 @@ class ChatMessageResource(restful.Resource):
         db.session.add(msg)
 
         if 'attachment' in request.files:
-            db.session.commit() # for id
+            db.session.commit()  # for id
             ChatMessageAttachmentResource.upload(
                 request.files['attachment'],
                 msg)
@@ -1837,7 +1865,7 @@ class ChatMessageResource(restful.Resource):
             if player == user:
                 player = msg.other(user)
             elif msg.other(user) != player:
-                abort('Wrong user id') # TODO do we need to check that at all?
+                abort('Wrong user id')  # TODO do we need to check that at all?
         elif game_id:
             game = Game.query.get(game_id)
             if not game:
@@ -1856,6 +1884,7 @@ class ChatMessageResource(restful.Resource):
         db.session.commit()
         return marshal(msg, self.fields)
 
+
 @api.resource(
     '/players/<player_id>/messages/<int:id>/attachment',
     '/games/<int:game_id>/messages/<int:id>/attachment',
@@ -1863,7 +1892,8 @@ class ChatMessageResource(restful.Resource):
 class ChatMessageAttachmentResource(UploadableResource):
     PARAM = 'attachment'
     SUBDIR = 'attachments'
-    ALLOWED = ['mp4','m4a','mov','png','jpg']
+    ALLOWED = ['mp4', 'm4a', 'mov', 'png', 'jpg']
+
     @require_auth
     def get_entity(self, args, is_put, user):
         msg = ChatMessage.query.get_or_404(args['id'])
@@ -1885,16 +1915,19 @@ class ChatMessageAttachmentResource(UploadableResource):
         else:
             raise ValueError('no ids')
         return msg
+
     @classmethod
     def onupload(cls, entity, ext):
         if not entity.has_attachment:
             entity.has_attachment = True
             db.session.commit()
+
     @classmethod
     def ondelete(cls, entity):
         if entity.has_attachment:
             entity.has_attachment = False
             db.session.commit()
+
     found = onupload
     notfound = ondelete
 
@@ -1919,6 +1952,7 @@ class EventResource(restful.Resource):
             'game': fields.Nested(GameResource.fields_lite,
                                   allow_null=True),
         }
+
     @classproperty
     def fields_more(cls):
         # for push notifications
@@ -1930,7 +1964,7 @@ class EventResource(restful.Resource):
     def get(self, user, game_id, id=None):
         root = Game.query.get_or_404(game_id)
         if not root.is_root:
-            abort('This game is not root of hierarchy, use id %d'%root.root.id)
+            abort('This game is not root of hierarchy, use id %d' % root.root.id)
         if id:
             event = Event.query.filter_by(root=root, id=id).first_or_404()
             return marshal(event, self.fields)
@@ -1945,6 +1979,7 @@ class EventResource(restful.Resource):
             dict(events=fields.List(fields.Nested(self.fields))),
         )
 
+
 # Beta testers
 @api.resource(
     '/betatesters',
@@ -1954,15 +1989,16 @@ class BetaResource(restful.Resource):
     @classproperty
     def fields(cls):
         return dict(
-            id = fields.Integer,
-            email = fields.String,
-            name = fields.String,
-            gametypes = CommaListField,
-            platforms = CommaListField,
-            console = CommaListField,
-            create_date = fields.DateTime,
-            flags = JsonField,
+            id=fields.Integer,
+            email=fields.String,
+            name=fields.String,
+            gametypes=CommaListField,
+            platforms=CommaListField,
+            console=CommaListField,
+            create_date=fields.DateTime,
+            flags=JsonField,
         )
+
     @require_auth
     def get(self, user, id=None):
         if id:
@@ -1972,7 +2008,7 @@ class BetaResource(restful.Resource):
             raise Forbidden
 
         return jsonify(
-            betatesters = fields.List(fields.Nested(self.fields)).format(
+            betatesters=fields.List(fields.Nested(self.fields)).format(
                 Beta.query,
             ),
         )
@@ -1980,10 +2016,12 @@ class BetaResource(restful.Resource):
     def post(self, id=None):
         if id:
             raise MethodNotAllowed
+
         def nonempty(val):
             if not val:
                 raise ValueError('Should not be empty')
             return val
+
         parser = RequestParser()
         parser.add_argument('email', type=email, required=True)
         parser.add_argument('name', type=nonempty, required=True)
@@ -2008,8 +2046,8 @@ class BetaResource(restful.Resource):
         dd_stat.increment('beta.registration')
 
         return jsonify(
-            success = True,
-            betatester = marshal(
+            success=True,
+            betatester=marshal(
                 beta,
                 self.fields,
             ),
@@ -2026,22 +2064,23 @@ class BetaResource(restful.Resource):
         parser.add_argument('flags')
         args = parser.parse_args()
 
-        for k,v in args.items():
+        for k, v in args.items():
             if v is not None and hasattr(beta, k):
                 setattr(beta, k, v)
         log.info('flags for {}: {}'.format(beta.id, beta.flags))
         # and create backup for flags
         def merge(src, dst):
-            for k,v in src.items():
+            for k, v in src.items():
                 if isinstance(v, dict):
                     node = dst.setdefault(k, {})
                     merge(v, node)
                 elif isinstance(v, list):
                     dst.setdefault(k, [])
-                    dst[k] = list(set(dst[k] + v)) # merge items
+                    dst[k] = list(set(dst[k] + v))  # merge items
                 else:
                     dst[k] = v
             return dst
+
         try:
             src = json.loads(beta.flags)
             try:
@@ -2057,12 +2096,58 @@ class BetaResource(restful.Resource):
 
         return marshal(beta, self.fields)
 
+
 @api.resource(
     '/tournaments',
     '/tournaments/<int:id>',
 )
-class TournamentsResource(restful.Resource):
-    pass
+class TournamentResource(restful.Resource):
+
+    @classproperty
+    def fields(cls):
+        return {
+            'id': fields.Integer
+        }
+
+    @require_auth
+    def post(self, user, id=None):
+        """
+        participate in tournament
+        """
+        if not id:
+            raise MethodNotAllowed
+        tournament = Tournament.query.get_or_404(id)
+        if not tournament.open:
+            pass # TODO: error
+
+    def get_single(self, id):
+        return marshal(Tournament.query.get_or_404(id), self.fields)
+
+    def get_many(self):
+        parser = RequestParser()
+        parser.add_argument('page', type=int, default=1)
+        parser.add_argument('results_per_page', type=int, default=10)
+        args = parser.parse_args()
+        # cap
+        if args.results_per_page > 50:
+            abort('[results_per_page]: max is 50')
+
+        query = Tournament.query
+        #  TODO: ordering, filtering
+        total_count = query.count()
+        query = query.paginate(args.page, args.results_per_page,
+                               error_out=False)
+        return dict(
+            games=fields.List(fields.Nested(self.fields)).format(query.items),
+            num_results=total_count,
+            total_pages=math.ceil(total_count / args.results_per_page),
+            page=args.page,
+        )
+
+    def get(self, id=None):
+        if id:
+            return self.get_single(id)
+        return self.get_many()
 
 
 # Debugging-related endpoints
@@ -2070,7 +2155,7 @@ class TournamentsResource(restful.Resource):
 @require_auth
 def push_state(state, user):
     if state not in Game.state.prop.columns[0].type.enums:
-        abort('Unknown state '+state, 404)
+        abort('Unknown state ' + state, 404)
 
     parser = GameResource.postparser.copy()
     parser.remove_argument('opponent_id')
@@ -2087,8 +2172,9 @@ def push_state(state, user):
 
     return jsonify(
         pushed=result,
-        game = marshal(game, GameResource.fields)
+        game=marshal(game, GameResource.fields)
     )
+
 
 @app.route('/debug/push_event/<int:root_id>/<etype>', methods=['POST'])
 @require_auth
@@ -2113,20 +2199,27 @@ def push_event(root_id, etype, user):
         abort(str(e))
     return jsonify(success=success)
 
+
 @app.route('/debug/echo')
 def debug_echo():
     return '<{}>\n{}\n'.format(
         repr(request.get_data()),
         repr(request.form),
     )
+
+
 @app.route('/debug/raise')
 def debug_raise():
     raise Forbidden('Hello World!')
+
+
 @app.route('/debug/datadog')
 def debug_datadog():
     datadog('Debug', 'Debug received')
     dd_stat.increment('player.registered')
     return ''
+
+
 @app.route('/debug/money')
 @require_auth
 def debug_money(user):
@@ -2138,14 +2231,15 @@ def debug_money(user):
     SUM = 100
     user.balance += SUM
     db.session.add(Transaction(
-        player = user,
-        type = 'deposit',
-        sum = SUM,
-        balance = user.balance,
-        comment = 'Debugging income',
+        player=user,
+        type='deposit',
+        sum=SUM,
+        balance=user.balance,
+        comment='Debugging income',
     ))
     db.session.commit()
     return jsonify(success=True)
+
 
 @app.route('/debug/@llg@mes')
 def debug_allgames():
@@ -2206,27 +2300,29 @@ span.new, span.finished, span.declined {
     </th>
 <tr/>
         """.format(
-            id = game.id,
-            creator = game.creator.nickname,
-            opponent = game.opponent.nickname,
-            twitch_handle = game.twitch_handle or '',
-            twitch_identity_creator = game.twitch_identity_creator,
-            twitch_identity_opponent = game.twitch_identity_opponent,
-            create_date = game.create_date,
-            bet = game.bet,
-            state = game.state,
-            winner = game.winner,
+            id=game.id,
+            creator=game.creator.nickname,
+            opponent=game.opponent.nickname,
+            twitch_handle=game.twitch_handle or '',
+            twitch_identity_creator=game.twitch_identity_creator,
+            twitch_identity_opponent=game.twitch_identity_opponent,
+            create_date=game.create_date,
+            bet=game.bet,
+            state=game.state,
+            winner=game.winner,
         ) for game in games
     ])
+
+
 @app.route('/debug/f@keg@me/<int:id>/<winner>', methods=['POST'])
 def debug_fake_result(id, winner):
     game = Game.query.get_or_404(id)
     if winner not in ('creator', 'opponent', 'draw'):
-        abort('Bad winner '+winner)
+        abort('Bad winner ' + winner)
     if game.state != 'accepted':
-        abort('Unexpected game state '+game.state)
+        abort('Unexpected game state ' + game.state)
     poller = Poller.findPoller(game.gametype)
     if not poller:
-        abort('No poller found for gt '+game.gametype)
+        abort('No poller found for gt ' + game.gametype)
     poller.gameDone(game, winner, datetime.utcnow())
     return jsonify(success=True)
