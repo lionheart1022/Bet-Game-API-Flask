@@ -1,5 +1,6 @@
 from datetime import timedelta
 from secret import DB_URL, JWT_SECRET
+from secret import SECRET_KEY
 #from secret import NEXMO_API_KEY, NEXMO_API_SECRET
 #from secret import GOOGLE_PUSH_API_KEY, APPLE_PUSH_API_KEY
 #from secret import GOOGLE_AUTH_API_KEY

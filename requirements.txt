@@ -14,6 +14,8 @@ flask_restful
 pytz
 aniso8601
 
+flask_socketio
+
 apns-clerk
 
 pillow
