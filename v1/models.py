@@ -431,10 +431,23 @@ class Tournament(db.Model):
     payin = db.Column(db.Float, nullable=False)
     payout = db.Column(db.Float, nullable=False)
 
-    player_id = db.Column(db.Integer, nullable=True)
-    players = db.relationship(Player, secondary='participant', backref='tournaments', lazy='dynamic')
+    players = db.relationship(
+        Player,
+        secondary='participant',
+        backref='tournaments',
+        lazy='dynamic',
+        collection_class=list,
+    )
 
-    participants_cap = db.Column(db.Integer)
+    rounds_count = db.Column(db.Integer)
+
+    @hybrid_property
+    def participants_cap(self):
+        return 2 ** self.rounds_count
+
+    @hybrid_property
+    def full(self):
+        return self.participants_count > self.participants_cap
 
     @hybrid_property
     def participants_count(self):
@@ -445,19 +458,123 @@ class Tournament(db.Model):
     finish_date = db.Column(db.DateTime, nullable=False)
 
     @hybrid_property
-    def open(self):
-        return self.open_date < datetime.utcnow() and (
-            self.participants_count < self.participants_cap or not self.participants_cap
+    def tournament_length(self) -> timedelta:
+        return self.finish_date - self.start_date
+
+    @hybrid_property
+    def round_length(self) -> timedelta:
+        return self.tournament_length / self.rounds_count
+
+    @property
+    def rounds_dates(self):
+        for i in range(self.rounds_count):
+            round_start = self.start_date + self.round_length * i
+            round_end = self.start_date + self.round_length * (i+1)
+            yield round_start, round_end
+
+    @property
+    def current_round(self):
+        return (datetime.utcnow() - self.start_date) // self.round_length
+
+    @hybrid_property
+    def available(self):
+        return self.open_date < datetime.utcnow() < self.start_date and (
+            self.participants_count < self.participants_cap
         )
+
+    def __init__(self, rounds_count, open_date, start_date, finish_date):
+        assert rounds_count >= 0
+        assert open_date < start_date < finish_date
+        self.rounds_count = rounds_count
+        self.start_date, self.finish_date, self.open_date = open_date, start_date, finish_date
+
+    def create_participant(self, player: Player):
+        if self.participants_count >= self.participants_cap:
+            return None
+        participant = Participant(player.id, self.id)
+        if not self.participants:
+            participant.order = 0
+        else:
+            participant.order = self.participants[-1].order + 1
+        return participant
+
+    @property
+    def participants_by_round(self):
+        return {
+            (round_index + 1): [
+                participant
+                for participant in self.participants
+                if participant.round >= (round_index + 1)
+            ]
+            for round_index in range(self.rounds_count)
+        }
+
+    @property
+    def current_round_opponents(self):
+        opponents_by_id = {}
+        participants_of_round = [
+            participant
+            for participant in self.participants
+            if participant.round == self.current_round
+        ]
+        for i in range(len(participants_of_round) - 1):
+            if i % 2 == 0:
+                p1 = participants_of_round[i]
+                p2 = participants_of_round[i + i]
+                opponents_by_id[p1.player_id] = p2
+                opponents_by_id[p2.player_id] = p1
+        return opponents_by_id
+
+    def add_player(self, player: Player):
+        if self.open_date > datetime.utcnow():
+            return False, 'This tournament is not open yet', 'not_open'
+        if self.start_date < datetime.utcnow():
+            return False, 'This tournament has already started', 'started'
+        if player.available < self.payin:
+            return False, 'You don\'t have enough coins', 'coins'
+
+        participant = self.create_participant(player)
+        if participant:
+            db.session.add(participant)
+            db.session.commit()
+            return True, 'Success', None
+        else:
+            return False, 'Tournament is full', 'participants_cap'
+
+    def get_opponent(self, player: Player):
+        current_participant = Participant.query.get((player.id, self.id))
+        if current_participant.defeated:
+            return None, 'You were defeated'
+        if current_participant.round < self.current_round:
+            return None, 'You\'re late'
+        if current_participant.round > self.current_round:
+            return None, 'Next round haven\'t begun yet'
+        return self.current_round_opponents[player.id].player, None
 
 
 
 class Participant(db.Model):
+    __tablename__ = 'participant'
+
+    def __init__(self, player_id, tournament_id):
+        self.player_id, self.tournament_id = player_id, tournament_id
+
     player_id = db.Column(db.Integer(), db.ForeignKey(Player.id), index=True)
     tournament_id = db.Column(db.Integer(), db.ForeignKey(Tournament.id), index=True)
 
-    tournament = db.relationship(Tournament, backref=db.backref('participants', lazy='dynamic'))
+    tournament = db.relationship(
+        Tournament, backref=db.backref(
+            'participants', lazy='dynamic', order_by='Participant.order'
+        )
+    )
     player = db.relationship(Tournament, backref='participations')
+
+    defeated = db.Column(db.Boolean, default=False, server_default='false', nullable=False)
+    round = db.Column(db.Integer, default=1, server_default='1', nullable=False)
+    order = db.Column(db.Integer, nullable=True)
+
+    db.PrimaryKeyConstraint(player_id, tournament_id)
+    db.UniqueConstraint(tournament_id, order)
 
 
 class Game(db.Model):

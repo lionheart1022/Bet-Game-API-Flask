@@ -1389,7 +1389,7 @@ class GameResource(restful.Resource):
         if args.twitch_handle and not poller.twitch:
             abort('Twitch streams are not yet supported for this gametype')
 
-        if args.bet < 0.99:
+        if args.bet < 0.99:  # FIXME: hardcoded min bet
             abort('Bet is too low', problem='bet')
         if args.bet > user.available:
             abort('You don\'t have enough coins', problem='coins')
@@ -2102,11 +2102,25 @@ class BetaResource(restful.Resource):
     '/tournaments/<int:id>',
 )
 class TournamentResource(restful.Resource):
-
-    @classproperty
-    def fields(cls):
+    @classmethod
+    def fields_single(cls):
         return {
-            'id': fields.Integer
+            'id': fields.Integer,
+            'open_date': fields.DateTime,
+            'start_date': fields.DateTime,
+            'finish_date': fields.DateTime,
+            'players': fields.List(PlayerResource.fields()),
+            'participants_cap': fields.Integer,
+        }
+
+    @classmethod
+    def fields_many(cls):
+        return {
+            'id': fields.Integer,
+            'open_date': fields.DateTime,
+            'start_date': fields.DateTime,
+            'finish_date': fields.DateTime,
+            'participants_cap': fields.Integer,
         }
 
     @require_auth
@@ -2117,28 +2131,49 @@ class TournamentResource(restful.Resource):
         if not id:
             raise MethodNotAllowed
         tournament = Tournament.query.get_or_404(id)
-        if not tournament.open:
-            pass # TODO: error
+        success, message, problem = tournament.add_player(user)
+        if success:
+            return self.get_single(id)
+        else:
+            abort(message, problem=problem)
 
     def get_single(self, id):
-        return marshal(Tournament.query.get_or_404(id), self.fields)
+        return marshal(Tournament.query.get_or_404(id), self.fields_single())
 
     def get_many(self):
         parser = RequestParser()
         parser.add_argument('page', type=int, default=1)
         parser.add_argument('results_per_page', type=int, default=10)
+        parser.add_argument('order', default='id', choices=sum([
+            [s, '-' + s]
+            for s in (
+                'id',
+                'open_date',
+                'start_date',
+                'finish_date',
+            )
+            ], [])
+        )
         args = parser.parse_args()
         # cap
         if args.results_per_page > 50:
             abort('[results_per_page]: max is 50')
 
-        query = Tournament.query
-        #  TODO: ordering, filtering
+        query = Tournament.query.filter(Tournament.available == True)
+
+        # TODO: filters
+        if args.order:
+            if args.order.startswith('-'):
+                order = getattr(Tournament, args.order[1:]).desc()
+            else:
+                order = getattr(Tournament, args.order).asc()
+            query = query.order_by(order)
+
         total_count = query.count()
         query = query.paginate(args.page, args.results_per_page,
                                error_out=False)
         return dict(
-            games=fields.List(fields.Nested(self.fields)).format(query.items),
+            games=fields.List(fields.Nested(self.fields_many())).format(query.items),
             num_results=total_count,
             total_pages=math.ceil(total_count / args.results_per_page),
             page=args.page,
@@ -2207,6 +2242,10 @@ def debug_echo():
         repr(request.form),
     )
 
+@app.route('/debug/pdb')
+def debug_pdb():
+    import pdb
+    pdb.set_trace()
 
 @app.route('/debug/raise')
 def debug_raise():
