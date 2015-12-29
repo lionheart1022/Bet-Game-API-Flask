@@ -510,6 +510,7 @@ class Tournament(db.Model):
 
         participant = self.create_participant(player)
         if participant:
+            player.locked += self.payin
             db.session.add(participant)
             db.session.commit()
             return True, 'Success', None
