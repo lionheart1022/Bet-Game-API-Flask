@@ -1286,7 +1286,7 @@ class GameResource(restful.Resource):
                             type=lambda id: Game.query.filter_by(id=id).one(),
                             required=False, dest='root')
         parser.add_argument('opponent_id', type=Player.find_or_fail,
-                            required=True, dest='opponent')
+                            required=False, dest='opponent')
         parser.add_argument('gamertag_creator', required=False)
         parser.add_argument('savetag', default='never', choices=(
             'never', 'ignore_if_exists', 'fail_if_exists', 'replace'))
@@ -1298,17 +1298,132 @@ class GameResource(restful.Resource):
         parser.add_argument('twitch_identity_opponent', required=False)
         parser.add_argument('gametype', choices=Poller.all_gametypes,
                             required=True)
-        parser.add_argument('bet', type=float, required=True)
+        parser.add_argument('bet', type=float, required=False)
+        parser.add_argument('tournament_id', type=Tournament.query.get_or_404, required=False)
         return parser
+
 
     @require_auth
     def post(self, user, id=None):
         if id:
             raise MethodNotAllowed
-
         args = self.postparser.parse_args()
         args.gamemode = None
 
+        if args.tournament and not (args.bet or args.opponent):
+            args.opponent = args.tournament.get_opponent(user)
+            return self.create_tournament_game(user, args)
+
+        if not args.tournament and args.bet and args.opponent:
+            return self.create_game(user, args)
+        abort('')  # TODO: write error message
+
+    def create_tournament_game(self, user, args):
+        poller = Poller.findPoller(args.gametype)
+        if not poller or poller == DummyPoller:
+            abort('Support for this game is coming soon!')
+
+        if poller.gamemodes:
+            gmparser = RequestParser()
+            gmparser.add_argument('gamemode', choices=poller.gamemodes,
+                                  required=True)
+            gmargs = gmparser.parse_args()
+            args.gamemode = gmargs.gamemode
+
+        if args.opponent == user:
+            abort('You cannot compete with yourself')
+
+        # check passed identities
+        # and pre-load them from user profiles if possible
+        had_creatag = args.gamertag_creator
+        for name, identity, mandatory in (
+                ('gamertag', poller.identity, True),
+                ('twitch_identity', poller.twitch_identity, poller.twitch == 2),
+        ):
+            if not identity:
+                for role in 'creator', 'opponent':
+                    if args['{}_{}'.format(name, role)]:
+                        abort('[{}_{}]: not supported for this game type'.format(
+                            name, role), problem=argname)
+                continue
+            for role, ruser in (
+                    ('creator', user),
+                    ('opponent', args.opponent),
+            ):
+                argname = '{}_{}'.format(name, role)
+                if args[argname]:
+                    try:
+                        args[argname] = identity.checker(args[argname])
+                    except ValueError as e:
+                        abort('[{}]: {}'.format(argname, e), problem=argname)
+                else:
+                    args[argname] = getattr(ruser, identity.id)
+                    if mandatory and role == 'creator' \
+                            and not args[argname]:  # not provided
+                        abort('Please specify your {}'.format(
+                            identity.name,
+                        ), problem=argname)
+            if args[name + '_creator'] == args[name + '_opponent']:
+                abort('Your and your opponent\'s {} should be different!'.format(
+                    identity.name,
+                ))
+        # Update creator's identity if requested
+        if had_creatag and poller.identity:
+            if args.savetag == 'replace':
+                repl = True
+            elif args.savetag == 'never':
+                repl = False
+            elif args.savetag == 'ignore_if_exists':
+                repl = not getattr(user, poller.identity.id)
+            elif args.savetag == 'fail_if_exists':
+                repl = True
+                if getattr(user, poller.identity.id) != args.gamertag_creator:
+                    abort('{} is already set and is different!'.format(
+                        poller.identity.name), problem='savetag')
+            if repl:
+                setattr(user, poller.identity.id, args.gamertag_creator)
+
+        # Perform sameregion check
+        if args.gamertag_opponent and poller.sameregion:
+            # additional check for regions
+            region1 = args['gamertag_creator'].split('/', 1)[0]
+            region2 = args['gamertag_opponent'].split('/', 1)[0]
+            if region1 != region2:
+                abort('You and your opponent should be in the same region; '
+                      'but actually you are in {} and your opponent is in {}'.format(
+                    region1, region2))
+
+        if poller.twitch == 2 and not args.twitch_handle:
+            abort('Please specify your twitch stream URL',
+                  problem='twitch_handle')
+        if args.twitch_handle and not poller.twitch:
+            abort('Twitch streams are not yet supported for this gametype')
+
+        game = Game()
+        game.creator = user
+        game.opponent = args.opponent
+        log.debug('setting parent')
+        if args.root:
+            game.parent = args.root.root  # ensure we use real root
+        game.gamertag_creator = args.gamertag_creator
+        game.gamertag_opponent = args.gamertag_opponent
+        game.twitch_handle = args.twitch_handle
+        game.twitch_identity_creator = args.twitch_identity_creator
+        game.twitch_identity_opponent = args.twitch_identity_opponent
+        game.gametype = args.gametype
+        game.gamemode = args.gamemode
+        game.bet = 0
+        game.tournament = args.tournament
+        db.session.add(game)
+
+        db.session.commit()
+
+        log.debug('notifying')
+        notify_users(game)
+
+        return marshal(game, self.fields), 201
+
+    def create_game(self, user, args):
         poller = Poller.findPoller(args.gametype)
         if not poller or poller == DummyPoller:
             abort('Support for this game is coming soon!')
@@ -2099,29 +2214,38 @@ class BetaResource(restful.Resource):
 
 @api.resource(
     '/tournaments',
+    '/tournaments/',
     '/tournaments/<int:id>',
 )
 class TournamentResource(restful.Resource):
-    @classmethod
-    def fields_single(cls):
-        return {
-            'id': fields.Integer,
-            'open_date': fields.DateTime,
-            'start_date': fields.DateTime,
-            'finish_date': fields.DateTime,
-            'players': fields.List(PlayerResource.fields()),
-            'participants_cap': fields.Integer,
-        }
+    participant_fields = {
+        'player': fields.Nested(PlayerResource.fields()),
+        'round': fields.Integer,
+        'defeated': fields.Boolean,
+    }
+    round_fields = {
+        'start': fields.DateTime,
+        'end': fields.DateTime,
+    }
+    fields_single = {
+        'id': fields.Integer,
+        'open_date': fields.DateTime,
+        'start_date': fields.DateTime,
+        'finish_date': fields.DateTime,
+        'rounds_dates': fields.List(fields.Nested(round_fields)),
+        'participants_by_round': fields.List(fields.List(
+            fields.Nested(participant_fields, allow_null=True)
+        )),
+        'participants_cap': fields.Integer,
+    }
 
-    @classmethod
-    def fields_many(cls):
-        return {
-            'id': fields.Integer,
-            'open_date': fields.DateTime,
-            'start_date': fields.DateTime,
-            'finish_date': fields.DateTime,
-            'participants_cap': fields.Integer,
-        }
+    fields_many = {
+        'id': fields.Integer,
+        'open_date': fields.DateTime,
+        'start_date': fields.DateTime,
+        'finish_date': fields.DateTime,
+        'participants_cap': fields.Integer,
+    }
 
     @require_auth
     def post(self, user, id=None):
@@ -2138,7 +2262,7 @@ class TournamentResource(restful.Resource):
             abort(message, problem=problem)
 
     def get_single(self, id):
-        return marshal(Tournament.query.get_or_404(id), self.fields_single())
+        return marshal(Tournament.query.get_or_404(id), self.fields_single)
 
     def get_many(self):
         parser = RequestParser()
@@ -2173,7 +2297,7 @@ class TournamentResource(restful.Resource):
         query = query.paginate(args.page, args.results_per_page,
                                error_out=False)
         return dict(
-            games=fields.List(fields.Nested(self.fields_many())).format(query.items),
+            games=fields.List(fields.Nested(self.fields_many)).format(query.items),
             num_results=total_count,
             total_pages=math.ceil(total_count / args.results_per_page),
             page=args.page,
