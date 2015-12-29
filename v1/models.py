@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
-from sqlalchemy import or_, and_, case, select
+
+from sqlalchemy import or_, case
 from sqlalchemy.sql.expression import func
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from flask import g
-import os
 
 from .main import db
 from .common import *
@@ -424,7 +424,6 @@ class Device(db.Model):
     def __repr__(self):
         return '<Device id={}, failed={}>'.format(self.id, self.failed)
 
-
 class Tournament(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -470,7 +469,10 @@ class Tournament(db.Model):
         for i in range(self.rounds_count):
             round_start = self.start_date + self.round_length * i
             round_end = self.start_date + self.round_length * (i+1)
-            yield round_start, round_end
+            yield {
+                'start': round_start,
+                'end': round_end,
+            }
 
     @property
     def current_round(self):
@@ -498,33 +500,6 @@ class Tournament(db.Model):
             participant.order = self.participants[-1].order + 1
         return participant
 
-    @property
-    def participants_by_round(self):
-        return {
-            (round_index + 1): [
-                participant
-                for participant in self.participants
-                if participant.round >= (round_index + 1)
-            ]
-            for round_index in range(self.rounds_count)
-        }
-
-    @property
-    def current_round_opponents(self):
-        opponents_by_id = {}
-        participants_of_round = [
-            participant
-            for participant in self.participants
-            if participant.round == self.current_round
-        ]
-        for i in range(len(participants_of_round) - 1):
-            if i % 2 == 0:
-                p1 = participants_of_round[i]
-                p2 = participants_of_round[i + i]
-                opponents_by_id[p1.player_id] = p2
-                opponents_by_id[p2.player_id] = p1
-        return opponents_by_id
-
     def add_player(self, player: Player):
         if self.open_date > datetime.utcnow():
             return False, 'This tournament is not open yet', 'not_open'
@@ -541,15 +516,61 @@ class Tournament(db.Model):
         else:
             return False, 'Tournament is full', 'participants_cap'
 
+    @property
+    def participants_by_round(self):
+        result = [[
+            (p1, p2)
+            for p1, p2 in zip(self.participants[::2], self.participants[1::2])
+        ]]
+        for round_index in range(2, self.rounds_count + 1):
+            participants = []
+            for p1, p2 in result[-1]:
+                if p1.round >= round_index > p2.round:
+                    participants.append(p1)
+                    continue
+                if p2.round >= round_index > p1.round:
+                    participants.append(p2)
+                    continue
+                participants.append(None)
+
+            result.append([
+                (p1, p2)
+                for p1, p2 in zip(participants[::2], participants[1::2])
+            ])
+        return result
+
+    @property
+    def current_opponents_by_id(self) -> dict:
+        opponents_by_id = {}
+        participants = self.participants_by_round[self.current_round - 1]
+        for p1, p2 in participants:
+            if p1:
+                opponents_by_id[p1.player_id] = p2
+            if p2:
+                opponents_by_id[p2.player_id] = p1
+        return opponents_by_id
+
     def get_opponent(self, player: Player):
         current_participant = Participant.query.get((player.id, self.id))
         if current_participant.defeated:
             return None, 'You were defeated'
         if current_participant.round < self.current_round:
+            if not current_participant.defeated:
+                current_participant.defeated = True
+                db.session.commit()
             return None, 'You\'re late'
         if current_participant.round > self.current_round:
             return None, 'Next round haven\'t begun yet'
-        return self.current_round_opponents[player.id].player, None
+
+        opponent = self.current_opponents_by_id.get(player.id, None)
+        if opponent:
+            return opponent.player, None
+        current_participant.round += 1
+        db.session.commit()
+        if current_participant.round > self.rounds_count:
+            return None, 'You won the tournament!'
+        else:
+            return None, 'There are no opponent for you; you got to next round'
 
 
 
