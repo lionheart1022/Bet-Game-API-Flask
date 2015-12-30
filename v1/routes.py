@@ -1216,6 +1216,7 @@ class GameResource(restful.Resource):
             'winner': fields.String,
             'details': fields.String,
             'finish_date': fields.DateTime,
+            'tournament_id': fields.Integer,
         }
 
     @classproperty
@@ -1310,11 +1311,11 @@ class GameResource(restful.Resource):
         args = self.postparser.parse_args()
         args.gamemode = None
 
-        if args.tournament and not (args.bet or args.opponent):
+        if args.tournament and not (args.bet or args.opponent): # tournament game
             args.opponent = args.tournament.get_opponent(user)
             return self.create_tournament_game(user, args)
 
-        if not args.tournament and args.bet and args.opponent:
+        if not args.tournament and args.bet and args.opponent: # simple game
             return self.create_game(user, args)
         abort('')  # TODO: write error message
 

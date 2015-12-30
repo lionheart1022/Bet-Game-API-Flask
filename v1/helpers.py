@@ -749,11 +749,13 @@ def notify_event(root, etype, debug=False, **kwargs):
         if not game:
             raise ValueError('No game specified')
         if game.state == 'finished' and game.winner in ['creator','opponent']:
-            # special handling
+            # special handling-
             winner = (evt.game.creator
                       if evt.game.winner == 'creator' else
                       evt.game.opponent)
             looser = evt.game.other(winner)
+            if game.tournament:
+                game.tournament.handle_event(winner, looser)
             ret = notify_event_push(
                 evt, winner,
                 'Congratulations, you won the game!',

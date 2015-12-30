@@ -430,6 +430,11 @@ class Tournament(db.Model):
     payin = db.Column(db.Float, nullable=False)
     payout = db.Column(db.Float, nullable=False)
 
+    aborted = db.Column(db.Boolean, nullable=False, default=False, server_default='false')
+
+    winner_id = db.Column(db.Integer(), db.ForeignKey(Player.id), required=False)
+    winner = db.relationship(Player, backref='won_tournaments')
+
     players = db.relationship(
         Player,
         secondary='participant',
@@ -450,7 +455,7 @@ class Tournament(db.Model):
 
     @hybrid_property
     def participants_count(self):
-        return self.participants.count()
+        return Participant.query.filter(Participant.tournament_id == self.id).count()
 
     open_date = db.Column(db.DateTime, nullable=False)
     start_date = db.Column(db.DateTime, nullable=False)
@@ -484,6 +489,10 @@ class Tournament(db.Model):
             self.participants_count < self.participants_cap
         )
 
+    @hybrid_property
+    def started(self):
+        return self.start_date < datetime.utcnow()
+
     def __init__(self, rounds_count, open_date, start_date, finish_date):
         assert rounds_count >= 0
         assert open_date < start_date < finish_date
@@ -501,9 +510,11 @@ class Tournament(db.Model):
         return participant
 
     def add_player(self, player: Player):
+        if self.aborted:
+            return False, 'This tournament was aborted', 'aborted'
         if self.open_date > datetime.utcnow():
             return False, 'This tournament is not open yet', 'not_open'
-        if self.start_date < datetime.utcnow():
+        if self.started:
             return False, 'This tournament has already started', 'started'
         if player.available < self.payin:
             return False, 'You don\'t have enough coins', 'coins'
@@ -516,6 +527,43 @@ class Tournament(db.Model):
             return True, 'Success', None
         else:
             return False, 'Tournament is full', 'participants_cap'
+
+    def abort(self):
+        self.aborted = True
+        for participant in self.participants:
+            participant.player.locked -= self.payin
+            db.session.delete(participant)
+        db.session.commit()
+
+    def set_winner(self, participant: Participant):
+        self.winner = participant.player
+        for participant in self.participants:
+            participant.player.locked -= self.payin
+            participant.player.balance -= self.payin
+            db.session.add(Transaction(
+                player = participant.player,
+                type = 'other',
+                sum = self.payin,
+                balance = participant.player.balance,
+                comment = 'Tournament buy in'
+            ))
+        self.winner.balance += self.payout
+        db.session.add(Transaction(
+            player = self.winner,
+            type = 'win',
+            sum = self.payout,
+            balance = self.winner.balance,
+            comment = 'Tournament payout'
+        ))
+        db.session.commit()
+
+    def check_winner(self):
+        maybe_winner = None
+        for participant in self.participants:
+            if not maybe_winner or maybe_winner.round < participant.round:
+                maybe_winner = participant
+        if maybe_winner and maybe_winner.round > self.rounds_count:
+            self.set_winner(maybe_winner)
 
     @property
     def participants_by_round(self):
@@ -568,11 +616,21 @@ class Tournament(db.Model):
             return opponent.player, None
         current_participant.round += 1
         db.session.commit()
-        if current_participant.round > self.rounds_count:
-            return None, 'You won the tournament!'
-        else:
-            return None, 'There are no opponent for you; you got to next round'
+        self.check_state()
 
+    def check_state(self):
+        if self.started and not self.full:
+            self.abort()
+        if not self.aborted and not self.winner:
+            self.check_winner()
+
+    def handle_event(self, winner: Player, looser: Player):
+        winner_participant = Participant.query.get((winner.id, self.id))
+        looser_participant = Participant.query.get((looser.id, self.id))
+        looser_participant.defeated = True
+        winner_participant.round += 1
+        db.session.commit()
+        self.check_state()
 
 
 class Participant(db.Model):
@@ -586,10 +644,10 @@ class Participant(db.Model):
 
     tournament = db.relationship(
         Tournament, backref=db.backref(
-            'participants', lazy='dynamic', order_by='Participant.order'
+            'participants', order_by='Participant.order'
         )
     )
-    player = db.relationship(Tournament, backref='participations')
+    player = db.relationship(Player, backref='participations')
 
     defeated = db.Column(db.Boolean, default=False, server_default='false', nullable=False)
     round = db.Column(db.Integer, default=1, server_default='1', nullable=False)
