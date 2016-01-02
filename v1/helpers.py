@@ -755,7 +755,10 @@ def notify_event(root, etype, debug=False, **kwargs):
                       evt.game.opponent)
             looser = evt.game.other(winner)
             if game.tournament:
-                game.tournament.handle_event(winner, looser)
+                game.tournament.handle_game_result(
+                    winner=winner,
+                    looser=looser,
+                )
             ret = notify_event_push(
                 evt, winner,
                 'Congratulations, you won the game!',
@@ -765,6 +768,28 @@ def notify_event(root, etype, debug=False, **kwargs):
                 'Sorry, you lost the game...',
             )
             return ret
+        if game.state == 'declined':
+            if game.tournament:
+                game.tournament.handle_game_result(
+                    winner=game.creator,
+                    looser=game.opponent,
+                )
+        if game.state == 'cancelled':
+            if game.tournament:
+                game.tournament.handle_game_result(
+                    winner=game.opponent,
+                    looser=game.creator,
+                )
+        if game.state == 'aborted':
+            if game.tournament:
+                looser = (evt.game.creator
+                      if evt.game.aborter == 'creator' else
+                      evt.game.opponent)
+                winner = evt.game.other(looser)
+                game.tournament.handle_game_result(
+                    winner=winner,
+                    looser=looser,
+                )
         msg = {
             'new': '{creator} invites you to compete',
             'cancelled': '{creator} cancelled their invitation',

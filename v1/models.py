@@ -541,19 +541,19 @@ class Tournament(db.Model):
             participant.player.locked -= self.payin
             participant.player.balance -= self.payin
             db.session.add(Transaction(
-                player = participant.player,
-                type = 'other',
-                sum = self.payin,
-                balance = participant.player.balance,
-                comment = 'Tournament buy in'
+                player=participant.player,
+                type='other',
+                sum=self.payin,
+                balance=participant.player.balance,
+                comment='Tournament buy in'
             ))
         self.winner.balance += self.payout
         db.session.add(Transaction(
-            player = self.winner,
-            type = 'win',
-            sum = self.payout,
-            balance = self.winner.balance,
-            comment = 'Tournament payout'
+            player=self.winner,
+            type='win',
+            sum=self.payout,
+            balance=self.winner.balance,
+            comment='Tournament payout'
         ))
         db.session.commit()
 
@@ -624,7 +624,7 @@ class Tournament(db.Model):
         if not self.aborted and not self.winner:
             self.check_winner()
 
-    def handle_event(self, winner: Player, looser: Player):
+    def handle_game_result(self, winner: Player, looser: Player):
         winner_participant = Participant.query.get((winner.id, self.id))
         looser_participant = Participant.query.get((looser.id, self.id))
         looser_participant.defeated = True
