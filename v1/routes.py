@@ -2087,18 +2087,18 @@ def socketio_auth(token=None):
                 log.debug('got msg: %s'%msg)
                 if msg.get('type') != 'pmessage':
                     continue
+                mdata = msg.get('data')
                 try:
-                    data = json.loads(msg.get('data'))
+                    if isinstance(mdata, bytes):
+                        mdata = mdata.decode()
+                    data = json.loads(mdata)
                 except ValueError:
-                    log.warning('Bad msg, not a json: '+str(msg.get('data')))
+                    log.warning('Bad msg, not a json: '+str(mdata)))
                     continue
                 log.debug('handling msg')
-                # TODO broadcast msg.data
-                # TODO handle user etc
                 sio_send(data)
         finally:
             p.unsubscribe()
-        # TODO: catch final exception?
     _sockets[request.sid] = eventlet.spawn(sender)
 @socketio.on('disconnect')
 def socketio_disconn():
