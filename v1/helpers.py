@@ -443,7 +443,7 @@ def string_field(field, ftype=None, check_unique=True, allow_empty=False):
     def check(val):
         if not isinstance(val, str):
             raise TypeError
-        if len(val) > maxsize:
+        if maxsize and len(val) > maxsize:
             raise ValueError('Too long string')
         if not val:
             if allow_empty:
