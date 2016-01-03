@@ -21,7 +21,7 @@ from eventlet.timeout import Timeout
 
 import config
 from .models import *
-from .main import db
+from .main import db, redis
 from .common import *
 
 def datadog(title, text=None, _log=True, **tags):
@@ -577,12 +577,24 @@ def send_push(players, alert, **kwargs):
     """
     Sends PUSH message with given alert to given player(s).
     Kwargs holds message payload.
+    This method will also send an event via Redis.
     Returns True if sent successfully, False if sending failed
     or None if no receivers were found (no push tokens).
     """
     if not isinstance(players, list):
         players = [players]
 
+    # first send via redis
+    # (it shall just ignore message if nobody listens for it)
+    redis_msg = json.dumps(kwargs)
+    redis_base = '{}.event.%s'.format('test' if config.TEST else 'prod')
+    for p in players:
+        redis.publish(
+            redis_base % p.id,
+            redis_msg,
+        )
+
+    # now let's see if we need to send anything with push
     receivers = []
     #receivers.append('0'*64) # mock
     for p in players:

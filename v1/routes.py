@@ -1,6 +1,8 @@
 from flask import request, jsonify, current_app, g, send_file, make_response
+from flask import copy_current_request_context
 from flask.ext import restful
 from flask.ext.restful import fields, marshal
+from flask.ext.socketio import send as sio_send, disconnect as sio_disconnect
 from sqlalchemy.sql.expression import func
 
 from werkzeug.exceptions import HTTPException
@@ -16,6 +18,7 @@ import itertools
 import operator
 import requests
 from PIL import Image
+import eventlet
 
 import config
 from .models import *
@@ -23,7 +26,7 @@ from .helpers import *
 from .apis import *
 from .polling import *
 from .helpers import MyRequestParser as RequestParser # instead of system one
-from .main import app, db, api, before_first_request
+from .main import app, db, api, before_first_request, socketio, redis
 
 # Players
 @api.resource(
@@ -1588,7 +1591,8 @@ class GameResultResource(restful.Resource):
         ], required=False)
         args = parser.parse_args()
 
-        if not (args.winner ^ args.result): # we need XOR here, not OR
+        if not (args.winner or args.result) or (args.winner and args.result):
+            # strings can't be XOR'ed by ^ it leads to TypeError
             abort('Please provide one of (winner, result) options')
         if args.result:
             if args.result == 'won':
@@ -2056,6 +2060,64 @@ class BetaResource(restful.Resource):
 
         return marshal(beta, self.fields)
 
+@socketio.on('connect')
+def socketio_conn():
+    log.info('socket connected')
+    # TODO check auth...
+    #return False # if auth failed
+_sockets = {} # sid -> sender
+@socketio.on('auth')
+def socketio_auth(token=None):
+    log.info('Auth request for socket {}, token {}'.format(
+        request.sid, token))
+    if request.sid in _sockets:
+        # already authorized
+        log.info('already authorized')
+        return False
+    try:
+        user = parseToken(token)
+    except Exception as e:
+        log.exception('Socket auth failed')
+        sio_disconnect()
+        return
+
+    log.info('Socket auth success for {}'.format(request.sid))
+    @copy_current_request_context
+    def sender():
+        p = redis.pubsub()
+        redis_base = '{}.event.%s'.format('test' if config.TEST else 'prod')
+        p.subscribe(redis_base % user.id)
+        try:
+            while True:
+                msg = p.get_message()
+                if not msg:
+                    eventlet.sleep(.5)
+                    continue
+
+                log.debug('got msg: %s'%msg)
+                if 'message' not in msg.get('type', ''): # msg or pmsg
+                    continue
+                mdata = msg.get('data')
+                try:
+                    if isinstance(mdata, bytes):
+                        mdata = mdata.decode()
+                    data = json.loads(mdata)
+                except ValueError:
+                    log.warning('Bad msg, not a json: '+str(mdata))
+                    continue
+                log.debug('handling msg')
+                sio_send(data)
+        finally:
+            p.unsubscribe()
+    _sockets[request.sid] = eventlet.spawn(sender)
+@socketio.on('disconnect')
+def socketio_disconn():
+    sender = _sockets.pop(request.sid, None)
+    log.debug('socket disconnected, will kill? - {} {}'.format(sender, request.sid))
+    if sender:
+        sender.kill()
+
+
 
 # Debugging-related endpoints
 @app.route('/debug/push_state/<state>', methods=['POST'])
@@ -2222,3 +2284,15 @@ def debug_fake_result(id, winner):
         abort('No poller found for gt '+game.gametype)
     poller.gameDone(game, winner, datetime.utcnow())
     return jsonify(success=True)
+@app.route('/debug/socksend')
+def debug_socksend():
+    socketio.send({'hello': 'world'})
+    return 'ok'
+@app.route('/debug/redissend')
+@require_auth
+def debug_redissend(user):
+    redis_base = '{}.event.%s'.format('test' if config.TEST else 'prod')
+    redis.publish(redis_base%user.id, json.dumps(
+        {'data':'Hello World.'}
+    ))
+    return 'ok'

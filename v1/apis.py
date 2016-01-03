@@ -14,7 +14,7 @@ try:
     from .helpers import log
 except ImportError:
     # test environment
-    from mock import config, log
+    from .mock import config, log
 
 ### External APIs ###
 def nexmo(endpoint, **kwargs):
