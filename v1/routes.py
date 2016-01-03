@@ -2064,8 +2064,8 @@ def socketio_conn():
     # TODO check auth...
     #return False # if auth failed
 @socketio.on('auth')
-def socketio_auth(json):
-    log.info('socket auth')
+def socketio_auth(json=None):
+    log.info('socket auth '+str(json))
 @before_first_request
 def socketio_sender():
     def sender():
