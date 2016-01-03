@@ -2,6 +2,7 @@ from flask import request, jsonify, current_app, g, send_file, make_response
 from flask import copy_current_request_context
 from flask.ext import restful
 from flask.ext.restful import fields, marshal
+from flask.ext.socketio import send as sio_send
 from sqlalchemy.sql.expression import func
 
 from werkzeug.exceptions import HTTPException
@@ -2064,6 +2065,7 @@ def socketio_conn():
     log.info('socket connected')
     # TODO check auth...
     #return False # if auth failed
+_sockets = {} # sid -> sender
 @socketio.on('auth')
 def socketio_auth(token=None):
     log.info('socket auth '+str(token))
@@ -2075,20 +2077,27 @@ def socketio_auth(token=None):
         try:
             while True:
                 msg = p.get_message()
-                log.debug('got msg: %s'%msg)
                 if not msg:
-                    log.debug('null message')
+                    eventlet.sleep(.5)
                     continue
+
+                log.debug('got msg: %s'%msg)
                 if msg.get('type') != 'message':
                     continue
                 log.debug('handling msg')
                 # TODO broadcast msg.data
                 # TODO handle user etc
-                socketio.send(msg.get('data'))
+                sio_send(msg.get('data'))
         finally:
             p.unsubscribe()
         # TODO: catch final exception?
-    eventlet.spawn(sender)
+    _sockets[request.sid] = eventlet.spawn(sender)
+@socketio.on('disconnect')
+def socketio_disconn():
+    sender = _sockets.pop(request.sid, None)
+    log.debug('socket disconnected, will kill? - {} {}'.format(sender, request.sid))
+    if sender:
+        sender.kill()
 
 
 
