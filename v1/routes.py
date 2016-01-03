@@ -2085,7 +2085,8 @@ def socketio_auth(token=None):
     @copy_current_request_context
     def sender():
         p = redis.pubsub()
-        p.subscribe('prod.event.%s' % user.id)
+        redis_base = '{}.event.%s'.format('test' if config.TEST else 'prod')
+        p.subscribe(redis_base % user.id)
         try:
             while True:
                 msg = p.get_message()
@@ -2290,7 +2291,8 @@ def debug_socksend():
 @app.route('/debug/redissend')
 @require_auth
 def debug_redissend(user):
-    redis.publish('prod.event.%s'%user.id, json.dumps(
+    redis_base = '{}.event.%s'.format('test' if config.TEST else 'prod')
+    redis.publish(redis_base%user.id, json.dumps(
         {'data':'Hello World.'}
     ))
     return 'ok'
