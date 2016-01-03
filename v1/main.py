@@ -17,6 +17,8 @@ def before_first_request(func):
 def init_app(flask_app):
     db.init_app(flask_app)
     api.init_app(flask_app)
+    # FIXME! Socketio requires resource name to match on client and on server
+    # so Nginx rewriting breaks it
     socketio.init_app(flask_app, resource='/test/v1/socket.io')
     redis.init_app(flask_app)
     flask_app.register_blueprint(app, url_prefix='/v1')
