@@ -4,6 +4,8 @@ from flask.ext import restful
 from flask.ext.socketio import SocketIO
 from flask.ext.redis import FlaskRedis
 
+import config
+
 app = Blueprint('v1', __name__)
 db = SQLAlchemy()
 api = restful.Api(prefix='/v1')
@@ -19,7 +21,9 @@ def init_app(flask_app):
     api.init_app(flask_app)
     # FIXME! Socketio requires resource name to match on client and on server
     # so Nginx rewriting breaks it
-    socketio.init_app(flask_app, resource='/test/v1/socket.io')
+    socketio.init_app(flask_app, resource='{}/v1/socket.io'.format(
+        '/test' if config.TEST else ''
+    ))
     redis.init_app(flask_app)
     flask_app.register_blueprint(app, url_prefix='/v1')
     flask_app.before_first_request_funcs.extend(_before1req)
