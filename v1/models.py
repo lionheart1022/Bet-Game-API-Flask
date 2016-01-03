@@ -432,7 +432,7 @@ class Tournament(db.Model):
 
     aborted = db.Column(db.Boolean, nullable=False, default=False, server_default='false')
 
-    winner_id = db.Column(db.Integer(), db.ForeignKey(Player.id), required=False)
+    winner_id = db.Column(db.Integer(), db.ForeignKey(Player.id), nullable=True)
     winner = db.relationship(Player, backref='won_tournaments')
 
     players = db.relationship(
