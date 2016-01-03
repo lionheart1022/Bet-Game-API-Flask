@@ -2076,10 +2076,10 @@ def socketio_auth(token=None):
             while True:
                 msg = p.get_message()
                 log.debug('got msg: %s'%msg)
-                if msg.get('type') != 'message':
-                    continue
                 if not msg:
                     log.debug('null message')
+                    continue
+                if msg.get('type') != 'message':
                     continue
                 log.debug('handling msg')
                 # TODO broadcast msg.data
