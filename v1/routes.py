@@ -2068,6 +2068,9 @@ def socketio_conn():
 _sockets = {} # sid -> sender
 @socketio.on('auth')
 def socketio_auth(token=None):
+    if request.sid in _sockets:
+        # already authorized
+        return False
     log.info('socket auth '+str(token))
     # TODO check token
     @copy_current_request_context
