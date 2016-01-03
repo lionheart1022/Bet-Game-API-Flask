@@ -586,10 +586,11 @@ def send_push(players, alert, **kwargs):
 
     # first send via redis
     # (it shall just ignore message if nobody listens for it)
+    redis_msg = json.dumps(kwargs)
     for p in players:
         redis.publish(
             'prod.event.%s' % p.id,
-            json.dumps(kwargs),
+            redis_msg,
         )
 
     # now let's see if we need to send anything with push
