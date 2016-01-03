@@ -538,7 +538,7 @@ class Tournament(db.Model):
             db.session.delete(participant)
         db.session.commit()
 
-    def set_winner(self, participant: Participant):
+    def set_winner(self, participant):
         self.winner = participant.player
         for participant in self.participants:
             participant.player.locked -= self.payin
