@@ -2288,7 +2288,7 @@ def debug_socksend():
     socketio.send({'hello': 'world'})
     return 'ok'
 @app.route('/debug/redissend')
-@requireauth
+@require_auth
 def debug_redissend(user):
     redis.publish('prod.event.%s'%user.id, json.dumps(
         {'data':'Hello World.'}
