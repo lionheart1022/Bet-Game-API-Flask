@@ -1,4 +1,5 @@
 from flask import request, jsonify, current_app, g, send_file, make_response
+from flask import copy_current_request_context
 from flask.ext import restful
 from flask.ext.restful import fields, marshal
 from sqlalchemy.sql.expression import func
@@ -2067,6 +2068,7 @@ def socketio_conn():
 def socketio_auth(token=None):
     log.info('socket auth '+str(token))
     # TODO check token
+    @copy_current_request_context
     def sender():
         p = redis.pubsub()
         p.subscribe('prod.event.*') # TODO user id
