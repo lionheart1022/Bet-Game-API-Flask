@@ -2073,7 +2073,7 @@ def socketio_auth(token=None):
     @copy_current_request_context
     def sender():
         p = redis.pubsub()
-        p.subscribe('prod.event.*') # TODO user id
+        p.psubscribe('prod.event.*') # TODO user id
         try:
             while True:
                 msg = p.get_message()
