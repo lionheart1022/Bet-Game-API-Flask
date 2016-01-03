@@ -806,6 +806,28 @@ server will send push notifications in another format:
 }
 ```
 
+## Socket.io notifications
+For web frontend you can use Socket.io protocol for notifications instead of PUSH.
+To do this, you should establish a SocketIO connection with `path` set to `/v1/socket.io`.
+When connection is established, you should authorize by sending message of type `auth` with token as a payload.
+If authorization failed, connection will be dropped;
+if auth succeeded, you will start receiving events as messages with type `message`.
+Event payload syntax is the same as for PUSH notifications, and can be debugged in the same way.
+
+Here is an example of how this can be implemented:
+
+```js
+var socket = io.connect('http://betgame.co.uk', {path: '/v1/socket.io'}); // path is important!
+socket.on('connect', function() {
+	socket.emit('auth', My_Auth_Token);
+});
+socket.on('message', function(data) {
+	console.log('New event received', data);
+});
+```
+
+P.S. You may get some `400 Bad Request` errors when establishing connection to socket.
+I couldn't fix it for now, but eventually connection is established.
 
 Resources
 ---------
