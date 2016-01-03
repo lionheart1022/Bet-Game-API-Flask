@@ -2,7 +2,7 @@ from flask import request, jsonify, current_app, g, send_file, make_response
 from flask import copy_current_request_context
 from flask.ext import restful
 from flask.ext.restful import fields, marshal
-from flask.ext.socketio import send as sio_send
+from flask.ext.socketio import send as sio_send, disconnect as sio_disconnect
 from sqlalchemy.sql.expression import func
 
 from werkzeug.exceptions import HTTPException
@@ -2068,15 +2068,24 @@ def socketio_conn():
 _sockets = {} # sid -> sender
 @socketio.on('auth')
 def socketio_auth(token=None):
+    log.info('Auth request for socket {}, token {}'.format(
+        request.sid, token)
     if request.sid in _sockets:
         # already authorized
+        log.info('already authorized')
         return False
-    log.info('socket auth '+str(token))
-    # TODO check token
+    try:
+        user = parseToken(token)
+    except Exception as e:
+        log.exception('Socket auth failed')
+        sio_disconnect()
+        return
+
+    log.info('Socket auth success for {}'.format(request.sid))
     @copy_current_request_context
     def sender():
         p = redis.pubsub()
-        p.psubscribe('prod.event.*') # TODO user id
+        p.subscribe('prod.event.%s' % user.id)
         try:
             while True:
                 msg = p.get_message()
@@ -2085,7 +2094,7 @@ def socketio_auth(token=None):
                     continue
 
                 log.debug('got msg: %s'%msg)
-                if msg.get('type') != 'pmessage':
+                if 'message' not in msg.get('type', ''): # msg or pmsg
                     continue
                 mdata = msg.get('data')
                 try:
@@ -2279,8 +2288,9 @@ def debug_socksend():
     socketio.send({'hello': 'world'})
     return 'ok'
 @app.route('/debug/redissend')
-def debug_redissend():
-    redis.publish('prod.event.test', json.dumps(
+@requireauth
+def debug_redissend(user):
+    redis.publish('prod.event.%s'%user.id, json.dumps(
         {'data':'Hello World.'}
     ))
     return 'ok'
