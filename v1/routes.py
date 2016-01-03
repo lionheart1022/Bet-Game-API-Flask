@@ -2064,16 +2064,16 @@ def socketio_conn():
     # TODO check auth...
     #return False # if auth failed
 @socketio.on('auth')
-def socketio_auth(json=None):
-    log.info('socket auth '+str(json))
-@before_first_request
-def socketio_sender():
+def socketio_auth(token=None):
+    log.info('socket auth '+str(token))
+    # TODO check token
     def sender():
         p = redis.pubsub()
-        p.subscribe('prod.event.*')
+        p.subscribe('prod.event.*') # TODO user id
         try:
             while True:
                 msg = p.get_message()
+                log.debug(msg)
                 if msg.get('type') != 'message':
                     continue
                 log.debug('got msg: '+str(msg))
@@ -2258,5 +2258,5 @@ def debug_socksend():
     return 'ok'
 @app.route('/debug/redissend')
 def debug_redissend():
-    redis.publish('prod.event.test', 'Hello World.')
+    redis.publish('prod.event.test', {'data':'Hello World.'})
     return 'ok'
