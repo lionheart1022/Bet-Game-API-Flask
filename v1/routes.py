@@ -2087,10 +2087,15 @@ def socketio_auth(token=None):
                 log.debug('got msg: %s'%msg)
                 if msg.get('type') != 'pmessage':
                     continue
+                try:
+                    data = json.loads(msg.get('data'))
+                except ValueError:
+                    log.warning('Bad msg, not a json: '+str(msg.get('data')))
+                    continue
                 log.debug('handling msg')
                 # TODO broadcast msg.data
                 # TODO handle user etc
-                sio_send(msg.get('data'))
+                sio_send(data)
         finally:
             p.unsubscribe()
         # TODO: catch final exception?
@@ -2275,5 +2280,7 @@ def debug_socksend():
     return 'ok'
 @app.route('/debug/redissend')
 def debug_redissend():
-    redis.publish('prod.event.test', {'data':'Hello World.'})
+    redis.publish('prod.event.test', json.dumps(
+        {'data':'Hello World.'}
+    ))
     return 'ok'
