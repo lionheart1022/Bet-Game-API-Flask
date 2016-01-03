@@ -7,6 +7,7 @@ from flask import g
 
 from .main import db
 from .common import *
+from .helpers import notify_event
 
 
 class Player(db.Model):
@@ -432,8 +433,10 @@ class Tournament(db.Model):
 
     aborted = db.Column(db.Boolean, nullable=False, default=False, server_default='false')
 
-    winner_id = db.Column(db.Integer(), db.ForeignKey(Player.id), required=False)
+    winner_id = db.Column(db.Integer(), db.ForeignKey(Player.id), nullable=True)
     winner = db.relationship(Player, backref='won_tournaments')
+
+    last_checked_round = db.Column(db.Integer(), nullable=False, default=0, server_default='0')
 
     players = db.relationship(
         Player,
@@ -564,6 +567,7 @@ class Tournament(db.Model):
                 maybe_winner = participant
         if maybe_winner and maybe_winner.round > self.rounds_count:
             self.set_winner(maybe_winner)
+            return True
 
     @property
     def participants_by_round(self):
@@ -600,29 +604,42 @@ class Tournament(db.Model):
         return opponents_by_id
 
     def get_opponent(self, player: Player):
+        self.check_state()
         current_participant = Participant.query.get((player.id, self.id))
-        if current_participant.defeated:
+        if current_participant.defeated or current_participant.round < self.current_round:
             return None, 'You were defeated'
-        if current_participant.round < self.current_round:
-            if not current_participant.defeated:
-                current_participant.defeated = True
-                db.session.commit()
-            return None, 'You\'re late'
         if current_participant.round > self.current_round:
             return None, 'Next round haven\'t begun yet'
-
         opponent = self.current_opponents_by_id.get(player.id, None)
         if opponent:
             return opponent.player, None
         current_participant.round += 1
         db.session.commit()
-        self.check_state()
+        if self.winner and self.winner.id == player.id:
+            return None, 'You won tournament!'
+        return None, None
 
     def check_state(self):
         if self.started and not self.full:
             self.abort()
-        if not self.aborted and not self.winner:
-            self.check_winner()
+        if self.last_checked_round < self.current_round:
+            # check if previous round games resolved
+            previous_participants = self.participants_by_round[self.current_round - 2]
+            for p1, p2 in previous_participants:
+                if not p1.defeated and not p2.defeated and p1.round < self.current_round and p2.round < self.current_round:
+                    for _p1, _p2 in [(p1, p2), (p2, p1)]:
+                        game = Game.query.filter(
+                            Game.tournament_id == self.id,
+                            Game.creator_id == _p1.player_id,
+                            Game.opponent_id == _p2.player_id
+                        ).first()
+                        if game.state == 'new':
+                            game.state = 'declined'
+                            notify_event(game.id, 'betstate', game=game)
+            self.last_checked_round = self.current_round
+            db.session.commit()
+            if not self.aborted and not self.winner:
+                self.check_winner()
 
     def handle_game_result(self, winner: Player, looser: Player):
         winner_participant = Participant.query.get((winner.id, self.id))
@@ -630,7 +647,6 @@ class Tournament(db.Model):
         looser_participant.defeated = True
         winner_participant.round += 1
         db.session.commit()
-        self.check_state()
 
 
 class Participant(db.Model):
