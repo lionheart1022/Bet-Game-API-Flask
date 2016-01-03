@@ -17,7 +17,7 @@ def before_first_request(func):
 def init_app(flask_app):
     db.init_app(flask_app)
     api.init_app(flask_app)
-    socketio.init_app(flask_app, resource='/v1/socket.io')
+    socketio.init_app(flask_app, resource='/test/v1/socket.io')
     redis.init_app(flask_app)
     flask_app.register_blueprint(app, url_prefix='/v1')
     flask_app.before_first_request_funcs.extend(_before1req)
