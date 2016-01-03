@@ -2085,7 +2085,7 @@ def socketio_auth(token=None):
                     continue
 
                 log.debug('got msg: %s'%msg)
-                if msg.get('type') != 'message':
+                if msg.get('type') != 'pmessage':
                     continue
                 log.debug('handling msg')
                 # TODO broadcast msg.data
