@@ -2093,7 +2093,7 @@ def socketio_auth(token=None):
                         mdata = mdata.decode()
                     data = json.loads(mdata)
                 except ValueError:
-                    log.warning('Bad msg, not a json: '+str(mdata)))
+                    log.warning('Bad msg, not a json: '+str(mdata))
                     continue
                 log.debug('handling msg')
                 sio_send(data)
