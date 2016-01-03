@@ -1,4 +1,4 @@
-gunicorn==18.0 # 19.x breaks socketio
+gunicorn
 setproctitle
 Flask
 flask_sqlalchemy
