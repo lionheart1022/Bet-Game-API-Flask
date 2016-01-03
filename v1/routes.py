@@ -2069,7 +2069,7 @@ _sockets = {} # sid -> sender
 @socketio.on('auth')
 def socketio_auth(token=None):
     log.info('Auth request for socket {}, token {}'.format(
-        request.sid, token)
+        request.sid, token))
     if request.sid in _sockets:
         # already authorized
         log.info('already authorized')
