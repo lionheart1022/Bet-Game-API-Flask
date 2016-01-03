@@ -1,4 +1,4 @@
-gunicorn
+gunicorn==18.0 # 19.x breaks socketio
 setproctitle
 Flask
 flask_sqlalchemy
@@ -13,6 +13,9 @@ eventlet>=0.17.4
 flask_restful
 pytz
 aniso8601
+
+flask_socketio
+flask_redis
 
 apns-clerk
 

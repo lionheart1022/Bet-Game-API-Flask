@@ -14,6 +14,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = config.DB_URL
 app.config['ERROR_404_HELP'] = False # disable this flask_restful feature
 app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024 # limit upload size for userpics
+app.config['SECRET_KEY'] = config.SECRET_KEY
 
 datadog.initialize(api_key=config.DATADOG_API_KEY)
 
