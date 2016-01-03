@@ -4,7 +4,7 @@ if [ "$1" == "-d" ]; then
 	bind=localhost:${2:-8080}
 	workers=1
 	app='main:debug()'
-	opts="--reload --timeout 3600"
+	opts="--preload --timeout 3600"
 	shift; shift
 else
 	# deploy
