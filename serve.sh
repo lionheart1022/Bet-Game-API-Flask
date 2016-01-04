@@ -4,7 +4,7 @@ if [ "$1" == "-d" ]; then
 	bind=localhost:${2:-8080}
 	workers=1
 	app='main:debug()'
-	opts="--timeout 3600"
+	opts="--preload --timeout 3600"
 	shift; shift
 else
 	# deploy
@@ -17,7 +17,7 @@ else
 		port=8001
 	fi
 	bind=${1:-localhost:$port}
-	workers=${2:-3}
+	workers=${2:-1} # was 3, but socket.io requires 1
 	logfile="/home/betgame/betgame${testing}.log"
 	app="main:live('$logfile')"
 	opts="--name betgame${testing:--main} --access-logfile /home/betgame/access${testing}.log --error-logfile /home/betgame/errors${testing}.log"
