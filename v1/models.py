@@ -437,8 +437,6 @@ class Tournament(db.Model):
     winner_id = db.Column(db.Integer(), db.ForeignKey(Player.id), nullable=True)
     winner = db.relationship(Player, backref='won_tournaments')
 
-    last_checked_round = db.Column(db.Integer(), nullable=False, default=0, server_default='0')
-
     players = db.relationship(
         Player,
         secondary='participant',
@@ -662,7 +660,6 @@ class Tournament(db.Model):
                     if game.state == 'new':
                         game.state = 'declined'
                         notify_event(game.id, 'betstate', game=game)
-        self.last_checked_round = self.current_round
         db.session.commit()
         if not self.aborted and not self.winner:
             self.check_winner()
@@ -670,9 +667,10 @@ class Tournament(db.Model):
     def handle_game_result(self, winner: Player, looser: Player):
         winner_participant = Participant.query.get((winner.id, self.id))
         looser_participant = Participant.query.get((looser.id, self.id))
-        looser_participant.defeated = True
-        winner_participant.round += 1
-        db.session.commit()
+        if winner_participant.round == looser_participant.round and not winner_participant.defeated and not winner_participant.looser_participant:
+            looser_participant.defeated = True
+            winner_participant.round += 1
+            db.session.commit()
 
 
 class Participant(db.Model):
