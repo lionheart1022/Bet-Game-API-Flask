@@ -667,7 +667,7 @@ class Tournament(db.Model):
     def handle_game_result(self, winner: Player, looser: Player):
         winner_participant = Participant.query.get((winner.id, self.id))
         looser_participant = Participant.query.get((looser.id, self.id))
-        if winner_participant.round == looser_participant.round and not winner_participant.defeated and not winner_participant.looser_participant:
+        if winner_participant.round == looser_participant.round and not winner_participant.defeated and not looser_participant.defeated:
             looser_participant.defeated = True
             winner_participant.round += 1
             db.session.commit()
