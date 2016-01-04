@@ -459,7 +459,7 @@ class Tournament(db.Model):
 
     @hybrid_property
     def full(self):
-        return self.participants_count > self.participants_cap
+        return self.participants_count >= self.participants_cap
 
     @hybrid_property
     def participants_count(self):
@@ -493,7 +493,10 @@ class Tournament(db.Model):
 
     @property
     def current_round(self):
-        return (datetime.utcnow() - self.start_date) // self.round_length
+        return min(
+            (datetime.utcnow() - self.start_date) // self.round_length,
+            self.rounds_count
+        )
 
     @hybrid_property
     def available(self):
@@ -511,7 +514,6 @@ class Tournament(db.Model):
             cls.participants_count < cls.participants_cap,
         )
 
-
     @hybrid_property
     def started(self):
         return self.start_date < datetime.utcnow()
@@ -520,7 +522,7 @@ class Tournament(db.Model):
         assert rounds_count >= 0
         assert open_date < start_date < finish_date
         self.rounds_count = rounds_count
-        self.start_date, self.finish_date, self.open_date = open_date, start_date, finish_date
+        self.open_date, self.start_date, self.finish_date = open_date, start_date, finish_date
         self.payin = payin
         self.payout = payin * self.participants_cap
 
@@ -647,24 +649,23 @@ class Tournament(db.Model):
     def check_state(self):
         if self.started and not self.full:
             self.abort()
-        if self.last_checked_round < self.current_round:
-            # check if previous round games resolved
-            previous_participants = self.participants_by_round[self.current_round - 2]
-            for p1, p2 in previous_participants:
-                if not p1.defeated and not p2.defeated and p1.round < self.current_round and p2.round < self.current_round:
-                    for _p1, _p2 in [(p1, p2), (p2, p1)]:
-                        game = Game.query.filter(
-                            Game.tournament_id == self.id,
-                            Game.creator_id == _p1.player_id,
-                            Game.opponent_id == _p2.player_id
-                        ).first()
-                        if game.state == 'new':
-                            game.state = 'declined'
-                            notify_event(game.id, 'betstate', game=game)
-            self.last_checked_round = self.current_round
-            db.session.commit()
-            if not self.aborted and not self.winner:
-                self.check_winner()
+        # check if previous round games resolved
+        previous_participants = self.participants_by_round[self.current_round - 2]
+        for p1, p2 in previous_participants:
+            if not p1.defeated and not p2.defeated and p1.round < self.current_round and p2.round < self.current_round:
+                for _p1, _p2 in [(p1, p2), (p2, p1)]:
+                    game = Game.query.filter(
+                        Game.tournament_id == self.id,
+                        Game.creator_id == _p1.player_id,
+                        Game.opponent_id == _p2.player_id
+                    ).first()
+                    if game.state == 'new':
+                        game.state = 'declined'
+                        notify_event(game.id, 'betstate', game=game)
+        self.last_checked_round = self.current_round
+        db.session.commit()
+        if not self.aborted and not self.winner:
+            self.check_winner()
 
     def handle_game_result(self, winner: Player, looser: Player):
         winner_participant = Participant.query.get((winner.id, self.id))
@@ -680,8 +681,8 @@ class Participant(db.Model):
     def __init__(self, player_id, tournament_id):
         self.player_id, self.tournament_id = player_id, tournament_id
 
-    player_id = db.Column(db.Integer(), db.ForeignKey(Player.id), index=True)
-    tournament_id = db.Column(db.Integer(), db.ForeignKey(Tournament.id), index=True)
+    player_id = db.Column(db.Integer(), db.ForeignKey(Player.id), primary_key=True)
+    tournament_id = db.Column(db.Integer(), db.ForeignKey(Tournament.id), primary_key=True)
 
     tournament = db.relationship(
         Tournament, backref=db.backref(
@@ -694,7 +695,6 @@ class Participant(db.Model):
     round = db.Column(db.Integer, default=1, server_default='1', nullable=False)
     order = db.Column(db.Integer, nullable=True)
 
-    db.PrimaryKeyConstraint(player_id, tournament_id)
     db.UniqueConstraint(tournament_id, order)
 
 
