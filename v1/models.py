@@ -1,13 +1,12 @@
 from datetime import datetime, timedelta
 
-from sqlalchemy import or_, case
+from sqlalchemy import or_, case, and_
 from sqlalchemy.sql.expression import func
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from flask import g
 
 from .main import db
 from .common import *
-from .helpers import notify_event
 
 
 class Player(db.Model):
@@ -425,6 +424,8 @@ class Device(db.Model):
     def __repr__(self):
         return '<Device id={}, failed={}>'.format(self.id, self.failed)
 
+from .helpers import notify_event
+
 class Tournament(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -452,6 +453,10 @@ class Tournament(db.Model):
     def participants_cap(self):
         return 2 ** self.rounds_count
 
+    @participants_cap.expression
+    def participants_cap(cls):
+        return func.pow(2, cls.rounds_count)
+
     @hybrid_property
     def full(self):
         return self.participants_count > self.participants_cap
@@ -473,7 +478,7 @@ class Tournament(db.Model):
         return self.tournament_length / self.rounds_count
 
     @property
-    def rounds_dates(self):
+    def _rounds_dates(self):
         for i in range(self.rounds_count):
             round_start = self.start_date + self.round_length * i
             round_end = self.start_date + self.round_length * (i+1)
@@ -483,24 +488,41 @@ class Tournament(db.Model):
             }
 
     @property
+    def rounds_dates(self):
+        return list(self._rounds_dates)
+
+    @property
     def current_round(self):
         return (datetime.utcnow() - self.start_date) // self.round_length
 
     @hybrid_property
     def available(self):
-        return self.open_date < datetime.utcnow() < self.start_date and (
-            self.participants_count < self.participants_cap
+        return all((
+            self.open_date < datetime.utcnow(),
+            datetime.utcnow() < self.start_date,
+            self.participants_count < self.participants_cap,
+        ))
+
+    @available.expression
+    def available(cls):
+        return and_(
+            cls.open_date < datetime.utcnow(),
+            datetime.utcnow() < cls.start_date,
+            cls.participants_count < cls.participants_cap,
         )
+
 
     @hybrid_property
     def started(self):
         return self.start_date < datetime.utcnow()
 
-    def __init__(self, rounds_count, open_date, start_date, finish_date):
+    def __init__(self, rounds_count, open_date, start_date, finish_date, payin):
         assert rounds_count >= 0
         assert open_date < start_date < finish_date
         self.rounds_count = rounds_count
         self.start_date, self.finish_date, self.open_date = open_date, start_date, finish_date
+        self.payin = payin
+        self.payout = payin * self.participants_cap
 
     def create_participant(self, player: Player):
         if self.participants_count >= self.participants_cap:
@@ -538,7 +560,7 @@ class Tournament(db.Model):
             db.session.delete(participant)
         db.session.commit()
 
-    def set_winner(self, participant: Participant):
+    def set_winner(self, participant):
         self.winner = participant.player
         for participant in self.participants:
             participant.player.locked -= self.payin
@@ -571,17 +593,20 @@ class Tournament(db.Model):
 
     @property
     def participants_by_round(self):
+        participants = list(self.participants)
+        while len(participants) < self.participants_cap:
+            participants.append(None)
         result = [[
             (p1, p2)
-            for p1, p2 in zip(self.participants[::2], self.participants[1::2])
+            for p1, p2 in zip(participants[::2], participants[1::2])
         ]]
         for round_index in range(2, self.rounds_count + 1):
             participants = []
             for p1, p2 in result[-1]:
-                if p1.round >= round_index > p2.round:
+                if p1 and p1.round >= round_index > p2.round:
                     participants.append(p1)
                     continue
-                if p2.round >= round_index > p1.round:
+                if p2 and p2.round >= round_index > p1.round:
                     participants.append(p2)
                     continue
                 participants.append(None)

@@ -2281,7 +2281,7 @@ def socketio_disconn():
 )
 class TournamentResource(restful.Resource):
     participant_fields = {
-        'player': fields.Nested(PlayerResource.fields()),
+        'player': fields.Nested(PlayerResource.fields(), allow_null=True),
         'round': fields.Integer,
         'defeated': fields.Boolean,
     }
@@ -2359,7 +2359,7 @@ class TournamentResource(restful.Resource):
         query = query.paginate(args.page, args.results_per_page,
                                error_out=False)
         return dict(
-            games=fields.List(fields.Nested(self.fields_many)).format(query.items),
+            tournaments=fields.List(fields.Nested(self.fields_many)).format(query.items),
             num_results=total_count,
             total_pages=math.ceil(total_count / args.results_per_page),
             page=args.page,
