@@ -194,7 +194,6 @@ class Player(db.Model):
                 str(f) for f in g.winrate_filt
             ))
             return self.winrate_impl(*g.winrate_filt)
-        log.debug('winrate: no filt')
         return self.winrate_impl()
 
     # @hybrid_method
