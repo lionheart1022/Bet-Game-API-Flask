@@ -1,6 +1,8 @@
 from flask import Flask, jsonify
 from flask.ext.restful.utils import http_status_message
 from flask.ext.cors import CORS
+from flask.ext.script import Manager
+from flask.ext.migrate import MigrateCommand, Migrate
 
 from werkzeug.exceptions import default_exceptions
 import logging
@@ -45,7 +47,6 @@ def make_json_error(ex):
 for code in default_exceptions.keys():
     # apply decorator
     app.errorhandler(code)(make_json_error)
-
 
 def init_app(app=app):
     if not app.logger:
@@ -93,3 +94,14 @@ def debug():
     app.debug = True #-- this breaks exception handling?..
     setup_logging(app)
     return init_app()
+
+if __name__ == '__main__':
+    init_app(app)
+
+    manager = Manager(app)
+    manager.add_command('db', MigrateCommand)
+    from v1.main import db
+
+    migrate = Migrate(app, db)
+
+    manager.run()

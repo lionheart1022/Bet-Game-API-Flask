@@ -432,7 +432,7 @@ class Tournament(db.Model):
     payin = db.Column(db.Float, nullable=False)
     payout = db.Column(db.Float, nullable=False)
 
-    aborted = db.Column(db.Boolean, nullable=False, default=False, server_default='false')
+    aborted = db.Column(db.Boolean, nullable=False, default=False, server_default='0')
 
     winner_id = db.Column(db.Integer(), db.ForeignKey(Player.id), nullable=True)
     winner = db.relationship(Player, backref='won_tournaments')
@@ -689,7 +689,7 @@ class Participant(db.Model):
     )
     player = db.relationship(Player, backref='participations')
 
-    defeated = db.Column(db.Boolean, default=False, server_default='false', nullable=False)
+    defeated = db.Column(db.Boolean, default=False, server_default='0', nullable=False)
     round = db.Column(db.Integer, default=1, server_default='1', nullable=False)
     order = db.Column(db.Integer, nullable=True)
 

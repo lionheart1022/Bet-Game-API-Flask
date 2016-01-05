@@ -1,8 +1,9 @@
-from flask import Blueprint
+from flask import Blueprint, current_app
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext import restful
 from flask.ext.socketio import SocketIO
 from flask.ext.redis import FlaskRedis
+from flask.ext.migrate import Migrate, upgrade
 
 import config
 
@@ -18,7 +19,6 @@ def before_first_request(func):
     _before1req.append(func)
 def init_app(flask_app):
     db.init_app(flask_app)
-    api.init_app(flask_app)
     # FIXME! Socketio requires resource name to match on client and on server
     # so Nginx rewriting breaks it
     socketio.init_app(flask_app, resource='{}/v1/socket.io'.format(

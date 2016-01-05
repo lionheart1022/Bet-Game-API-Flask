@@ -24,3 +24,5 @@ pillow
 python_dateutil
 
 datadog
+
+Flask-Migrate
