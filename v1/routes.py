@@ -1323,49 +1323,54 @@ class GameResource(restful.Resource):
         return {}
 
     @classmethod
-    def post_load_identities(cls, poller, args, user):
+    def load_save_identities(cls, poller, args, role, user,
+                             optional=False, game=None):
         """
         Check passed identities (in args),
         load them from user profiles if needed,
         and update profile's identities if required.
+
+        :param poller: poller class for current game
+        :param args: arguments to work with
+        :param role: role to handle identities for (creator or opponent)
+        :param user: current role's user object.
+        :param optional: is it allowed to omit this identity;
+        also will not update user's field if this is True.
+        If not passed then will just validate identities.
         """
-        # check passed identities
-        # and pre-load them from user profiles if possible
-        had_creatag = args.gamertag_creator
+        had_creatag = args.get('gamertag_creator')
         for name, identity, required in (
-                ('gamertag', poller.identity, not poller.honesty),
-                ('twitch_identity', poller.twitch_identity, poller.twitch == 2),
+            ('gamertag', poller.identity, not poller.honesty),
+            ('twitch_identity', poller.twitch_identity, poller.twitch == 2),
         ):
+            argname = '{}_{}'.format(name, role)
+
+            # if certain identity is not supported for this game
+            # then check its absence in args
             if not identity:
-                for role in 'creator', 'opponent':
-                    argname = '{}_{}'.format(name, role)
-                    if args[argname]:
-                        abort('{}: not supported for this game type'.format(
-                            argname), problem=argname)
-                continue
-            for role, ruser in (
-                    ('creator', user),
-                    ('opponent', args.opponent),
-            ):
-                argname = '{}_{}'.format(name, role)
-                if args[argname]:
-                    try:
-                        args[argname] = identity.checker(args[argname])
-                    except ValueError as e:
-                        abort('[{}]: {}'.format(argname, e), problem=argname)
-                else:
-                    args[argname] = getattr(ruser, identity.id)
-                    if required and role == 'creator' \
-                            and not args[argname]:  # not provided
-                        abort('Please specify your {}'.format(
-                            identity.name,
-                        ), problem=argname)
-            if args[name + '_creator'] == args[name + '_opponent']:
-                abort('Your and your opponent\'s {} should be different!'.format(
-                    identity.name,
-                ))
+                if args.get(argname):
+                    abort('[{}]: not supported for this game type'.format(
+                        argname), problem=argname)
+                continue # no need to check other clauses
+
+            if args.get(argname):
+                # was passed -> validate and maybe save
+                try:
+                    args[argname] = identity.checker(args[argname])
+                except ValueError as e:
+                    abort('[{}]: Invalid {}: {}'.format(
+                        argname, identity.name, e
+                    ), problem=argname)
+            else:
+                # try load this from user object
+                args[argname] = getattr(user, identity.id)
+                if required and not optional and not args[argname]:
+                    abort('Please specify your {}'.format(
+                        identity.name,
+                    ), problem=argname)
         # Update creator's identity if requested
-        if had_creatag and poller.identity:
+        if had_creatag and poller.identity \
+                and not optional and args.get('savetag'):
             if args.savetag == 'replace':
                 repl = True
             elif args.savetag == 'never':
@@ -1379,6 +1384,22 @@ class GameResource(restful.Resource):
                         poller.identity.name), problem='savetag')
             if repl:
                 setattr(user, poller.identity.id, args.gamertag_creator)
+    @classmethod
+    def check_identity_equality(cls, poller, creators, opponents):
+        """
+        :param creators: object to get creator's identity from
+        :param opponents: object to get opponent's identity from
+        """
+        for name, identity in (
+            ('gamertag', poller.identity),
+            ('twitch_identity', poller.twitch_identity)
+        ):
+            creaname, opponame = ('{}_{}'.format(name, role)
+                                  for role in ('creator', 'opponent'))
+            if getattr(creators, creaname) == getattr(opponents, opponame):
+                abort('You cannot specify {} same as your opponent\'s!'.format(
+                    identity.name,
+                ))
 
     @classmethod
     def check_same_region(cls, poller, crea, oppo):
@@ -1431,7 +1452,10 @@ class GameResource(restful.Resource):
             abort('You cannot compete with yourself')
 
         # determine identities and update them on args
-        self.post_determine_identities(poller, args, user)
+        self.load_save_identities(poller, args, 'creator', user)
+        self.load_save_identities(poller, args, 'opponent', args.opponent,
+                                  optional=True)
+        self.check_identity_equality(poller, args, args)
 
         # Perform sameregion check
         self.check_same_region(
@@ -1514,41 +1538,24 @@ class GameResource(restful.Resource):
         poller = Poller.findPoller(game.gametype)
 
         if args.state == 'accepted':
-            for name, identity in (
-                    ('gamertag', poller.identity),
-                    ('twitch_identity', poller.twitch_identity),
-            ):
+            # handle identities
+            self.load_save_identities(poller, args, 'opponent', user, game=game)
+            self.check_identity_equality(poller, game, args)
+            for name in 'gamertag', 'twitch_identity':
                 argname = '{}_opponent'.format(name)
-                if not identity:
-                    if args[argname]:
-                        abort('This game doesn\'t support{} identity {}'.format(
-                            '' if name == 'gamertag' else ' secondary',
-                            poller.twitch_identity.name), problem=argname)
-                    continue
-                if args[argname]:
-                    try:
-                        args[argname] = identity.checker(args[argname])
-                    except ValueError as e:
-                        abort('Invalid {}: {}'.format(identity.name, e),
-                              problem=argname)
-                    if getattr(game, argname) != args[argname]:
-                        if getattr(game, '{}_creator'.format(name)) == args[argname]:
-                            abort('You cannot specify {} same as your opponent\'s!'.format(
-                                identity.name,
-                            ))
-                        log.warning(
-                            'Game {}: changing {} opponent identity '
-                            'from {} to {}'.format(
-                                game.id,
-                                'primary' if name == 'gamertag' else 'secondary',
-                                getattr(game, argname),
-                                args[argname],
-                            )
+                if not args[argname]:
+                    continue # was already checked -> not needed here
+                if getattr(game, argname) != args[argname]:
+                    log.warning(
+                        'Game {}: changing {} opponent identity '
+                        'from {} to {}'.format(
+                            game.id,
+                            'primary' if name == 'gamertag' else 'secondary',
+                            getattr(game, argname),
+                            args[argname],
                         )
-                    setattr(game, argname, args[argname])
-                elif not getattr(game, argname):
-                    abort('Please provide your {}!'.format(poller.identity.name),
-                          problem=argname)
+                    )
+                setattr(game, argname, args[argname])
 
             # Perform sameregion check
             self.check_same_region(
