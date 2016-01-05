@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from flask import Flask, jsonify
 from flask.ext.restful.utils import http_status_message
 from flask.ext.cors import CORS
