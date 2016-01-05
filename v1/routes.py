@@ -1547,14 +1547,10 @@ class GameResource(restful.Resource):
                           problem=argname)
 
             # Perform sameregion check
-            if poller.sameregion:
-                # additional check for regions
-                region1 = game.gamertag_creator.split('/', 1)[0]
-                region2 = args['gamertag_opponent'].split('/', 1)[0]
-                if region1 != region2:
-                    abort('You and your opponent should be in the same region; '
-                          'but actually you are in {} and your opponent is in {}'.format(
-                        region2, region1))
+            self.check_same_region(
+                poller,
+                args.gamertag_opponent
+                game.gamertag_creator)
 
 
         # now all checks are done, perform actual logic
