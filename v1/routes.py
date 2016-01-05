@@ -1307,38 +1307,28 @@ class GameResource(restful.Resource):
         parser.add_argument('tournament_id', type=Tournament.query.get_or_404, required=False)
         return parser
 
-
-    @require_auth
-    def post(self, user, id=None):
-        if id:
-            raise MethodNotAllowed
-        args = self.postparser.parse_args()
+    @classmethod
+    def post_parse_args(cls):
+        args = cls.postparser.parse_args()
         args.gamemode = None # will be handled below
-
-        if args.tournament and not (args.bet or args.opponent): # tournament game
-            args.opponent = args.tournament.get_opponent(user)
-            return self.create_tournament_game(user, args)
-
-        if not args.tournament and args.bet and args.opponent: # simple game
-            return self.create_game(user, args)
-
-        abort('Please provide either tournament or (bet and opponent).')
-
-    def create_tournament_game(self, user, args):
-        poller = Poller.findPoller(args.gametype)
-        if not poller or poller == DummyPoller:
-            abort('Support for this game is coming soon!')
-
+        return args
+    @classmethod
+    def post_parse_poller_args(cls, poller):
         if poller.gamemodes:
             gmparser = RequestParser()
             gmparser.add_argument('gamemode', choices=poller.gamemodes,
                                   required=True)
             gmargs = gmparser.parse_args()
-            args.gamemode = gmargs.gamemode
+            return gmargs
+        return {}
 
-        if args.opponent == user:
-            abort('You cannot compete with yourself')
-
+    @classmethod
+    def post_load_identities(cls, poller, args, user):
+        """
+        Check passed identities (in args),
+        load them from user profiles if needed,
+        and update profile's identities if required.
+        """
         # check passed identities
         # and pre-load them from user profiles if possible
         had_creatag = args.gamertag_creator
@@ -1348,6 +1338,7 @@ class GameResource(restful.Resource):
         ):
             if not identity:
                 for role in 'creator', 'opponent':
+                    argname = '{}_{}'.format(name, role)
                     if args['{}_{}'.format(name, role)]:
                         abort('[{}_{}]: not supported for this game type'.format(
                             name, role), problem=argname)
@@ -1389,131 +1380,71 @@ class GameResource(restful.Resource):
             if repl:
                 setattr(user, poller.identity.id, args.gamertag_creator)
 
-        # Perform sameregion check
-        if args.gamertag_opponent and poller.sameregion:
-            # additional check for regions
-            region1 = args['gamertag_creator'].split('/', 1)[0]
-            region2 = args['gamertag_opponent'].split('/', 1)[0]
-            if region1 != region2:
-                abort('You and your opponent should be in the same region; '
-                      'but actually you are in {} and your opponent is in {}'.format(
-                    region1, region2))
-
-        if poller.twitch == 2 and not args.twitch_handle:
-            abort('Please specify your twitch stream URL',
-                  problem='twitch_handle')
-        if args.twitch_handle and not poller.twitch:
-            abort('Twitch streams are not yet supported for this gametype')
-
-        game = Game()
-        game.creator = user
-        game.opponent = args.opponent
-        log.debug('setting parent')
-        if args.root:
-            game.parent = args.root.root  # ensure we use real root
-        game.gamertag_creator = args.gamertag_creator
-        game.gamertag_opponent = args.gamertag_opponent
-        game.twitch_handle = args.twitch_handle
-        game.twitch_identity_creator = args.twitch_identity_creator
-        game.twitch_identity_opponent = args.twitch_identity_opponent
-        game.gametype = args.gametype
-        game.gamemode = args.gamemode
-        game.bet = 0
-        game.tournament = args.tournament
-        db.session.add(game)
-
-        db.session.commit()
-
-        log.debug('notifying')
-        notify_users(game)
-
-        return marshal(game, self.fields), 201
-
-    def create_game(self, user, args):
-        poller = Poller.findPoller(args.gametype)
-        if not poller or poller == DummyPoller:
-            abort('Support for this game is coming soon!')
-
-        if poller.gamemodes:
-            gmparser = RequestParser()
-            gmparser.add_argument('gamemode', choices=poller.gamemodes,
-                                  required=True)
-            gmargs = gmparser.parse_args()
-            args.gamemode = gmargs.gamemode
-
-        if args.opponent == user:
-            abort('You cannot compete with yourself')
-
-        # check passed identities
-        # and pre-load them from user profiles if possible
-        had_creatag = args.gamertag_creator
-        for name, identity, mandatory in (
-                ('gamertag', poller.identity, True),
-                ('twitch_identity', poller.twitch_identity, poller.twitch == 2),
-        ):
-            if not identity:
-                for role in 'creator', 'opponent':
-                    if args['{}_{}'.format(name, role)]:
-                        abort('[{}_{}]: not supported for this game type'.format(
-                            name, role), problem=argname)
-                continue
-            for role, ruser in (
-                    ('creator', user),
-                    ('opponent', args.opponent),
-            ):
-                argname = '{}_{}'.format(name, role)
-                if args[argname]:
-                    try:
-                        args[argname] = identity.checker(args[argname])
-                    except ValueError as e:
-                        abort('[{}]: {}'.format(argname, e), problem=argname)
-                else:
-                    args[argname] = getattr(ruser, identity.id)
-                    if mandatory and role == 'creator' \
-                            and not args[argname]:  # not provided
-                        abort('Please specify your {}'.format(
-                            identity.name,
-                        ), problem=argname)
-            if args[name + '_creator'] == args[name + '_opponent']:
-                abort('Your and your opponent\'s {} should be different!'.format(
-                    identity.name,
-                ))
-        # Update creator's identity if requested
-        if had_creatag and poller.identity:
-            if args.savetag == 'replace':
-                repl = True
-            elif args.savetag == 'never':
-                repl = False
-            elif args.savetag == 'ignore_if_exists':
-                repl = not getattr(user, poller.identity.id)
-            elif args.savetag == 'fail_if_exists':
-                repl = True
-                if getattr(user, poller.identity.id) != args.gamertag_creator:
-                    abort('{} is already set and is different!'.format(
-                        poller.identity.name), problem='savetag')
-            if repl:
-                setattr(user, poller.identity.id, args.gamertag_creator)
-
-        # Perform sameregion check
-        if args.gamertag_opponent and poller.sameregion:
-            # additional check for regions
-            region1 = args['gamertag_creator'].split('/', 1)[0]
-            region2 = args['gamertag_opponent'].split('/', 1)[0]
-            if region1 != region2:
-                abort('You and your opponent should be in the same region; '
-                      'but actually you are in {} and your opponent is in {}'.format(
-                    region1, region2))
-
-        if poller.twitch == 2 and not args.twitch_handle:
-            abort('Please specify your twitch stream URL',
-                  problem='twitch_handle')
-        if args.twitch_handle and not poller.twitch:
-            abort('Twitch streams are not yet supported for this gametype')
-
+    @classmethod
+    def check_same_region(cls, poller, crea, oppo):
+        # crea & oppo are identities (primary ones, not twitch)
+        if not poller.sameregion:
+            # no need to check
+            return
+        if not oppo:
+            # opponent identity not passed - cannot check
+            return
+        # this is an additional check for regions
+        region1 = crea.split('/', 1)[0]
+        region2 = oppo.split('/', 1)[0]
+        if region1 != region2:
+            abort('You and your opponent should be in the same region; '
+                    'but actually you are in {} and your opponent is in {}'.format(
+                region1, region2))
+    @classmethod
+    def check_bet_amount(cls, bet, user):
         if args.bet < 0.99:  # FIXME: hardcoded min bet
             abort('Bet is too low', problem='bet')
         if args.bet > user.available:
             abort('You don\'t have enough coins', problem='coins')
+    @require_auth
+    def post(self, user, id=None):
+        if id:
+            raise MethodNotAllowed
+        args = self.post_parse_args()
+
+        poller = Poller.findPoller(args.gametype)
+        if not poller or poller == DummyPoller:
+            abort('Support for this game is coming soon!')
+
+        args.extend(self.post_parse_poller_args(poller))
+
+        if args.opponent == user:
+            abort('You cannot compete with yourself')
+
+        # determine identities and update them on args
+        self.post_determine_identities(poller, args, user)
+
+        # Perform sameregion check
+        self.check_same_region(
+            poller,
+            args.gamertag_creator,
+            args.gamertag_opponent)
+
+        # check twitch parameter if needed
+        if poller.twitch == 2 and not args.twitch_handle:
+            abort('Please specify your twitch stream URL',
+                  problem='twitch_handle')
+        if args.twitch_handle and not poller.twitch:
+            abort('Twitch streams are not yet supported for this gametype')
+
+        # check tournament-related settings
+        if args.tournament:
+            if args.bet or args.opponent:
+                abort('Bet and opponent shall not be provided in tournament mode')
+        else:
+            if not (args.bet or args.opponent):
+                abort('Please provide bet amount and choose your opponent '
+                      'when not in tournament mode')
+
+        if not args.tournament:
+            # check bet amount
+            self.check_bet_amount(args.bet, user)
 
         game = Game()
         game.creator = user
@@ -1528,11 +1459,13 @@ class GameResource(restful.Resource):
         game.twitch_identity_opponent = args.twitch_identity_opponent
         game.gametype = args.gametype
         game.gamemode = args.gamemode
-        game.bet = args.bet
+        if args.tournament:
+            game.bet = 0
+            game.tournament = args.tournament
+        else:
+            game.bet = args.bet
+
         db.session.add(game)
-
-        user.locked += game.bet
-
         db.session.commit()
 
         log.debug('notifying')
