@@ -952,6 +952,19 @@ class TibiaPoller(Poller, LimitedApi):
         return False
 
 
+class HonestyPoller(Poller):
+    gametypes = {
+        'halo-5': 'Halo 5',
+        'inba2015': 'Inba2k16',
+    }
+    honesty = True # we don't need any identities to be active
+    description = 'This game is supported in Honesty mode only.'
+    twitch = 0
+
+    def poll(self, *args, **kwargs):
+        # just do nothing
+        pass
+
 class DummyPoller(Poller):
     """
     This poller covers all game types not supported yet.
