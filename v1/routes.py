@@ -1313,7 +1313,7 @@ class GameResource(restful.Resource):
         if id:
             raise MethodNotAllowed
         args = self.postparser.parse_args()
-        args.gamemode = None
+        args.gamemode = None # will be handled below
 
         if args.tournament and not (args.bet or args.opponent): # tournament game
             args.opponent = args.tournament.get_opponent(user)
@@ -1321,7 +1321,8 @@ class GameResource(restful.Resource):
 
         if not args.tournament and args.bet and args.opponent: # simple game
             return self.create_game(user, args)
-        abort('')  # TODO: write error message
+
+        abort('Please provide either tournament or (bet and opponent).')
 
     def create_tournament_game(self, user, args):
         poller = Poller.findPoller(args.gametype)
