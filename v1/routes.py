@@ -1599,7 +1599,6 @@ class GameResource(restful.Resource):
                         game.gamertag_opponent,
                     ),
                 )
-                retstatus = ret.status_code
             except Exception:
                 log.exception('Failed to start twitch stream!')
                 abort('Cannot start twitch observing - internal error', 500)
@@ -2178,7 +2177,7 @@ def socketio_auth(token=None):
         return False
     try:
         user = parseToken(token)
-    except Exception as e:
+    except Exception:
         log.exception('Socket auth failed')
         sio_disconnect()
         return
