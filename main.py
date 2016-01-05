@@ -95,6 +95,7 @@ def debug():
     setup_logging(app)
     return init_app()
 
+
 if __name__ == '__main__':
     init_app(app)
 
