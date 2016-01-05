@@ -2629,3 +2629,8 @@ def debug_redissend(user):
         {'data':'Hello World.'}
     ))
     return 'ok'
+
+@app.route('/debug/revision')
+def debug_revision():
+    import subprocess
+    return subprocess.check_output('git rev-parse HEAD'.split())
