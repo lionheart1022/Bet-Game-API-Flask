@@ -1339,9 +1339,9 @@ class GameResource(restful.Resource):
             if not identity:
                 for role in 'creator', 'opponent':
                     argname = '{}_{}'.format(name, role)
-                    if args['{}_{}'.format(name, role)]:
-                        abort('[{}_{}]: not supported for this game type'.format(
-                            name, role), problem=argname)
+                    if args[argname]:
+                        abort('{}: not supported for this game type'.format(
+                            argname), problem=argname)
                 continue
             for role, ruser in (
                     ('creator', user),
