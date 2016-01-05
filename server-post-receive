@@ -17,6 +17,16 @@ dokill() {
 	fi
 }
 
+testrev() {
+	echo "Testing if correct revision is serving"
+	url="$1"debug/revision
+	rev="$2"
+	result=$(curl "$url" 2>/dev/null)
+	if [[ "$result" != "$rev" ]]; then
+		echo "Expected $rev, got $result"
+		return 1
+	fi
+}
 testone() {
 	url="$1"
 	result=$(curl "$url" 2>/dev/null)
@@ -25,10 +35,14 @@ testone() {
 }
 
 dotests() {
-	if testone http://betgame.co.uk${URLBASE}/v1/; then
-		if [[ $MODE == prod ]]; then
-			testone http://localhost:8021
-		fi
+	rev="$1"
+	url="http://betgame.co.uk${URLBASE}/v1/"
+	if [[ -n "$rev" ]]; then
+		testrev "$url" "$rev"
+	else
+		restone "$url"
+	fi && if [[ $MODE == prod ]]; then
+		testone http://localhost:8021
 	fi
 }
 
@@ -69,7 +83,7 @@ echo "Testing..."
 tries=5
 while [ $tries -gt 0 ]; do
 	sleep 1
-	if dotests; then
+	if dotests "$NEW"; then
 		echo "New version serving. Congratulations!"
 		updatedocs
 		exit
