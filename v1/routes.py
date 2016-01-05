@@ -1414,6 +1414,19 @@ class GameResource(restful.Resource):
 
         args.extend(self.post_parse_poller_args(poller))
 
+        # check tournament-related settings
+        if args.tournament:
+            if args.bet or args.opponent:
+                abort('Bet and opponent shall not be provided in tournament mode')
+        else:
+            if not (args.bet or args.opponent):
+                abort('Please provide bet amount and choose your opponent '
+                      'when not in tournament mode')
+
+        if args.tournament:
+            # request opponent from tournament
+            args.opponent = args.tournament.get_opponent(user)
+
         if args.opponent == user:
             abort('You cannot compete with yourself')
 
@@ -1432,15 +1445,6 @@ class GameResource(restful.Resource):
                   problem='twitch_handle')
         if args.twitch_handle and not poller.twitch:
             abort('Twitch streams are not yet supported for this gametype')
-
-        # check tournament-related settings
-        if args.tournament:
-            if args.bet or args.opponent:
-                abort('Bet and opponent shall not be provided in tournament mode')
-        else:
-            if not (args.bet or args.opponent):
-                abort('Please provide bet amount and choose your opponent '
-                      'when not in tournament mode')
 
         if not args.tournament:
             # check bet amount
