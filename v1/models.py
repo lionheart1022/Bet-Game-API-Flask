@@ -491,10 +491,10 @@ class Tournament(db.Model):
 
     @property
     def current_round(self):
-        return min(
-            (datetime.utcnow() - self.start_date) // self.round_length,
-            self.rounds_count
-        )
+        round_index = (datetime.utcnow() - self.start_date) // self.round_length
+        round_index = self.rounds_count if round_index > self.rounds_count else round_index
+        round_index = 0 if self.round_index < 0 else round_index
+        return round_index
 
     @hybrid_property
     def available(self):
