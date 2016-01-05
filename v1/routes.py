@@ -240,13 +240,19 @@ class PlayerResource(restful.Resource):
                 ).format(query),
             )
 
+        parser = RequestParser()
+        parser.add_argument('with_stat', type=boolean_field, default=False)
+        args = parser.parse_args()
+
         player = Player.find(id)
         if not player:
             raise NotFound
 
         is_self = player == user
         ret = marshal(player,
-                      self.fields(public=not is_self, stat=is_self))
+                      self.fields(public=not is_self,
+                                  stat=is_self or args.with_stat,
+                                  leader=args.with_stat))
         g.winrate_filt = None  # reset
         return ret
 
@@ -1560,7 +1566,7 @@ class GameResource(restful.Resource):
             # Perform sameregion check
             self.check_same_region(
                 poller,
-                args.gamertag_opponent
+                args.gamertag_opponent,
                 game.gamertag_creator)
 
 
