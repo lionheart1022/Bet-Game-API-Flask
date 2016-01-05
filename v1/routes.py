@@ -2633,4 +2633,4 @@ def debug_redissend(user):
 @app.route('/debug/revision')
 def debug_revision():
     import subprocess
-    return subprocess.check_output('git rev-parse HEAD'.split())
+    return subprocess.check_output('/usr/bin/git rev-parse HEAD'.split())
