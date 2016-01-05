@@ -1566,7 +1566,7 @@ class GameResource(restful.Resource):
             # Perform sameregion check
             self.check_same_region(
                 poller,
-                args.gamertag_opponent
+                args.gamertag_opponent,
                 game.gamertag_creator)
 
 
