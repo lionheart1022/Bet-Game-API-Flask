@@ -606,6 +606,9 @@ Note that you should allow user to enter not-listed short values as well.
 ### POST /games
 Create game invitation.
 
+You must specify `bet` and `opponent_id` (and not `tournament_id`) for simple game
+You must specify `tournament_id` (and not `bet` and `opponent_id`) for tournament game
+
 Arguments:
 
 * `opponent_id`: either nickname, gamertag or internal numeric id of opponent.
@@ -635,7 +638,7 @@ Arguments:
 * `twitch_identity_opponent`: player identity (like gamertag) for twitch stream.
 	Prohibited if given gametype doesn't support it.
 	If not passed, defaults to opponent's corresponding gamertag (if specified).
- 
+* `tournament_id` for tournament games
 
 When creating an invitation, corresponding amount of coins is immediately locked on user's account.
 These coins will be released when invitation is declined
@@ -761,6 +764,26 @@ Return format:
 
 ### GET /games/<game-id>/events/<event-id>
 Retrieves single Event resource.
+
+### GET /tournaments
+This request supports pagination:
+
+ * `page`: page to return (defaults to 1)
+ * `results_per_page`: how many games to include per page (defaults to 10, max is 50)
+
+### GET /tournaments/<id>
+Get tournament by id (see tournament resource)
+
+### PATCH /tournaments/<id>
+Participate in tournament
+
+### POST /tournaments
+Create tournament
+ * `rounds_count`
+ * `open_date` unixtime timestamp
+ * `start_date` unixtime timestamp
+ * `finish_date` unixtime timestamp
+ * `buy_in` buy in (float)
 
 ## Debugging endpoints (some of them)
 
@@ -994,3 +1017,41 @@ When this resource is sent over PUSH, it will also include `root` field with com
 }
 ```
 
+### Tournament resource
+
+```json
+{
+    "finish_date": "Tue, 05 Jan 2016 07:13:51 -0000", 
+    "id": 1, 
+    "open_date": "Tue, 05 Jan 2016 02:19:40 -0000", 
+    "participants_by_round": [ // toutnament table for bracket tournaments
+        [
+            [
+                { Participant resource }, 
+                {
+                    "defeated": null,
+                    "player": null, // empty participant
+                    "round": 0
+                }
+            ]
+        ]
+    ], 
+    "participants_cap": 2, //max participants
+    "rounds_dates": [
+        {
+            "end": "Tue, 05 Jan 2016 07:13:51 -0000", 
+            "start": "Tue, 05 Jan 2016 07:12:11 -0000"
+        }
+    ], 
+    "start_date": "Tue, 05 Jan 2016 07:12:11 -0000"
+}
+```
+
+### Participant resource
+```json
+{
+    "defeated": false, 
+    "player": {Player resource}, 
+    "round": 1
+}
+```

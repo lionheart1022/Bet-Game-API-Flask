@@ -2278,6 +2278,7 @@ def socketio_disconn():
     '/tournaments',
     '/tournaments/',
     '/tournaments/<int:id>',
+    '/tournaments/<int:id>/',
 )
 class TournamentResource(restful.Resource):
     participant_fields = {
@@ -2299,6 +2300,7 @@ class TournamentResource(restful.Resource):
             fields.Nested(participant_fields, allow_null=True)
         )),
         'participants_cap': fields.Integer,
+        'participants_count': fields.Integer,
     }
 
     fields_many = {
@@ -2307,10 +2309,43 @@ class TournamentResource(restful.Resource):
         'start_date': fields.DateTime,
         'finish_date': fields.DateTime,
         'participants_cap': fields.Integer,
+        'participants_count': fields.Integer,
     }
 
     @require_auth
     def post(self, user, id=None):
+        if id:
+            raise MethodNotAllowed
+        parser = RequestParser()
+
+        parser.add_argument('rounds_count', type=int)
+        parser.add_argument('open_date', type=lambda s: datetime.fromtimestamp(int(s)))
+        parser.add_argument('start_date', type=lambda s: datetime.fromtimestamp(int(s)))
+        parser.add_argument('finish_date', type=lambda s: datetime.fromtimestamp(int(s)))
+        parser.add_argument('buy_in', type=float)
+
+        args = parser.parse_args()
+        if args.rounds_count < 1:
+            abort('Tournament must have 1 or more rounds', problem='rounds_count')
+
+        if args.buy_in < 0.99:
+            abort('Buy in too low', problem='buy_in')
+
+        #  TODO: check dates
+
+        tournament = Tournament(
+            rounds_count=args.rounds_count,
+            open_date=args.open_date,
+            start_date=args.start_date,
+            finish_date=args.finish_date,
+            payin=args.buy_in
+        )
+        db.session.add(tournament)
+        db.session.commit()
+        return marshal(tournament, self.fields_single)
+
+    @require_auth
+    def patch(self, user, id=None):
         """
         participate in tournament
         """
