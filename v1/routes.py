@@ -916,7 +916,7 @@ def balance_withdraw(user):
     db.session.add(Transaction(
         player=user,
         type='withdraw',
-        sum=-coins, #  FIXME: coins not defined
+        sum=-args.coins,
         balance=user.balance,
         comment='Converted to {} {}'.format(
             amount,
@@ -984,7 +984,7 @@ def balance_withdraw(user):
         db.session.add(Transaction(
             player=user,
             type='withdraw',
-            sum=coins,  # FIXME: coins not defined
+            sum=args.coins,
             balance=user.balance,
             comment='Withdraw operation aborted due to error',
         ))
