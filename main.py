@@ -13,6 +13,7 @@ import datadog
 
 import config
 
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = config.DB_URL
 app.config['ERROR_404_HELP'] = False # disable this flask_restful feature
