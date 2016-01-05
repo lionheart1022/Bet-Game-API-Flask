@@ -252,7 +252,7 @@ class PlayerResource(restful.Resource):
         ret = marshal(player,
                       self.fields(public=not is_self,
                                   stat=is_self or args.with_stat,
-                                  leader=args.with_stat))
+                                  leaders=args.with_stat))
         g.winrate_filt = None  # reset
         return ret
 
