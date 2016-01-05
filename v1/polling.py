@@ -74,6 +74,7 @@ class Poller:
     twitch_gametypes = {}
     identity_id = None
     twitch_identity_id = None
+    honesty = False # special for honesty-based poller
     # human-readable description of how to play this game.
     # Might be dictionary if description should vary
     # for different gametypes in same poller.

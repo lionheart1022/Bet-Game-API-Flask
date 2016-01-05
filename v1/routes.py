@@ -1061,12 +1061,13 @@ def gametypes():
                         )),
                         data['description'].strip().split('\n\n')
                     ))
-                if poller.identity or poller.twitch_identity:
+                if poller.identity or poller.twitch_identity or poller.honesty:
                     data.update(dict(
                         supported=True,
                         gamemodes=poller.gamemodes,
                         identity=poller.identity_id,
                         identity_name=poller.identity_name,
+                        honesty_only=poller.honesty,
                         twitch=poller.twitch,
                         twitch_identity=None,  # may be updated below
                         twitch_identity_name=None,
