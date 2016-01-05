@@ -1398,9 +1398,9 @@ class GameResource(restful.Resource):
                 region1, region2))
     @classmethod
     def check_bet_amount(cls, bet, user):
-        if args.bet < 0.99:  # FIXME: hardcoded min bet
+        if bet < 0.99:  # FIXME: hardcoded min bet
             abort('Bet is too low', problem='bet')
-        if args.bet > user.available:
+        if bet > user.available:
             abort('You don\'t have enough coins', problem='coins')
     @require_auth
     def post(self, user, id=None):
@@ -1504,8 +1504,8 @@ class GameResource(restful.Resource):
         if game.state != 'new':
             abort('This challenge is already {}'.format(game.state))
 
-        if args.state == 'accepted' and game.bet > user.available:
-            abort('Not enough coins', problem='coins')
+        if args.state == 'accepted':
+            self.check_bet_amount(game.bet, user)
 
         poller = Poller.findPoller(game.gametype)
 
