@@ -6,15 +6,13 @@ from flask.ext.socketio import send as sio_send, disconnect as sio_disconnect
 from sqlalchemy.sql.expression import func
 
 from werkzeug.exceptions import HTTPException
-from werkzeug.exceptions import BadRequest, MethodNotAllowed, Forbidden, NotImplemented, NotFound
+from werkzeug.exceptions import MethodNotAllowed, Forbidden, NotFound
 
 import os
 from io import BytesIO
 from datetime import datetime, timedelta
 import math
 import json
-from functools import reduce
-import itertools
 import operator
 import requests
 from PIL import Image
@@ -25,8 +23,9 @@ from .models import *
 from .helpers import *
 from .apis import *
 from .polling import *
-from .helpers import MyRequestParser as RequestParser # instead of system one
-from .main import app, db, api, before_first_request, socketio, redis
+from .helpers import MyRequestParser as RequestParser  # instead of system one
+from .main import app, db, api, socketio, redis
+
 
 # Players
 @api.resource(
