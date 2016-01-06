@@ -696,7 +696,7 @@ class Participant(db.Model):
 
 class Ticket(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
-    open = db.Column(db.Boolean(), nullable=False, default=0, server_default='0')
+    open = db.Column(db.Boolean(), nullable=False, default=1, server_default='1')
 
     game_id = db.Column(db.Integer(), db.ForeignKey('game.id'))
     game = db.relationship('game', backref='tickets')
@@ -729,19 +729,20 @@ class Report(db.Model):
         self.player = player
         self.result = result
         self.match = True
+        self.other_report = None
 
     def modify(self, result):
         self.result = result
         self.modified = datetime.utcnow()
 
     def check_reports(self):
-        other_report = Report.query.filter(Report.game_id == self.game_id, Report.player_id != self.player_id).first()
-        if other_report:
-            if self.result == 'won' and other_report.result == 'won':
+        self.other_report = Report.query.filter(Report.game_id == self.game_id, Report.player_id != self.player_id).first()
+        if self.other_report:
+            if self.result == 'won' and self.other_report.result == 'won':
                 return False
-            if self.result == 'lost' and other_report.result == 'lost':
+            if self.result == 'lost' and self.other_report.result == 'lost':
                 return False
-            if self.result == 'draw' and other_report.result != 'draw':
+            if self.result == 'draw' and self.other_report.result != 'draw':
                 return False
         return True
 

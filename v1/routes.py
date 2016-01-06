@@ -1684,7 +1684,6 @@ class GameReportResource(restful.Resource):
     def check_report(self, report, game):
         report.match = report.check_reports()
         if not report.match and not game.tickets:
-            notify_event(game, )
             ticket = Ticket(game, 'reports_mismatch')
             db.session.add(ticket)
             db.session.flush()
@@ -1693,6 +1692,17 @@ class GameReportResource(restful.Resource):
             notify_event(game, 'report', message='reports don\' match, ticket {id} created'.format(
                 id=ticket.id
             ))
+        else:
+            if report.match and report.other_report:
+                winner = None
+                if report.result == 'won':
+                    winner = report.player
+                if report.other_report.result == 'won':
+                    winner = report.other_report.player
+                if winner:
+                    poller = Poller.findPoller(game.gametype)
+                    endtime = min(report.created, report.other_report.created)
+                    poller.gameDone(game, winner, endtime)
 
     @property
     def result(self):
@@ -1745,7 +1755,7 @@ class GameReportResource(restful.Resource):
 
 @api.resource(
     '/games/<int:game_id>/tickets',
-    '/ticket/<int:ticket_id>'
+    '/tickets/<int:ticket_id>'
 )
 class TicketResource(restful.Resource):
     @property
@@ -1984,6 +1994,7 @@ class ChatMessageResource(restful.Resource):
 @api.resource(
     '/players/<player_id>/messages/<int:id>/attachment',
     '/games/<int:game_id>/messages/<int:id>/attachment',
+    '/tickets/<int:ticket_id>/messages/<int:id>/attachment',
 )
 class ChatMessageAttachmentResource(UploadableResource):
     PARAM = 'attachment'
@@ -2008,6 +2019,13 @@ class ChatMessageAttachmentResource(UploadableResource):
                 raise NotFound('wrong game id')
             if not game.is_game_player(user):
                 raise Forbidden('You cannot access this game')
+        elif 'ticket_id' in args:
+            ticket = Ticket.query.get_or_404(args['ticket_id'])
+            game = ticket.game
+            if not game:
+                raise NotFound('wrong game id')
+            if not game.is_game_player(user):
+                raise Forbidden('You cannot access this ticket')
         else:
             raise ValueError('no ids')
         return msg
