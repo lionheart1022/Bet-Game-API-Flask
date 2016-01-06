@@ -1491,12 +1491,14 @@ class GameResource(restful.Resource):
         game.twitch_handle = args.twitch_handle
         game.twitch_identity_creator = args.twitch_identity_creator
         game.twitch_identity_opponent = args.twitch_identity_opponent
-        game.gametype = args.gametype
-        game.gamemode = args.gamemode
         if args.tournament:
             game.bet = 0
             game.tournament = args.tournament
+            game.gametype = args.tournament.gametype
+            game.gamemode = args.tournament.gamemode
         else:
+            game.gametype = args.gametype
+            game.gamemode = args.gamemode
             game.bet = args.bet
 
         db.session.add(game)

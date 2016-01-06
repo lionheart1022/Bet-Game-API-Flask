@@ -423,7 +423,9 @@ class Device(db.Model):
     def __repr__(self):
         return '<Device id={}, failed={}>'.format(self.id, self.failed)
 
+
 from .helpers import notify_event
+
 
 class Tournament(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -435,6 +437,9 @@ class Tournament(db.Model):
 
     winner_id = db.Column(db.Integer(), db.ForeignKey(Player.id), nullable=True)
     winner = db.relationship(Player, backref='won_tournaments')
+
+    gametype = db.Column(db.String(64), nullable=False)
+    gamemode = db.Column(db.String(64), nullable=False)
 
     players = db.relationship(
         Player,
@@ -515,9 +520,11 @@ class Tournament(db.Model):
     def started(self):
         return self.start_date < datetime.utcnow()
 
-    def __init__(self, rounds_count, open_date, start_date, finish_date, payin):
+    def __init__(self, gametype, gamemode, rounds_count, open_date, start_date, finish_date, payin):
         assert rounds_count >= 0
         assert open_date < start_date < finish_date
+        self.gametype = gametype
+        self.gamemode = gamemode
         self.rounds_count = rounds_count
         self.open_date, self.start_date, self.finish_date = open_date, start_date, finish_date
         self.payin = payin
@@ -670,7 +677,6 @@ class Tournament(db.Model):
             looser_participant.defeated = True
             winner_participant.round += 1
             db.session.commit()
-
 
 class Participant(db.Model):
     __tablename__ = 'participant'
