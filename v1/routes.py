@@ -7,6 +7,7 @@ from sqlalchemy.sql.expression import func
 
 from werkzeug.exceptions import HTTPException
 from werkzeug.exceptions import MethodNotAllowed, Forbidden, NotFound
+from werkzeug.exceptions import NotImplemented # noqa
 
 import os
 from io import BytesIO
@@ -19,10 +20,10 @@ from PIL import Image
 import eventlet
 
 import config
-from .models import *
-from .helpers import *
-from .apis import *
-from .polling import *
+from .models import * # noqa
+from .helpers import * # noqa
+from .apis import * # noqa
+from .polling import * # noqa
 from .helpers import MyRequestParser as RequestParser  # instead of system one
 from .main import app, db, api, socketio, redis
 
@@ -251,7 +252,7 @@ class PlayerResource(restful.Resource):
         ret = marshal(player,
                       self.fields(public=not is_self,
                                   stat=is_self or args.with_stat,
-                                  leader=args.with_stat))
+                                  leaders=args.with_stat))
         g.winrate_filt = None  # reset
         return ret
 
@@ -614,6 +615,29 @@ class PlayerResource(restful.Resource):
             raise NotFound
         return jsonify(
             position=player.leaderposition,
+        )
+
+@api.resource(
+    '/friends',
+    '/friends/',
+    '/friends/<id>',
+)
+class FriendsResource(restful.Resource):
+    @require_auth
+    def get(self, user, id=None):
+        if id:
+            raise NotImplemented
+
+        # TODO: fetch this user's friends
+        # For now will just return set of predefined users
+        players = Player.query.filter(Player.nickname.like('test_player_%'))
+
+        return dict(
+            players=fields.List(
+                fields.Nested(
+                    PlayerResource.fields(public=True)
+                )
+            ).format(players),
         )
 
 
@@ -2544,3 +2568,8 @@ def debug_redissend(user):
         {'data':'Hello World.'}
     ))
     return 'ok'
+
+@app.route('/debug/revision')
+def debug_revision():
+    import subprocess
+    return subprocess.check_output('/usr/bin/git rev-parse HEAD'.split())
