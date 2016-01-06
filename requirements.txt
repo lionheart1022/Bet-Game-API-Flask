@@ -26,3 +26,5 @@ python_dateutil
 datadog
 
 Flask-Migrate
+Flask-Admin
+Flask-BasicAuth
