@@ -699,7 +699,7 @@ class Ticket(db.Model):
     open = db.Column(db.Boolean(), nullable=False, default=1, server_default='1')
 
     game_id = db.Column(db.Integer(), db.ForeignKey('game.id'))
-    game = db.relationship('game', backref='tickets')
+    game = db.relationship('Game', backref='tickets')
 
     type = db.Column(db.Enum('reports_mismatch'), nullable=False)
 
@@ -712,7 +712,7 @@ class Report(db.Model):
     player_id = db.Column(db.Integer(), db.ForeignKey(Player.id), primary_key=True, index=True)
     ticket_id = db.Column(db.Integer(), db.ForeignKey(Ticket.id), primary_key=True, index=True)
 
-    game = db.relationship('game', backref='reports')
+    game = db.relationship('Game', backref='reports')
     player = db.relationship(Player, backref='reports')
     ticket = db.relationship(Ticket, backref='reports')
 
