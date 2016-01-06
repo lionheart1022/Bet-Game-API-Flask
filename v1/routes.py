@@ -1,9 +1,10 @@
-from flask import request, jsonify, current_app, g, send_file, make_response
+from flask import request, jsonify, current_app, g, send_file, make_response, redirect
 from flask import copy_current_request_context
 from flask.ext import restful
 from flask.ext.restful import fields, marshal
 from flask.ext.socketio import send as sio_send, disconnect as sio_disconnect
 from sqlalchemy.sql.expression import func
+from sqlalchemy.exc import IntegrityError
 
 from werkzeug.exceptions import HTTPException
 from werkzeug.exceptions import MethodNotAllowed, Forbidden, NotFound
@@ -1682,81 +1683,128 @@ class GameResource(restful.Resource):
         )
 
 
-@api.resource('/games/<int:id>/result')
-class GameResultResource(restful.Resource):
-    @require_auth
-    def post(self, user, id):
-        game = Game.query.get_or_404(id)
+@api.resource('/games/<int:game_id>/report')
+class GameReportResource(restful.Resource):
+    fields = {
+        'result': fields.String,
+        'created': fields.DateTime,
+        'modified': fields.DateTime,
+        'match': fields.Boolean,
+        'ticket_id': fields.Integer,
+    }
+
+    def get_game(self, user, game_id):
+        game = Game.query.get_or_404(game_id)
         if not game.is_game_player(user):
-            raise Forbidden('You cannot access this challenge')
+            raise Forbidden
+        return game
 
-        role = 'creator' if user == game.creator else 'opponent'
-        other = 'creator' if role == 'opponent' else 'opponent'
+    def get_report(self, user, game):
+        report = Report.query.filter(Report.game == game, Report.player == user).first()
+        if not report:
+            raise NotFound
+        return report
 
+    def check_report(self, report, game):
+        report.match = report.check_reports()
+        if not report.match and not game.tickets:
+            ticket = Ticket(game, 'reports_mismatch')
+            db.session.add(ticket)
+            db.session.flush()
+            report.ticket = ticket
+            db.session.commit()
+            notify_event(game, 'report', message='reports don\' match, ticket {id} created'.format(
+                id=ticket.id
+            ))
+        else:
+            if report.match and report.other_report:
+                winner = None
+                if report.result == 'won':
+                    winner = report.player
+                if report.other_report.result == 'won':
+                    winner = report.other_report.player
+                if winner:
+                    poller = Poller.findPoller(game.gametype)
+                    endtime = min(report.created, report.other_report.created)
+                    poller.gameDone(game, winner, endtime)
+
+    @property
+    def result(self):
         parser = RequestParser()
-        parser.add_argument('winner', choices=[
-            'creator', 'opponent', 'draw',
-        ], required=False)
         parser.add_argument('result', choices=[
             'won', 'lost', 'draw',
         ], required=False)
         args = parser.parse_args()
+        return args.result
 
-        if not (args.winner or args.result) or (args.winner and args.result):
-            # strings can't be XOR'ed by ^ it leads to TypeError
-            abort('Please provide one of (winner, result) options')
-        if args.result:
-            if args.result == 'won':
-                args.winner = role
-            elif args.result == 'lost':
-                args.winner = other
-            else:
-                args.winner = 'draw'
-        else:
-            if args.winner == role:
-                args.result = 'won'
-            elif args.winner == other:
-                args.result = 'lost'
-            else:
-                args.result = 'draw'
+    @require_auth
+    def post(self, user, game_id):
+        game = self.get_game(user, game_id)
 
-        setattr(game, 'report_%s' % role, args.winner)
-        setattr(game, 'report_%s_date' % role, datetime.utcnow())
-
+        db.session.flush()
+        try:
+            report = Report(game, user, self.result)
+            db.session.add(report)
+            db.session.flush()
+        except IntegrityError:
+            abort('You have already reported this game', problem='duplicate')
+            return
+        db.session.commit()
         notify_event(game, 'report', message='{user} reported {result}'.format(
             user=user.nickname,
-            result=args.result,
+            result=report.result,
         ))
+        self.check_report(report, game)
+        return marshal(report, self.fields)
 
-        if not getattr(game, 'report_%s' % other):
-            # no need to process further
-            return dict(
-                saved=True,
-            )
+    @require_auth
+    def get(self, user, game_id):
+        game = self.get_game(user, game_id)  # check if such game exists and accessible for this user
+        report = self.get_report(user, game_id)
+        self.check_report(report, game)
+        return marshal(report, self.fields)
 
-        game.report_try += 1
+    @require_auth
+    def patch(self, user, game_id):
+        game = self.get_game(user, game_id)  # check if such game exists and accessible for this user
+        report = self.get_report(user, game)
+        report.modify(self.result)
+        db.session.commit()
+        notify_event(game, 'report', message='{user} changed his report to {result}'.format(
+            user=user.nickname,
+            result=report.result,
+        ))
+        self.check_report(report, game)
+        return marshal(report, self.fields)
 
-        crr = game.report_creator
-        opr = game.report_opponent
-        if (
-                            crr == opr == 'draw' or
-                        ('creator', 'opponent') in ((crr, opr), (opr, crr))
-        ):
-            # good
-            poller = Poller.findPoller(game.gametype)
-            endtime = min(game.report_creator_date, game.report_opponent_date)
-            poller.gameDone(game, args.winner, endtime)
-            return dict(
-                success=True,
-            )
+@api.resource(
+    '/games/<int:game_id>/tickets',
+    '/tickets/<int:ticket_id>'
+)
+class TicketResource(restful.Resource):
+    @property
+    def fields(self):
+        return {
+            'id': fields.Integer,
+            'open': fields.Boolean,
+            'game_id': fields.Integer,
+            'type': fields.String,
+            'messages': fields.List(fields.Nested(ChatMessageResource.fields))
+        }
 
-        notify_event(game, 'system', message='reports don\' match')
-        return jsonify(
-            success=False,
-            reason='Your reports don\'t match! '
-                   'Please consider changing, or contact support.',
-        )
-
+    @require_auth
+    def get(self, user, game_id=None, ticket_id=None):
+        if ticket_id:
+            ticket = Ticket.query.get_or_404(ticket_id)
+            if not ticket.game.is_game_player(user):
+                raise Forbidden
+            return marshal(ticket, self.fields)
+        if game_id:
+            game = Game.query.get_or_404(game_id)
+            if not game.is_game_player(user):
+                raise Forbidden
+            return marshal(game.tickets, fields.List(self.fields))
+        raise NotFound
 
 @api.resource(
     '/games/<int:id>/msg',
@@ -1788,6 +1836,10 @@ class GameMessageResource(UploadableResource):
     '/games/<int:game_id>/messages',
     '/games/<int:game_id>/messages/',
     '/games/<int:game_id>/messages/<int:id>',
+    '/tickets/<int:ticket_id>/messages',
+    '/tickets/<int:ticket_id>/messages/',
+    '/tickets/<int:ticket_id>/messages/<int:id>',
+    '/messages/<int:id>'
 )
 class ChatMessageResource(restful.Resource):
     @classproperty
@@ -1803,8 +1855,24 @@ class ChatMessageResource(restful.Resource):
             viewed=fields.Boolean,
         )
 
+    def get_single(self, user, game_id=None, player_id=None, ticket_id=None, id=None):
+        msg = ChatMessage.query.get_or_404(id)
+        if not msg.is_for(user):
+            raise Forbidden
+        if game_id and game_id != msg.game_id:
+            return redirect(api.url_for(ChatMessageResource, game_id=msg.game_id, id=id), 301)
+        if player_id and player_id != msg.sender_id:
+            return redirect(api.url_for(ChatMessageResource, player_id=msg.sender_id, id=id), 301)
+        if ticket_id and ticket_id != msg.ticket_id:
+            return redirect(api.url_for(ChatMessageResource, ticket_id=msg.ticket_id, id=id), 301)
+        return marshal(msg, self.fields)
+
+
     @require_auth
-    def get(self, user, game_id=None, player_id=None, id=None):
+    def get(self, user, game_id=None, player_id=None, ticket_id=None, id=None):
+        if id:
+            return self.get_single(game_id, player_id, ticket_id, id)
+
         player = None
         if player_id:
             player = Player.find(player_id)
@@ -1813,29 +1881,15 @@ class ChatMessageResource(restful.Resource):
 
         game = None
         if game_id:
-            game = Game.query.get(game_id)
+            game = Game.query.get_or_404(game_id)
+        elif ticket_id:
+            ticket = Ticket.query.get_or_404(game_id)
+            game = ticket.game
             if not game:
-                raise NotFound('wrong game id')
-            if not game.is_game_player(user):
-                abort('You cannot access this game', 403)
+                raise NotFound('wrong ticket id')
 
-        msg = None
-        if id:
-            msg = ChatMessage.query.get_or_404(id)
-            if not msg.is_for(user):
-                raise Forbidden
-            if player:
-                if user != player and not msg.is_for(player):
-                    abort('Player ID mismatch', 404)
-                    # else don't check message's other party
-            elif game:
-                if msg.game != game:
-                    abort('Wrong msg id for this game', 404)
-            else:
-                raise ValueError('no player nor game')
-            return marshal(msg, self.fields)
-
-        assert not id
+        if not game.is_game_player(user):
+            abort('You cannot access this game', 403)
 
         if player:
             if user == player:
@@ -1892,11 +1946,12 @@ class ChatMessageResource(restful.Resource):
         return ret
 
     @require_auth
-    def post(self, user, game_id=None, player_id=None, id=None):
+    def post(self, user, game_id=None, player_id=None, ticket_id=None, id=None):
         if id:
             raise MethodNotAllowed
 
         game = None
+        player = None
         if player_id:
             player = Player.find(player_id)
             if not player:
@@ -1904,13 +1959,16 @@ class ChatMessageResource(restful.Resource):
             if player == user:
                 abort('You cannot send message to yourself')
         elif game_id:
-            game = Game.query.get(game_id)
-            if not game:
-                raise NotFound('wrong game id')
+            game = Game.query.get_or_404(game_id)
             player = game.other(user)
             if not player:
                 raise Forbidden('You cannot access this game', 403)
             game = game.root  # always attach messages to root game in session
+        elif ticket_id:
+            ticket = Ticket.query.get_or_404(game_id)
+            game = ticket.game
+            if not game:
+                raise NotFound('wrong ticket id')
 
         parser = RequestParser()
         parser.add_argument('text', required=False)
@@ -1939,30 +1997,13 @@ class ChatMessageResource(restful.Resource):
         return marshal(msg, self.fields)
 
     @require_auth
-    def patch(self, user, game_id=None, player_id=None, id=None):
-        if not id:
+    def patch(self, user, game_id=None, player_id=None, ticket_id=None, id=None):
+        if not id or any(game_id, player_id, ticket_id):
             raise MethodNotAllowed
         msg = ChatMessage.query.get_or_404(id)
         if msg.receiver_id != user.id:
             raise Forbidden(
                 'You cannot patch message which is not addressed to you')
-
-        if player_id:
-            player = Player.find(player_id)
-            if not player:
-                raise NotFound('invalid player id')
-            if player == user:
-                player = msg.other(user)
-            elif msg.other(user) != player:
-                abort('Wrong user id')  # TODO do we need to check that at all?
-        elif game_id:
-            game = Game.query.get(game_id)
-            if not game:
-                raise NotFound('invalid game id')
-            if game != msg.game:
-                raise NotFound('wrong game id')
-            if not game.is_game_player(user):
-                raise Forbidden('You cannot access this game')
 
         parser = RequestParser()
         parser.add_argument('viewed', type=boolean_field, required=True)
@@ -1977,6 +2018,7 @@ class ChatMessageResource(restful.Resource):
 @api.resource(
     '/players/<player_id>/messages/<int:id>/attachment',
     '/games/<int:game_id>/messages/<int:id>/attachment',
+    '/tickets/<int:ticket_id>/messages/<int:id>/attachment',
 )
 class ChatMessageAttachmentResource(UploadableResource):
     PARAM = 'attachment'
@@ -2001,6 +2043,13 @@ class ChatMessageAttachmentResource(UploadableResource):
                 raise NotFound('wrong game id')
             if not game.is_game_player(user):
                 raise Forbidden('You cannot access this game')
+        elif 'ticket_id' in args:
+            ticket = Ticket.query.get_or_404(args['ticket_id'])
+            game = ticket.game
+            if not game:
+                raise NotFound('wrong game id')
+            if not game.is_game_player(user):
+                raise Forbidden('You cannot access this ticket')
         else:
             raise ValueError('no ids')
         return msg

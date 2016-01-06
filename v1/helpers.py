@@ -762,6 +762,8 @@ def notify_event(root, etype, debug=False, **kwargs):
             raise ValueError('No game specified')
         if game.state == 'finished' and game.winner in ['creator','opponent']:
             # special handling-
+            for ticket in game.tickets:
+                ticket.open = False
             winner = (evt.game.creator
                       if evt.game.winner == 'creator' else
                       evt.game.opponent)

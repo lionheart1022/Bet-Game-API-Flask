@@ -694,6 +694,57 @@ class Participant(db.Model):
 
     db.UniqueConstraint(tournament_id, order)
 
+class Ticket(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    open = db.Column(db.Boolean(), nullable=False, default=1, server_default='1')
+
+    game_id = db.Column(db.Integer(), db.ForeignKey('game.id'))
+    game = db.relationship('Game', backref='tickets')
+
+    type = db.Column(db.Enum('reports_mismatch'), nullable=False)
+
+    def __init__(self, game, type):
+        self.game = game
+        self.type = type
+
+class Report(db.Model):
+    game_id = db.Column(db.Integer(), db.ForeignKey('game.id'), primary_key=True, index=True)
+    player_id = db.Column(db.Integer(), db.ForeignKey(Player.id), primary_key=True, index=True)
+    ticket_id = db.Column(db.Integer(), db.ForeignKey(Ticket.id), primary_key=True, index=True)
+
+    game = db.relationship('Game', backref='reports')
+    player = db.relationship(Player, backref='reports')
+    ticket = db.relationship(Ticket, backref='reports')
+
+    created = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow())
+
+    modified = db.Column(db.DateTime(), nullable=True, default=None)
+
+    result = db.Column(db.Enum(
+        'won', 'lost', 'draw',
+    ), nullable=False)
+
+    def __init__(self, game, player, result):
+        self.game = game
+        self.player = player
+        self.result = result
+        self.match = True
+        self.other_report = None
+
+    def modify(self, result):
+        self.result = result
+        self.modified = datetime.utcnow()
+
+    def check_reports(self):
+        self.other_report = Report.query.filter(Report.game_id == self.game_id, Report.player_id != self.player_id).first()
+        if self.other_report:
+            if self.result == 'won' and self.other_report.result == 'won':
+                return False
+            if self.result == 'lost' and self.other_report.result == 'lost':
+                return False
+            if self.result == 'draw' and self.other_report.result != 'draw':
+                return False
+        return True
 
 class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -725,13 +776,6 @@ class Game(db.Model):
 
     aborter_id = db.Column(db.Integer, db.ForeignKey('player.id'))
     aborter = db.relationship(Player, foreign_keys='Game.aborter_id')
-    report_creator = db.Column(db.Enum('creator', 'opponent', 'draw'),
-                               nullable=True)
-    report_creator_date = db.Column(db.DateTime, nullable=True)
-    report_opponent = db.Column(db.Enum('creator', 'opponent', 'draw'),
-                                nullable=True)
-    report_opponent_date = db.Column(db.DateTime, nullable=True)
-    report_try = db.Column(db.Integer, default=0)
 
     winner = db.Column(db.Enum('creator', 'opponent', 'draw'), nullable=True)
     details = db.Column(db.Text, nullable=True)
@@ -842,6 +886,11 @@ class ChatMessage(db.Model):
     receiver = db.relationship(Player, foreign_keys='ChatMessage.receiver_id')
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'), index=True)
     game = db.relationship(Game)
+    ticket_id = db.Column(db.Integer, db.ForeignKey('ticket.id'), index=True)
+    ticket = db.relationship(Ticket, backref='messages')
+
+    admin_message = db.Column(db.Boolean, nullable=False, default=False, server_default='0')
+
     text = db.Column(db.Text)
     time = db.Column(db.DateTime, default=datetime.utcnow)
     has_attachment = db.Column(db.Boolean, default=False)
