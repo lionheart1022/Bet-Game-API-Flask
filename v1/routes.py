@@ -7,15 +7,13 @@ from sqlalchemy.sql.expression import func
 from sqlalchemy.exc import IntegrityError
 
 from werkzeug.exceptions import HTTPException
-from werkzeug.exceptions import BadRequest, MethodNotAllowed, Forbidden, NotImplemented, NotFound
+from werkzeug.exceptions import MethodNotAllowed, Forbidden, NotFound
 
 import os
 from io import BytesIO
 from datetime import datetime, timedelta
 import math
 import json
-from functools import reduce
-import itertools
 import operator
 import requests
 from PIL import Image
@@ -26,8 +24,9 @@ from .models import *
 from .helpers import *
 from .apis import *
 from .polling import *
-from .helpers import MyRequestParser as RequestParser # instead of system one
-from .main import app, db, api, before_first_request, socketio, redis
+from .helpers import MyRequestParser as RequestParser  # instead of system one
+from .main import app, db, api, socketio, redis
+
 
 # Players
 @api.resource(
@@ -1601,7 +1600,6 @@ class GameResource(restful.Resource):
                         game.gamertag_opponent,
                     ),
                 )
-                retstatus = ret.status_code
             except Exception:
                 log.exception('Failed to start twitch stream!')
                 abort('Cannot start twitch observing - internal error', 500)
@@ -2210,7 +2208,7 @@ def socketio_auth(token=None):
         return False
     try:
         user = parseToken(token)
-    except Exception as e:
+    except Exception:
         log.exception('Socket auth failed')
         sio_disconnect()
         return

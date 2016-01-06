@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from flask import Flask, jsonify
 from flask.ext.restful.utils import http_status_message
 from flask.ext.cors import CORS
@@ -11,6 +12,7 @@ import socket
 import datadog
 
 import config
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = config.DB_URL
@@ -94,6 +96,7 @@ def debug():
     app.debug = True #-- this breaks exception handling?..
     setup_logging(app)
     return init_app()
+
 
 if __name__ == '__main__':
     init_app(app)

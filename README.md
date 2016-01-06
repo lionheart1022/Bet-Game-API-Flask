@@ -199,6 +199,9 @@ ID may be either integer internal ID, player's nick or `me`.
 For the player requesting will return whole info;
 for other players will only return *Limited Player resource*.
 
+You can also set `with_stat` parameter to `true`,
+then you will get additional fields `gamecount`, `winrate` and `leaderposition`.
+
 ### GET /players/<id>/userpic
 Returns given player's userpic with `image/png` MIME type.
 If given user has no userpic, will return HTTP code `204 NO CONTENT`.
