@@ -53,7 +53,10 @@ with main.app.app_context():
             game.gametype = 'fake'
             game.creator_id = p1.id
             game.opponent_id = p2.id
-            game.winner = 'creator'
+            if p1.winrate > p2.winrate:
+                game.winner = 'creator'
+            else:
+                game.winner = 'opponent'
             game.state = 'finished'
             game.bet = 0
             db.session.add(game)
