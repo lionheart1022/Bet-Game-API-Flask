@@ -8,6 +8,8 @@ from flask import g
 from .main import db
 from .common import *
 
+import config
+
 
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -391,6 +393,20 @@ class Player(db.Model):
         return '<Player id={} nickname={} balance={}>'.format(
             self.id, self.nickname, self.balance)
 
+    @property
+    def is_authenticated(self):  # flask login integration
+        return True
+
+    @property
+    def is_anonymous(self):  # flask login integration
+        return False
+
+    @property
+    def is_active(self):  # flask login integration
+        return self.id in config.ADMIN_IDS # active means admin
+
+    def get_id(self):  # flask login integration
+        return str(self.id)
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)

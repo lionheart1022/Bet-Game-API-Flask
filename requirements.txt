@@ -27,4 +27,4 @@ datadog
 
 Flask-Migrate
 Flask-Admin
-Flask-BasicAuth
+Flask-Login

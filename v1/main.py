@@ -3,9 +3,10 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext import restful
 from flask.ext.socketio import SocketIO
 from flask.ext.redis import FlaskRedis
-from flask.ext.migrate import Migrate, upgrade
 
 import config
+
+from .admin import init as init_admin
 
 app = Blueprint('v1', __name__)
 db = SQLAlchemy()
@@ -17,9 +18,11 @@ _before1req = []
 def before_first_request(func):
     """ decorator to launch func before 1st request """
     _before1req.append(func)
+
 def init_app(flask_app):
     db.init_app(flask_app)
     api.init_app(flask_app)
+    init_admin(flask_app)
     # FIXME! Socketio requires resource name to match on client and on server
     # so Nginx rewriting breaks it
     socketio.init_app(flask_app, resource='{}/v1/socket.io'.format(
