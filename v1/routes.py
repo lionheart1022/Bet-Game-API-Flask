@@ -1332,7 +1332,7 @@ class GameResource(restful.Resource):
         parser.add_argument('twitch_identity_creator', required=False)
         parser.add_argument('twitch_identity_opponent', required=False)
         parser.add_argument('gametype', choices=Poller.all_gametypes,
-                            required=True)
+                            required=False)
         parser.add_argument('bet', type=float, required=False)
         parser.add_argument('tournament_id', type=Tournament.query.get_or_404, required=False)
         return parser
@@ -1347,7 +1347,7 @@ class GameResource(restful.Resource):
         if poller.gamemodes:
             gmparser = RequestParser()
             gmparser.add_argument('gamemode', choices=poller.gamemodes,
-                                  required=True)
+                                  required=False)
             gmargs = gmparser.parse_args()
             return gmargs
         return {}
@@ -1470,8 +1470,11 @@ class GameResource(restful.Resource):
             if args.bet or args.opponent:
                 abort('Bet and opponent shall not be provided in tournament mode')
         else:
-            if not (args.bet or args.opponent):
+            if not (args.bet and args.opponent):
                 abort('Please provide bet amount and choose your opponent '
+                      'when not in tournament mode')
+            if not (args.gamemode and args.gametype):
+                abort('Please provide gamemode and gametype '
                       'when not in tournament mode')
 
         if args.tournament:
@@ -2322,6 +2325,8 @@ class TournamentResource(restful.Resource):
         )),
         'participants_cap': fields.Integer,
         'participants_count': fields.Integer,
+        'gamemode': fields.String,
+        'gametype': fields.String,
     }
 
     fields_many = {
@@ -2331,6 +2336,8 @@ class TournamentResource(restful.Resource):
         'finish_date': fields.DateTime,
         'participants_cap': fields.Integer,
         'participants_count': fields.Integer,
+        'gamemode': fields.String,
+        'gametype': fields.String,
     }
 
     @require_auth
@@ -2343,9 +2350,23 @@ class TournamentResource(restful.Resource):
         parser.add_argument('open_date', type=lambda s: datetime.fromtimestamp(int(s)))
         parser.add_argument('start_date', type=lambda s: datetime.fromtimestamp(int(s)))
         parser.add_argument('finish_date', type=lambda s: datetime.fromtimestamp(int(s)))
+        parser.add_argument('finish_date', type=lambda s: datetime.fromtimestamp(int(s)))
+        parser.add_argument('finish_date', type=lambda s: datetime.fromtimestamp(int(s)))
         parser.add_argument('buy_in', type=float)
 
+        parser.add_argument('gametype', choices=Poller.all_gametypes, required=True)
+        parser.add_argument('gamemode', type=str, required=True)
+
         args = parser.parse_args()
+
+        poller = Poller.findPoller(args.gametype)
+        if not poller or poller == DummyPoller:
+            abort('Support for this game is coming soon!')
+
+        if args.gamemode not in poller.gamemodes:
+            abort('Unknown gamemode')
+
+
         if args.rounds_count < 1:
             abort('Tournament must have 1 or more rounds', problem='rounds_count')
 
@@ -2359,7 +2380,9 @@ class TournamentResource(restful.Resource):
             open_date=args.open_date,
             start_date=args.start_date,
             finish_date=args.finish_date,
-            payin=args.buy_in
+            payin=args.buy_in,
+            gamemode=args.gamemode,
+            gametype=args.gametype,
         )
         db.session.add(tournament)
         db.session.commit()

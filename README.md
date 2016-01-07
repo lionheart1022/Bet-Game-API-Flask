@@ -787,6 +787,8 @@ This request supports pagination:
 
  * `page`: page to return (defaults to 1)
  * `results_per_page`: how many games to include per page (defaults to 10, max is 50)
+* `gametype`: one of `supported` gametypes from `GET /gametypes` endpoint
+* `gamemode`: one of game modes allowed for chosen gametype according to `GET /gametypes`.
 
 ### GET /tournaments/<id>
 Get tournament by id (see tournament resource)
@@ -801,6 +803,8 @@ Create tournament
  * `start_date` unixtime timestamp
  * `finish_date` unixtime timestamp
  * `buy_in` buy in (float)
+ * `gametype`: one of `supported` gametypes from `GET /gametypes` endpoint
+ * `gamemode`: one of game modes allowed for chosen gametype according to `GET /gametypes`.
 
 ### GET /tickets/<ticket_id>/messages
 Returns list of messages for ticket `<ticket_id>`.
@@ -1101,7 +1105,9 @@ When this resource is sent over PUSH, it will also include `root` field with com
             "start": "Tue, 05 Jan 2016 07:12:11 -0000"
         }
     ], 
-    "start_date": "Tue, 05 Jan 2016 07:12:11 -0000"
+    "start_date": "Tue, 05 Jan 2016 07:12:11 -0000",
+	"gametype": "xboxone-fifa15", // see POST /games for options
+	"gamemode": "friendlies", // or any other, see POST /games for details
 }
 ```
 
