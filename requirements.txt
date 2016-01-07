@@ -1,4 +1,4 @@
-faker
+fake-factory
 gunicorn
 setproctitle
 Flask
