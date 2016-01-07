@@ -53,7 +53,7 @@ with main.app.app_context():
             game.gametype = 'fake'
             game.creator_id = p1.id
             game.opponent_id = p2.id
-            if p1.winrate > p2.winrate:
+            if  p1.winrate and p2.winrate and p1.winrate > p2.winrate:
                 game.winner = 'creator'
             else:
                 game.winner = 'opponent'
