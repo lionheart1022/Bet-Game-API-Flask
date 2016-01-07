@@ -1,6 +1,7 @@
 from flask import redirect, url_for, request, session
 
 from flask_admin import Admin, BaseView, expose
+from flask_admin.contrib.sqla import ModelView
 from flask.ext.basicauth import BasicAuth
 from flask.ext.login import LoginManager, login_user, current_user, logout_user
 
@@ -22,6 +23,12 @@ def load_user(user_id):
 def init(app):
     admin.init_app(app)
     login_manager.init_app(app)
+    from .models import Ticket
+    from .main import db
+    admin.add_view(TicketView(Ticket, db.session))
+    admin.add_view(LoginView(name='Login', endpoint='login'))
+    admin.add_view(LogoutView(name='Logout', endpoint='logout'))
+
 
 
 class LoginView(BaseView):
@@ -53,8 +60,9 @@ class LogoutView(AdminView):
         logout_user()
         return redirect(url_for('admin.index'))
 
-admin.add_view(LoginView(name='Login', endpoint='login'))
-admin.add_view(LogoutView(name='Logout', endpoint='logout'))
-
-
+class TicketView(ModelView, AdminView):
+    can_create = False
+    can_delete = False
+    can_edit = False
+    can_view_details = True
 
