@@ -719,6 +719,7 @@ class Participant(db.Model):
 class Ticket(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     open = db.Column(db.Boolean(), nullable=False, default=1, server_default='1')
+    created = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow())
 
     game_id = db.Column(db.Integer(), db.ForeignKey('game.id'))
     game = db.relationship('Game', backref='tickets')
