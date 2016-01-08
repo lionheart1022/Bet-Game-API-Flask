@@ -4,7 +4,6 @@ import os
 import time
 from datetime import datetime, timedelta
 from collections import OrderedDict, namedtuple
-from types import SimpleNamespace
 import email
 import requests
 from requests_oauthlib import OAuth1Session
@@ -416,7 +415,7 @@ class Steam(LimitedApi):
         """
         ret = cls.call(
             'ISteamUser', 'GetPlayerSummaries', 'v0002',
-            steamids = steam_id,
+            steamids = val,
         )
         ps = ret.get('players')
         if not ps:
@@ -492,6 +491,7 @@ class StarCraft(BattleNet):
             'http://api.sc2ranks.com/v2/characters/search',
         )
         # TODO
+        ret
     @classmethod
     def check_uid(cls, val):
         if val.startswith('http'):
