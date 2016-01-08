@@ -571,8 +571,9 @@ class WilliamHill:
     """
     class WilliamHillError(Exception):
         pass
-    BASE = 'https://sandbox.whapi.com/v1/'
-    CAS_HOST = 'https://auth.williamhill-test.com'
+    BASE = 'https://sandbox.whapi.com/v1/' # XXX is it correct? doc mentions sandbox.*
+    CAS_HOST = ('https://auth.williamhill%s.com' %
+                ('-test' if config.WH_SANDBOX else ''))
     def __init__(self, ticket=None):
         self.session = requests.Session()
         self.session.headers.update({
