@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ "$PWD" == "*/test/*" ]]; then
+if [[ "$PWD" == */test/* ]]; then
 	DIR=test
 	MODE=test
 	URLBASE=/test
@@ -71,6 +71,7 @@ cd ..
 GIT_DIR='.git'
 read OLD NEW REF
 echo $OLD $NEW $REF
+git reset --hard
 git checkout $REF
 git reset --hard
 
