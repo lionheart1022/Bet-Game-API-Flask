@@ -743,13 +743,23 @@ Message receiver will be your opponent for this game.
 ### PATCH /games/<id>/messages/<id>
 Mark chat message as read.
 
-### POST /games/<id>/result
+### POST /games/<id>/report
 Report game result
 *Arguments*:
 
- * `winner`: 'creator', 'opponent' or 'draw'
  * `result`: won', 'lost' or 'draw'
-At least one and only one of this (`winner`, `result`) arguments should be supplied
+Returns Report resource
+
+### GET /games/<id>/report
+Returns Report resource if you have already reported this game.
+
+### PATCH /games/<id>/report
+Change your previous report if you have already reported this game.
+*Arguments*:
+
+ * `result`: won', 'lost' or 'draw'
+Returns Report resource.
+
 
 ### GET /games/<id>/events
 Retrieve events for given *gaming session*.
@@ -768,11 +778,17 @@ Return format:
 ### GET /games/<game-id>/events/<event-id>
 Retrieves single Event resource.
 
+
+### GET /games/<game-id>/tickets'
+Returns all tickets related to current game.
+
 ### GET /tournaments
 This request supports pagination:
 
  * `page`: page to return (defaults to 1)
  * `results_per_page`: how many games to include per page (defaults to 10, max is 50)
+* `gametype`: one of `supported` gametypes from `GET /gametypes` endpoint
+* `gamemode`: one of game modes allowed for chosen gametype according to `GET /gametypes`.
 
 ### GET /tournaments/<id>
 Get tournament by id (see tournament resource)
@@ -787,6 +803,49 @@ Create tournament
  * `start_date` unixtime timestamp
  * `finish_date` unixtime timestamp
  * `buy_in` buy in (float)
+ * `gametype`: one of `supported` gametypes from `GET /gametypes` endpoint
+ * `gamemode`: one of game modes allowed for chosen gametype according to `GET /gametypes`.
+
+### GET /tickets/<ticket_id>/messages
+Returns list of messages for ticket `<ticket_id>`.
+
+Paramerers:
+
+* `results_per_page` defaults to 10, max is 50
+* `page` - which page to return, defaults to 1
+* `order` - either `time` or `-time`.
+	Default is `time`, while `-time` means descending order.
+
+```json
+{
+	"messages": [ list of Chat Message resources ]
+}
+```
+
+### GET /tickets/<ticket_id>/messages/<id>
+Returns single Chat Message resource.
+
+### POST /tickets/<ticket_id>/messages
+Creates new message for ticket `<ticket_id>`.
+
+Available parameters:
+
+* `text`: message text
+
+Or you can attach a media file using `attachment` parameter (as with userpic).
+
+Returns newly created Chat Message resource on success.
+
+### PATCH /tickets/<ticket_id>/messages/<id>
+This endpoint allows to change message `unread` state, i.e. mark message as read or as unread.
+
+* `viewed`: boolean
+
+Returns Chat Message resource.
+
+### GET /tickets/<ticket_id>/messages/<id>/attachment
+Returns body of message attachment (if any) with proper MIME type.
+Will return `204 NO CONTENT` if that message has no attachment.
 
 ## Debugging endpoints (some of them)
 
@@ -1046,7 +1105,9 @@ When this resource is sent over PUSH, it will also include `root` field with com
             "start": "Tue, 05 Jan 2016 07:12:11 -0000"
         }
     ], 
-    "start_date": "Tue, 05 Jan 2016 07:12:11 -0000"
+    "start_date": "Tue, 05 Jan 2016 07:12:11 -0000",
+	"gametype": "xboxone-fifa15", // see POST /games for options
+	"gamemode": "friendlies", // or any other, see POST /games for details
 }
 ```
 
@@ -1057,4 +1118,26 @@ When this resource is sent over PUSH, it will also include `root` field with com
     "player": {Player resource}, 
     "round": 1
 }
+```
+
+### Report resource
+```json
+{
+        'result': ,
+        'created': "Tue, 05 Jan 2016 07:12:11 -0000",
+        'modified': "Tue, 05 Jan 2016 07:13:51 -0000",
+        'match': true, // does report match with opponents report?
+        'ticket_id': null, // if not ticket created
+    }
+```
+
+### Ticket resource
+```json
+{
+        'result': ,
+        'created': "Tue, 05 Jan 2016 07:12:11 -0000",
+        'modified': "Tue, 05 Jan 2016 07:13:51 -0000",
+        'match': true, // does report match with opponents report?
+        'ticket_id': null, // if not ticket created
+    }
 ```

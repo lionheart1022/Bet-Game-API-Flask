@@ -1,9 +1,10 @@
-from flask import request, jsonify, current_app, g, send_file, make_response
+from flask import request, jsonify, current_app, g, send_file, make_response, redirect
 from flask import copy_current_request_context
 from flask.ext import restful
 from flask.ext.restful import fields, marshal
 from flask.ext.socketio import send as sio_send, disconnect as sio_disconnect
 from sqlalchemy.sql.expression import func
+from sqlalchemy.exc import IntegrityError
 
 from werkzeug.exceptions import HTTPException
 from werkzeug.exceptions import MethodNotAllowed, Forbidden, NotFound
@@ -14,8 +15,6 @@ from io import BytesIO
 from datetime import datetime, timedelta
 import math
 import json
-from functools import reduce
-import itertools
 import operator
 import requests
 from PIL import Image
@@ -947,7 +946,7 @@ def balance_withdraw(user):
     db.session.add(Transaction(
         player=user,
         type='withdraw',
-        sum=-coins, #  FIXME: coins not defined
+        sum=-args.coins,
         balance=user.balance,
         comment='Converted to {} {}'.format(
             amount,
@@ -1015,7 +1014,7 @@ def balance_withdraw(user):
         db.session.add(Transaction(
             player=user,
             type='withdraw',
-            sum=coins,  # FIXME: coins not defined
+            sum=args.coins,
             balance=user.balance,
             comment='Withdraw operation aborted due to error',
         ))
@@ -1092,12 +1091,13 @@ def gametypes():
                         )),
                         data['description'].strip().split('\n\n')
                     ))
-                if poller.identity or poller.twitch_identity:
+                if poller.identity or poller.twitch_identity or poller.honesty:
                     data.update(dict(
                         supported=True,
                         gamemodes=poller.gamemodes,
                         identity=poller.identity_id,
                         identity_name=poller.identity_name,
+                        honesty_only=poller.honesty,
                         twitch=poller.twitch,
                         twitch_identity=None,  # may be updated below
                         twitch_identity_name=None,
@@ -1332,107 +1332,180 @@ class GameResource(restful.Resource):
         parser.add_argument('twitch_identity_creator', required=False)
         parser.add_argument('twitch_identity_opponent', required=False)
         parser.add_argument('gametype', choices=Poller.all_gametypes,
-                            required=True)
+                            required=False)
         parser.add_argument('bet', type=float, required=False)
         parser.add_argument('tournament_id', type=Tournament.query.get_or_404, required=False)
         return parser
 
+    @classmethod
+    def post_parse_args(cls):
+        args = cls.postparser.parse_args()
+        args.gamemode = None # will be handled below
+        return args
+    @classmethod
+    def post_parse_poller_args(cls, poller):
+        if poller.gamemodes:
+            gmparser = RequestParser()
+            gmparser.add_argument('gamemode', choices=poller.gamemodes,
+                                  required=False)
+            gmargs = gmparser.parse_args()
+            return gmargs
+        return {}
 
+    @classmethod
+    def load_save_identities(cls, poller, args, role, user,
+                             optional=False, game=None):
+        """
+        Check passed identities (in args),
+        load them from user profiles if needed,
+        and update profile's identities if required.
+
+        :param poller: poller class for current game
+        :param args: arguments to work with
+        :param role: role to handle identities for (creator or opponent)
+        :param user: current role's user object.
+        :param optional: is it allowed to omit this identity;
+        also will not update user's field if this is True.
+        If not passed then will just validate identities.
+        """
+        had_creatag = args.get('gamertag_creator')
+        for name, identity, required in (
+            ('gamertag', poller.identity, not poller.honesty),
+            ('twitch_identity', poller.twitch_identity, poller.twitch == 2),
+        ):
+            argname = '{}_{}'.format(name, role)
+
+            # if certain identity is not supported for this game
+            # then check its absence in args
+            if not identity:
+                if args.get(argname):
+                    abort('[{}]: not supported for this game type'.format(
+                        argname), problem=argname)
+                continue # no need to check other clauses
+
+            if args.get(argname):
+                # was passed -> validate and maybe save
+                try:
+                    args[argname] = identity.checker(args[argname])
+                except ValueError as e:
+                    abort('[{}]: Invalid {}: {}'.format(
+                        argname, identity.name, e
+                    ), problem=argname)
+            else:
+                # try load this from user object
+                args[argname] = getattr(user, identity.id)
+                if required and not optional and not args[argname]:
+                    abort('Please specify your {}'.format(
+                        identity.name,
+                    ), problem=argname)
+        # Update creator's identity if requested
+        if had_creatag and poller.identity \
+                and not optional and args.get('savetag'):
+            if args.savetag == 'replace':
+                repl = True
+            elif args.savetag == 'never':
+                repl = False
+            elif args.savetag == 'ignore_if_exists':
+                repl = not getattr(user, poller.identity.id)
+            elif args.savetag == 'fail_if_exists':
+                repl = True
+                if getattr(user, poller.identity.id) != args.gamertag_creator:
+                    abort('{} is already set and is different!'.format(
+                        poller.identity.name), problem='savetag')
+            if repl:
+                setattr(user, poller.identity.id, args.gamertag_creator)
+    @classmethod
+    def check_identity_equality(cls, poller, creators, opponents):
+        """
+        :param creators: object to get creator's identity from
+        :param opponents: object to get opponent's identity from
+        """
+        for name, identity in (
+            ('gamertag', poller.identity),
+            ('twitch_identity', poller.twitch_identity)
+        ):
+            creaname, opponame = ('{}_{}'.format(name, role)
+                                  for role in ('creator', 'opponent'))
+            if getattr(creators, creaname) == getattr(opponents, opponame):
+                abort('You cannot specify {} same as your opponent\'s!'.format(
+                    identity.name,
+                ))
+
+    @classmethod
+    def check_same_region(cls, poller, crea, oppo):
+        # crea & oppo are identities (primary ones, not twitch)
+        if not poller.sameregion:
+            # no need to check
+            return
+        if not oppo:
+            # opponent identity not passed - cannot check
+            return
+        # this is an additional check for regions
+        region1 = crea.split('/', 1)[0]
+        region2 = oppo.split('/', 1)[0]
+        if region1 != region2:
+            abort('You and your opponent should be in the same region; '
+                    'but actually you are in {} and your opponent is in {}'.format(
+                region1, region2))
+    @classmethod
+    def check_bet_amount(cls, bet, user):
+        if bet < 0.99:  # FIXME: hardcoded min bet
+            abort('Bet is too low', problem='bet')
+        if bet > user.available:
+            abort('You don\'t have enough coins', problem='coins')
     @require_auth
     def post(self, user, id=None):
         if id:
             raise MethodNotAllowed
-        args = self.postparser.parse_args()
-        args.gamemode = None
+        args = self.post_parse_args()
 
-        if args.tournament and not (args.bet or args.opponent): # tournament game
+        poller = Poller.findPoller(args.gametype)
+        if not poller or poller == DummyPoller:
+            abort('Support for this game is coming soon!')
+
+        args.extend(self.post_parse_poller_args(poller))
+
+        # check tournament-related settings
+        if args.tournament:
+            if args.bet or args.opponent:
+                abort('Bet and opponent shall not be provided in tournament mode')
+        else:
+            if not (args.bet and args.opponent):
+                abort('Please provide bet amount and choose your opponent '
+                      'when not in tournament mode')
+            if not (args.gamemode and args.gametype):
+                abort('Please provide gamemode and gametype '
+                      'when not in tournament mode')
+
+        if args.tournament:
+            # request opponent from tournament
             args.opponent = args.tournament.get_opponent(user)
-            return self.create_tournament_game(user, args)
-
-        if not args.tournament and args.bet and args.opponent: # simple game
-            return self.create_game(user, args)
-        abort('')  # TODO: write error message
-
-    def create_tournament_game(self, user, args):
-        poller = Poller.findPoller(args.gametype)
-        if not poller or poller == DummyPoller:
-            abort('Support for this game is coming soon!')
-
-        if poller.gamemodes:
-            gmparser = RequestParser()
-            gmparser.add_argument('gamemode', choices=poller.gamemodes,
-                                  required=True)
-            gmargs = gmparser.parse_args()
-            args.gamemode = gmargs.gamemode
 
         if args.opponent == user:
             abort('You cannot compete with yourself')
 
-        # check passed identities
-        # and pre-load them from user profiles if possible
-        had_creatag = args.gamertag_creator
-        for name, identity, mandatory in (
-                ('gamertag', poller.identity, True),
-                ('twitch_identity', poller.twitch_identity, poller.twitch == 2),
-        ):
-            if not identity:
-                for role in 'creator', 'opponent':
-                    if args['{}_{}'.format(name, role)]:
-                        abort('[{}_{}]: not supported for this game type'.format(
-                            name, role), problem=argname)
-                continue
-            for role, ruser in (
-                    ('creator', user),
-                    ('opponent', args.opponent),
-            ):
-                argname = '{}_{}'.format(name, role)
-                if args[argname]:
-                    try:
-                        args[argname] = identity.checker(args[argname])
-                    except ValueError as e:
-                        abort('[{}]: {}'.format(argname, e), problem=argname)
-                else:
-                    args[argname] = getattr(ruser, identity.id)
-                    if mandatory and role == 'creator' \
-                            and not args[argname]:  # not provided
-                        abort('Please specify your {}'.format(
-                            identity.name,
-                        ), problem=argname)
-            if args[name + '_creator'] == args[name + '_opponent']:
-                abort('Your and your opponent\'s {} should be different!'.format(
-                    identity.name,
-                ))
-        # Update creator's identity if requested
-        if had_creatag and poller.identity:
-            if args.savetag == 'replace':
-                repl = True
-            elif args.savetag == 'never':
-                repl = False
-            elif args.savetag == 'ignore_if_exists':
-                repl = not getattr(user, poller.identity.id)
-            elif args.savetag == 'fail_if_exists':
-                repl = True
-                if getattr(user, poller.identity.id) != args.gamertag_creator:
-                    abort('{} is already set and is different!'.format(
-                        poller.identity.name), problem='savetag')
-            if repl:
-                setattr(user, poller.identity.id, args.gamertag_creator)
+        # determine identities and update them on args
+        self.load_save_identities(poller, args, 'creator', user)
+        self.load_save_identities(poller, args, 'opponent', args.opponent,
+                                  optional=True)
+        self.check_identity_equality(poller, args, args)
 
         # Perform sameregion check
-        if args.gamertag_opponent and poller.sameregion:
-            # additional check for regions
-            region1 = args['gamertag_creator'].split('/', 1)[0]
-            region2 = args['gamertag_opponent'].split('/', 1)[0]
-            if region1 != region2:
-                abort('You and your opponent should be in the same region; '
-                      'but actually you are in {} and your opponent is in {}'.format(
-                    region1, region2))
+        self.check_same_region(
+            poller,
+            args.gamertag_creator,
+            args.gamertag_opponent)
 
+        # check twitch parameter if needed
         if poller.twitch == 2 and not args.twitch_handle:
             abort('Please specify your twitch stream URL',
                   problem='twitch_handle')
         if args.twitch_handle and not poller.twitch:
             abort('Twitch streams are not yet supported for this gametype')
+
+        if not args.tournament:
+            # check bet amount
+            self.check_bet_amount(args.bet, user)
 
         game = Game()
         game.creator = user
@@ -1445,123 +1518,17 @@ class GameResource(restful.Resource):
         game.twitch_handle = args.twitch_handle
         game.twitch_identity_creator = args.twitch_identity_creator
         game.twitch_identity_opponent = args.twitch_identity_opponent
-        game.gametype = args.gametype
-        game.gamemode = args.gamemode
-        game.bet = 0
-        game.tournament = args.tournament
+        if args.tournament:
+            game.bet = 0
+            game.tournament = args.tournament
+            game.gametype = args.tournament.gametype
+            game.gamemode = args.tournament.gamemode
+        else:
+            game.gametype = args.gametype
+            game.gamemode = args.gamemode
+            game.bet = args.bet
+
         db.session.add(game)
-
-        db.session.commit()
-
-        log.debug('notifying')
-        notify_users(game)
-
-        return marshal(game, self.fields), 201
-
-    def create_game(self, user, args):
-        poller = Poller.findPoller(args.gametype)
-        if not poller or poller == DummyPoller:
-            abort('Support for this game is coming soon!')
-
-        if poller.gamemodes:
-            gmparser = RequestParser()
-            gmparser.add_argument('gamemode', choices=poller.gamemodes,
-                                  required=True)
-            gmargs = gmparser.parse_args()
-            args.gamemode = gmargs.gamemode
-
-        if args.opponent == user:
-            abort('You cannot compete with yourself')
-
-        # check passed identities
-        # and pre-load them from user profiles if possible
-        had_creatag = args.gamertag_creator
-        for name, identity, mandatory in (
-                ('gamertag', poller.identity, True),
-                ('twitch_identity', poller.twitch_identity, poller.twitch == 2),
-        ):
-            if not identity:
-                for role in 'creator', 'opponent':
-                    if args['{}_{}'.format(name, role)]:
-                        abort('[{}_{}]: not supported for this game type'.format(
-                            name, role), problem=argname)
-                continue
-            for role, ruser in (
-                    ('creator', user),
-                    ('opponent', args.opponent),
-            ):
-                argname = '{}_{}'.format(name, role)
-                if args[argname]:
-                    try:
-                        args[argname] = identity.checker(args[argname])
-                    except ValueError as e:
-                        abort('[{}]: {}'.format(argname, e), problem=argname)
-                else:
-                    args[argname] = getattr(ruser, identity.id)
-                    if mandatory and role == 'creator' \
-                            and not args[argname]:  # not provided
-                        abort('Please specify your {}'.format(
-                            identity.name,
-                        ), problem=argname)
-            if args[name + '_creator'] == args[name + '_opponent']:
-                abort('Your and your opponent\'s {} should be different!'.format(
-                    identity.name,
-                ))
-        # Update creator's identity if requested
-        if had_creatag and poller.identity:
-            if args.savetag == 'replace':
-                repl = True
-            elif args.savetag == 'never':
-                repl = False
-            elif args.savetag == 'ignore_if_exists':
-                repl = not getattr(user, poller.identity.id)
-            elif args.savetag == 'fail_if_exists':
-                repl = True
-                if getattr(user, poller.identity.id) != args.gamertag_creator:
-                    abort('{} is already set and is different!'.format(
-                        poller.identity.name), problem='savetag')
-            if repl:
-                setattr(user, poller.identity.id, args.gamertag_creator)
-
-        # Perform sameregion check
-        if args.gamertag_opponent and poller.sameregion:
-            # additional check for regions
-            region1 = args['gamertag_creator'].split('/', 1)[0]
-            region2 = args['gamertag_opponent'].split('/', 1)[0]
-            if region1 != region2:
-                abort('You and your opponent should be in the same region; '
-                      'but actually you are in {} and your opponent is in {}'.format(
-                    region1, region2))
-
-        if poller.twitch == 2 and not args.twitch_handle:
-            abort('Please specify your twitch stream URL',
-                  problem='twitch_handle')
-        if args.twitch_handle and not poller.twitch:
-            abort('Twitch streams are not yet supported for this gametype')
-
-        if args.bet < 0.99:  # FIXME: hardcoded min bet
-            abort('Bet is too low', problem='bet')
-        if args.bet > user.available:
-            abort('You don\'t have enough coins', problem='coins')
-
-        game = Game()
-        game.creator = user
-        game.opponent = args.opponent
-        log.debug('setting parent')
-        if args.root:
-            game.parent = args.root.root  # ensure we use real root
-        game.gamertag_creator = args.gamertag_creator
-        game.gamertag_opponent = args.gamertag_opponent
-        game.twitch_handle = args.twitch_handle
-        game.twitch_identity_creator = args.twitch_identity_creator
-        game.twitch_identity_opponent = args.twitch_identity_opponent
-        game.gametype = args.gametype
-        game.gamemode = args.gamemode
-        game.bet = args.bet
-        db.session.add(game)
-
-        user.locked += game.bet
-
         db.session.commit()
 
         log.debug('notifying')
@@ -1600,57 +1567,36 @@ class GameResource(restful.Resource):
         if game.state != 'new':
             abort('This challenge is already {}'.format(game.state))
 
-        if args.state == 'accepted' and game.bet > user.available:
-            abort('Not enough coins', problem='coins')
+        if args.state == 'accepted':
+            self.check_bet_amount(game.bet, user)
 
         poller = Poller.findPoller(game.gametype)
 
         if args.state == 'accepted':
-            for name, identity in (
-                    ('gamertag', poller.identity),
-                    ('twitch_identity', poller.twitch_identity),
-            ):
+            # handle identities
+            self.load_save_identities(poller, args, 'opponent', user, game=game)
+            self.check_identity_equality(poller, game, args)
+            for name in 'gamertag', 'twitch_identity':
                 argname = '{}_opponent'.format(name)
-                if not identity:
-                    if args[argname]:
-                        abort('This game doesn\'t support{} identity {}'.format(
-                            '' if name == 'gamertag' else ' secondary',
-                            poller.twitch_identity.name), problem=argname)
-                    continue
-                if args[argname]:
-                    try:
-                        args[argname] = identity.checker(args[argname])
-                    except ValueError as e:
-                        abort('Invalid {}: {}'.format(identity.name, e),
-                              problem=argname)
-                    if getattr(game, argname) != args[argname]:
-                        if getattr(game, '{}_creator'.format(name)) == args[argname]:
-                            abort('You cannot specify {} same as your opponent\'s!'.format(
-                                identity.name,
-                            ))
-                        log.warning(
-                            'Game {}: changing {} opponent identity '
-                            'from {} to {}'.format(
-                                game.id,
-                                'primary' if name == 'gamertag' else 'secondary',
-                                getattr(game, argname),
-                                args[argname],
-                            )
+                if not args[argname]:
+                    continue # was already checked -> not needed here
+                if getattr(game, argname) != args[argname]:
+                    log.warning(
+                        'Game {}: changing {} opponent identity '
+                        'from {} to {}'.format(
+                            game.id,
+                            'primary' if name == 'gamertag' else 'secondary',
+                            getattr(game, argname),
+                            args[argname],
                         )
-                    setattr(game, argname, args[argname])
-                elif not getattr(game, argname):
-                    abort('Please provide your {}!'.format(poller.identity.name),
-                          problem=argname)
+                    )
+                setattr(game, argname, args[argname])
 
             # Perform sameregion check
-            if poller.sameregion:
-                # additional check for regions
-                region1 = game.gamertag_creator.split('/', 1)[0]
-                region2 = args['gamertag_opponent'].split('/', 1)[0]
-                if region1 != region2:
-                    abort('You and your opponent should be in the same region; '
-                          'but actually you are in {} and your opponent is in {}'.format(
-                        region2, region1))
+            self.check_same_region(
+                poller,
+                args.gamertag_opponent,
+                game.gamertag_creator)
 
 
         # now all checks are done, perform actual logic
@@ -1683,7 +1629,6 @@ class GameResource(restful.Resource):
                         game.gamertag_opponent,
                     ),
                 )
-                retstatus = ret.status_code
             except Exception:
                 log.exception('Failed to start twitch stream!')
                 abort('Cannot start twitch observing - internal error', 500)
@@ -1743,81 +1688,139 @@ class GameResource(restful.Resource):
         )
 
 
-@api.resource('/games/<int:id>/result')
-class GameResultResource(restful.Resource):
-    @require_auth
-    def post(self, user, id):
-        game = Game.query.get_or_404(id)
+@api.resource('/games/<int:game_id>/report')
+class GameReportResource(restful.Resource):
+    fields = {
+        'result': fields.String,
+        'created': fields.DateTime,
+        'modified': fields.DateTime,
+        'match': fields.Boolean,
+        'ticket_id': fields.Integer,
+    }
+
+    def get_game(self, user, game_id):
+        game = Game.query.get_or_404(game_id)
         if not game.is_game_player(user):
-            raise Forbidden('You cannot access this challenge')
+            raise Forbidden
+        return game
 
-        role = 'creator' if user == game.creator else 'opponent'
-        other = 'creator' if role == 'opponent' else 'opponent'
+    def get_report(self, user, game):
+        report = Report.query.filter(Report.game == game, Report.player == user).first()
+        if not report:
+            raise NotFound
+        return report
 
+    def check_report(self, report, game):
+        report.match = report.check_reports()
+        if not report.match:
+            ticket = None
+            for t in game.tickets:
+                if t.type == 'reports_mismatch':
+                    ticket = t
+            if not ticket:
+                ticket = Ticket(game, 'reports_mismatch')
+                db.session.add(ticket)
+            db.session.flush()
+            report.ticket = ticket
+            if report.other_report:
+                report.other_report.ticket = ticket
+            db.session.commit()
+            notify_event(game, 'report', message='reports don\' match, ticket {id} created'.format(
+                id=ticket.id
+            ))
+        else:
+            if report.match and report.other_report:
+                winner = None
+                if report.result == 'won':
+                    winner = report.player
+                if report.other_report.result == 'won':
+                    winner = report.other_report.player
+                game_winner = 'draw'
+                if winner == game.creator:
+                    game_winner = 'creator'
+                if winner == game.opponent:
+                    game_winner = 'opponent'
+                poller = Poller.findPoller(game.gametype)
+                endtime = min(report.created, report.other_report.created)
+                poller.gameDone(game, game_winner, endtime)
+
+    @property
+    def result(self):
         parser = RequestParser()
-        parser.add_argument('winner', choices=[
-            'creator', 'opponent', 'draw',
-        ], required=False)
         parser.add_argument('result', choices=[
             'won', 'lost', 'draw',
         ], required=False)
         args = parser.parse_args()
+        return args.result
 
-        if not (args.winner or args.result) or (args.winner and args.result):
-            # strings can't be XOR'ed by ^ it leads to TypeError
-            abort('Please provide one of (winner, result) options')
-        if args.result:
-            if args.result == 'won':
-                args.winner = role
-            elif args.result == 'lost':
-                args.winner = other
-            else:
-                args.winner = 'draw'
-        else:
-            if args.winner == role:
-                args.result = 'won'
-            elif args.winner == other:
-                args.result = 'lost'
-            else:
-                args.result = 'draw'
+    @require_auth
+    def post(self, user, game_id):
+        game = self.get_game(user, game_id)
 
-        setattr(game, 'report_%s' % role, args.winner)
-        setattr(game, 'report_%s_date' % role, datetime.utcnow())
-
+        db.session.flush()
+        try:
+            report = Report(game, user, self.result)
+            db.session.add(report)
+            db.session.flush()
+        except IntegrityError:
+            abort('You have already reported this game', problem='duplicate')
+            return
+        db.session.commit()
         notify_event(game, 'report', message='{user} reported {result}'.format(
             user=user.nickname,
-            result=args.result,
+            result=report.result,
         ))
+        self.check_report(report, game)
+        return marshal(report, self.fields)
 
-        if not getattr(game, 'report_%s' % other):
-            # no need to process further
-            return dict(
-                saved=True,
-            )
+    @require_auth
+    def get(self, user, game_id):
+        game = self.get_game(user, game_id)  # check if such game exists and accessible for this user
+        report = self.get_report(user, game_id)
+        self.check_report(report, game)
+        return marshal(report, self.fields)
 
-        game.report_try += 1
+    @require_auth
+    def patch(self, user, game_id):
+        game = self.get_game(user, game_id)  # check if such game exists and accessible for this user
+        report = self.get_report(user, game)
+        report.modify(self.result)
+        db.session.commit()
+        notify_event(game, 'report', message='{user} changed his report to {result}'.format(
+            user=user.nickname,
+            result=report.result,
+        ))
+        self.check_report(report, game)
+        return marshal(report, self.fields)
 
-        crr = game.report_creator
-        opr = game.report_opponent
-        if (
-                            crr == opr == 'draw' or
-                        ('creator', 'opponent') in ((crr, opr), (opr, crr))
-        ):
-            # good
-            poller = Poller.findPoller(game.gametype)
-            endtime = min(game.report_creator_date, game.report_opponent_date)
-            poller.gameDone(game, args.winner, endtime)
-            return dict(
-                success=True,
-            )
+@api.resource(
+    '/games/<int:game_id>/tickets',
+    '/tickets/<int:ticket_id>'
+)
+class TicketResource(restful.Resource):
+    @property
+    def fields(self):
+        return {
+            'id': fields.Integer,
+            'open': fields.Boolean,
+            'game_id': fields.Integer,
+            'type': fields.String,
+            'messages': fields.List(fields.Nested(ChatMessageResource.fields))
+        }
 
-        notify_event(game, 'system', message='reports don\' match')
-        return jsonify(
-            success=False,
-            reason='Your reports don\'t match! '
-                   'Please consider changing, or contact support.',
-        )
-
+    @require_auth
+    def get(self, user, game_id=None, ticket_id=None):
+        if ticket_id:
+            ticket = Ticket.query.get_or_404(ticket_id)
+            if not ticket.game.is_game_player(user):
+                raise Forbidden
+            return marshal(ticket, self.fields)
+        if game_id:
+            game = Game.query.get_or_404(game_id)
+            if not game.is_game_player(user):
+                raise Forbidden
+            return marshal(game.tickets, fields.List(self.fields))
+        raise NotFound
 
 @api.resource(
     '/games/<int:id>/msg',
@@ -1849,6 +1852,10 @@ class GameMessageResource(UploadableResource):
     '/games/<int:game_id>/messages',
     '/games/<int:game_id>/messages/',
     '/games/<int:game_id>/messages/<int:id>',
+    '/tickets/<int:ticket_id>/messages',
+    '/tickets/<int:ticket_id>/messages/',
+    '/tickets/<int:ticket_id>/messages/<int:id>',
+    '/messages/<int:id>'
 )
 class ChatMessageResource(restful.Resource):
     @classproperty
@@ -1864,8 +1871,24 @@ class ChatMessageResource(restful.Resource):
             viewed=fields.Boolean,
         )
 
+    def get_single(self, user, game_id=None, player_id=None, ticket_id=None, id=None):
+        msg = ChatMessage.query.get_or_404(id)
+        if not msg.is_for(user):
+            raise Forbidden
+        if game_id and game_id != msg.game_id:
+            return redirect(api.url_for(ChatMessageResource, game_id=msg.game_id, id=id), 301)
+        if player_id and player_id != msg.sender_id:
+            return redirect(api.url_for(ChatMessageResource, player_id=msg.sender_id, id=id), 301)
+        if ticket_id and ticket_id != msg.ticket_id:
+            return redirect(api.url_for(ChatMessageResource, ticket_id=msg.ticket_id, id=id), 301)
+        return marshal(msg, self.fields)
+
+
     @require_auth
-    def get(self, user, game_id=None, player_id=None, id=None):
+    def get(self, user, game_id=None, player_id=None, ticket_id=None, id=None):
+        if id:
+            return self.get_single(game_id, player_id, ticket_id, id)
+
         player = None
         if player_id:
             player = Player.find(player_id)
@@ -1874,29 +1897,15 @@ class ChatMessageResource(restful.Resource):
 
         game = None
         if game_id:
-            game = Game.query.get(game_id)
+            game = Game.query.get_or_404(game_id)
+        elif ticket_id:
+            ticket = Ticket.query.get_or_404(game_id)
+            game = ticket.game
             if not game:
-                raise NotFound('wrong game id')
-            if not game.is_game_player(user):
-                abort('You cannot access this game', 403)
+                raise NotFound('wrong ticket id')
 
-        msg = None
-        if id:
-            msg = ChatMessage.query.get_or_404(id)
-            if not msg.is_for(user):
-                raise Forbidden
-            if player:
-                if user != player and not msg.is_for(player):
-                    abort('Player ID mismatch', 404)
-                    # else don't check message's other party
-            elif game:
-                if msg.game != game:
-                    abort('Wrong msg id for this game', 404)
-            else:
-                raise ValueError('no player nor game')
-            return marshal(msg, self.fields)
-
-        assert not id
+        if not game.is_game_player(user):
+            abort('You cannot access this game', 403)
 
         if player:
             if user == player:
@@ -1953,11 +1962,13 @@ class ChatMessageResource(restful.Resource):
         return ret
 
     @require_auth
-    def post(self, user, game_id=None, player_id=None, id=None):
+    def post(self, user, game_id=None, player_id=None, ticket_id=None, id=None):
         if id:
             raise MethodNotAllowed
 
         game = None
+        player = None
+        ticket = None
         if player_id:
             player = Player.find(player_id)
             if not player:
@@ -1965,13 +1976,15 @@ class ChatMessageResource(restful.Resource):
             if player == user:
                 abort('You cannot send message to yourself')
         elif game_id:
-            game = Game.query.get(game_id)
-            if not game:
-                raise NotFound('wrong game id')
+            game = Game.query.get_or_404(game_id)
             player = game.other(user)
             if not player:
                 raise Forbidden('You cannot access this game', 403)
             game = game.root  # always attach messages to root game in session
+        elif ticket_id:
+            ticket = Ticket.query.get_or_404(game_id)
+            if not ticket.game.is_game_player(user):
+                raise Forbidden('You cannot access this ticket', 403)
 
         parser = RequestParser()
         parser.add_argument('text', required=False)
@@ -1979,6 +1992,7 @@ class ChatMessageResource(restful.Resource):
 
         msg = ChatMessage()
         msg.game = game
+        msg.ticket = ticket
         msg.sender = user
         msg.receiver = player
         msg.text = args.text
@@ -2000,30 +2014,13 @@ class ChatMessageResource(restful.Resource):
         return marshal(msg, self.fields)
 
     @require_auth
-    def patch(self, user, game_id=None, player_id=None, id=None):
-        if not id:
+    def patch(self, user, game_id=None, player_id=None, ticket_id=None, id=None):
+        if not id or any(game_id, player_id, ticket_id):
             raise MethodNotAllowed
         msg = ChatMessage.query.get_or_404(id)
         if msg.receiver_id != user.id:
             raise Forbidden(
                 'You cannot patch message which is not addressed to you')
-
-        if player_id:
-            player = Player.find(player_id)
-            if not player:
-                raise NotFound('invalid player id')
-            if player == user:
-                player = msg.other(user)
-            elif msg.other(user) != player:
-                abort('Wrong user id')  # TODO do we need to check that at all?
-        elif game_id:
-            game = Game.query.get(game_id)
-            if not game:
-                raise NotFound('invalid game id')
-            if game != msg.game:
-                raise NotFound('wrong game id')
-            if not game.is_game_player(user):
-                raise Forbidden('You cannot access this game')
 
         parser = RequestParser()
         parser.add_argument('viewed', type=boolean_field, required=True)
@@ -2038,6 +2035,7 @@ class ChatMessageResource(restful.Resource):
 @api.resource(
     '/players/<player_id>/messages/<int:id>/attachment',
     '/games/<int:game_id>/messages/<int:id>/attachment',
+    '/tickets/<int:ticket_id>/messages/<int:id>/attachment',
 )
 class ChatMessageAttachmentResource(UploadableResource):
     PARAM = 'attachment'
@@ -2062,6 +2060,13 @@ class ChatMessageAttachmentResource(UploadableResource):
                 raise NotFound('wrong game id')
             if not game.is_game_player(user):
                 raise Forbidden('You cannot access this game')
+        elif 'ticket_id' in args:
+            ticket = Ticket.query.get_or_404(args['ticket_id'])
+            game = ticket.game
+            if not game:
+                raise NotFound('wrong game id')
+            if not game.is_game_player(user):
+                raise Forbidden('You cannot access this ticket')
         else:
             raise ValueError('no ids')
         return msg
@@ -2262,7 +2267,7 @@ def socketio_auth(token=None):
         return False
     try:
         user = parseToken(token)
-    except Exception as e:
+    except Exception:
         log.exception('Socket auth failed')
         sio_disconnect()
         return
@@ -2332,6 +2337,8 @@ class TournamentResource(restful.Resource):
         )),
         'participants_cap': fields.Integer,
         'participants_count': fields.Integer,
+        'gamemode': fields.String,
+        'gametype': fields.String,
     }
 
     fields_many = {
@@ -2341,6 +2348,8 @@ class TournamentResource(restful.Resource):
         'finish_date': fields.DateTime,
         'participants_cap': fields.Integer,
         'participants_count': fields.Integer,
+        'gamemode': fields.String,
+        'gametype': fields.String,
     }
 
     @require_auth
@@ -2353,9 +2362,23 @@ class TournamentResource(restful.Resource):
         parser.add_argument('open_date', type=lambda s: datetime.fromtimestamp(int(s)))
         parser.add_argument('start_date', type=lambda s: datetime.fromtimestamp(int(s)))
         parser.add_argument('finish_date', type=lambda s: datetime.fromtimestamp(int(s)))
+        parser.add_argument('finish_date', type=lambda s: datetime.fromtimestamp(int(s)))
+        parser.add_argument('finish_date', type=lambda s: datetime.fromtimestamp(int(s)))
         parser.add_argument('buy_in', type=float)
 
+        parser.add_argument('gametype', choices=Poller.all_gametypes, required=True)
+        parser.add_argument('gamemode', type=str, required=True)
+
         args = parser.parse_args()
+
+        poller = Poller.findPoller(args.gametype)
+        if not poller or poller == DummyPoller:
+            abort('Support for this game is coming soon!')
+
+        if args.gamemode not in poller.gamemodes:
+            abort('Unknown gamemode')
+
+
         if args.rounds_count < 1:
             abort('Tournament must have 1 or more rounds', problem='rounds_count')
 
@@ -2369,7 +2392,9 @@ class TournamentResource(restful.Resource):
             open_date=args.open_date,
             start_date=args.start_date,
             finish_date=args.finish_date,
-            payin=args.buy_in
+            payin=args.buy_in,
+            gamemode=args.gamemode,
+            gametype=args.gametype,
         )
         db.session.add(tournament)
         db.session.commit()

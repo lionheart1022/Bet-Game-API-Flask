@@ -8,6 +8,8 @@ from flask import g
 from .main import db
 from .common import *
 
+import config
+
 
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -34,6 +36,9 @@ class Player(db.Model):
 
     balance = db.Column(db.Float, default=0)
     locked = db.Column(db.Float, default=0)
+
+    def report_for_game(self, game_id):
+        return Report.query.filter(Report.game_id == game_id, Report.player_id == self.id).first()
 
     @property
     def available(self):
@@ -194,7 +199,6 @@ class Player(db.Model):
                 str(f) for f in g.winrate_filt
             ))
             return self.winrate_impl(*g.winrate_filt)
-        log.debug('winrate: no filt')
         return self.winrate_impl()
 
     # @hybrid_method
@@ -392,6 +396,20 @@ class Player(db.Model):
         return '<Player id={} nickname={} balance={}>'.format(
             self.id, self.nickname, self.balance)
 
+    @property
+    def is_authenticated(self):  # flask login integration
+        return True
+
+    @property
+    def is_anonymous(self):  # flask login integration
+        return False
+
+    @property
+    def is_active(self):  # flask login integration
+        return self.id in config.ADMIN_IDS # active means admin
+
+    def get_id(self):  # flask login integration
+        return str(self.id)
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -424,7 +442,7 @@ class Device(db.Model):
     def __repr__(self):
         return '<Device id={}, failed={}>'.format(self.id, self.failed)
 
-from .helpers import notify_event
+
 
 class Tournament(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -436,6 +454,9 @@ class Tournament(db.Model):
 
     winner_id = db.Column(db.Integer(), db.ForeignKey(Player.id), nullable=True)
     winner = db.relationship(Player, backref='won_tournaments')
+
+    gametype = db.Column(db.String(64), nullable=False)
+    gamemode = db.Column(db.String(64), nullable=False)
 
     players = db.relationship(
         Player,
@@ -516,9 +537,11 @@ class Tournament(db.Model):
     def started(self):
         return self.start_date < datetime.utcnow()
 
-    def __init__(self, rounds_count, open_date, start_date, finish_date, payin):
+    def __init__(self, gametype, gamemode, rounds_count, open_date, start_date, finish_date, payin):
         assert rounds_count >= 0
         assert open_date < start_date < finish_date
+        self.gametype = gametype
+        self.gamemode = gamemode
         self.rounds_count = rounds_count
         self.open_date, self.start_date, self.finish_date = open_date, start_date, finish_date
         self.payin = payin
@@ -672,7 +695,6 @@ class Tournament(db.Model):
             winner_participant.round += 1
             db.session.commit()
 
-
 class Participant(db.Model):
     __tablename__ = 'participant'
 
@@ -695,6 +717,75 @@ class Participant(db.Model):
 
     db.UniqueConstraint(tournament_id, order)
 
+class Ticket(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    open = db.Column(db.Boolean(), nullable=False, default=1, server_default='1')
+    created = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow())
+
+    game_id = db.Column(db.Integer(), db.ForeignKey('game.id'))
+    game = db.relationship('Game', backref='tickets')
+
+    type = db.Column(db.Enum('reports_mismatch'), nullable=False)
+
+    def __init__(self, game, type):
+        self.game = game
+        self.type = type
+
+    def chat_with(self, user_id):
+        for message in self.messages:
+            assert isinstance(message, ChatMessage)
+            if message.sender_id == user_id or message.receiver_id == user_id:
+                yield message
+
+    @property
+    def game_winner_nickname(self):
+        if self.open:
+            return None
+        if self.game.winner == 'draw':
+            return 'draw'
+        if self.game.winner == 'creator':
+            return self.game.creator.nickname
+        if self.game.winner == 'opponent':
+            return self.game.opponent.nickname
+
+class Report(db.Model):
+    game_id = db.Column(db.Integer(), db.ForeignKey('game.id'), primary_key=True, index=True)
+    player_id = db.Column(db.Integer(), db.ForeignKey(Player.id), primary_key=True, index=True)
+    ticket_id = db.Column(db.Integer(), db.ForeignKey(Ticket.id), nullable=True, index=True)
+
+    game = db.relationship('Game', backref='reports')
+    player = db.relationship(Player, backref='reports')
+    ticket = db.relationship(Ticket, backref='reports')
+
+    created = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow())
+
+    modified = db.Column(db.DateTime(), nullable=True, default=None)
+
+    result = db.Column(db.Enum(
+        'won', 'lost', 'draw',
+    ), nullable=False)
+
+    def __init__(self, game, player, result):
+        self.game = game
+        self.player = player
+        self.result = result
+        self.match = True
+        self.other_report = None
+
+    def modify(self, result):
+        self.result = result
+        self.modified = datetime.utcnow()
+
+    def check_reports(self):
+        self.other_report = Report.query.filter(Report.game_id == self.game_id, Report.player_id != self.player_id).first()
+        if self.other_report:
+            if self.result == 'won' and self.other_report.result == 'won':
+                return False
+            if self.result == 'lost' and self.other_report.result == 'lost':
+                return False
+            if self.result == 'draw' and self.other_report.result != 'draw':
+                return False
+        return True
 
 class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -726,13 +817,6 @@ class Game(db.Model):
 
     aborter_id = db.Column(db.Integer, db.ForeignKey('player.id'))
     aborter = db.relationship(Player, foreign_keys='Game.aborter_id')
-    report_creator = db.Column(db.Enum('creator', 'opponent', 'draw'),
-                               nullable=True)
-    report_creator_date = db.Column(db.DateTime, nullable=True)
-    report_opponent = db.Column(db.Enum('creator', 'opponent', 'draw'),
-                                nullable=True)
-    report_opponent_date = db.Column(db.DateTime, nullable=True)
-    report_try = db.Column(db.Integer, default=0)
 
     winner = db.Column(db.Enum('creator', 'opponent', 'draw'), nullable=True)
     details = db.Column(db.Text, nullable=True)
@@ -843,10 +927,18 @@ class ChatMessage(db.Model):
     receiver = db.relationship(Player, foreign_keys='ChatMessage.receiver_id')
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'), index=True)
     game = db.relationship(Game)
+
+    admin_message = db.Column(db.Boolean, nullable=False, default=False, server_default='0')
+
     text = db.Column(db.Text)
     time = db.Column(db.DateTime, default=datetime.utcnow)
     has_attachment = db.Column(db.Boolean, default=False)
     viewed = db.Column(db.Boolean, default=False)
+
+    ticket_id = db.Column(db.Integer, db.ForeignKey('ticket.id'), index=True)
+    ticket = db.relationship(Ticket, backref=db.backref(
+        'messages', order_by=time.asc()
+    ))
 
     @hybrid_method
     def is_for(self, user):
@@ -951,3 +1043,5 @@ def fast_count(query):
     Get count of queried items avoiding using subquery (like query.count() does)
     """
     return query.session.execute(fast_count_noexec(query)).scalar()
+
+from .helpers import notify_event  # dirty hack to avoid cyclic reference

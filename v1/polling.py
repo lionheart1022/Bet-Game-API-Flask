@@ -74,6 +74,7 @@ class Poller:
     twitch_gametypes = {}
     identity_id = None
     twitch_identity_id = None
+    honesty = False # special for honesty-based poller
     # human-readable description of how to play this game.
     # Might be dictionary if description should vary
     # for different gametypes in same poller.
@@ -950,6 +951,19 @@ class TibiaPoller(Poller, LimitedApi):
                 return self.gameDone(game, user.other.role, user.losedate)
         return False
 
+
+class HonestyPoller(Poller):
+    gametypes = {
+        'halo-5': 'Halo 5',
+        'inba2015': 'Inba2k16',
+    }
+    honesty = True # we don't need any identities to be active
+    description = 'This game is supported in Honesty mode only.'
+    twitch = 0
+
+    def poll(self, *args, **kwargs):
+        # just do nothing
+        pass
 
 class DummyPoller(Poller):
     """

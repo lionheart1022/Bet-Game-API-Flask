@@ -762,6 +762,8 @@ def notify_event(root, etype, debug=False, **kwargs):
             raise ValueError('No game specified')
         if game.state == 'finished' and game.winner in ['creator','opponent']:
             # special handling-
+            for ticket in game.tickets:
+                ticket.open = False
             winner = (evt.game.creator
                       if evt.game.winner == 'creator' else
                       evt.game.opponent)
@@ -771,14 +773,14 @@ def notify_event(root, etype, debug=False, **kwargs):
                     winner=winner,
                     looser=looser,
                 )
-            ret = notify_event_push(
+            ret = bool(notify_event_push(
                 evt, winner,
                 'Congratulations, you won the game!',
-            )
-            ret &= notify_event_push(
+            ))
+            ret &= bool(notify_event_push(
                 evt, looser,
                 'Sorry, you lost the game...',
-            )
+            ))
             return ret
         if game.state == 'declined':
             if game.tournament:
@@ -943,4 +945,3 @@ def notify_users(game, justpush=False, players=None, msg=None):
     if not justpush:
         result = result and send_mail(game)
     return result
-
