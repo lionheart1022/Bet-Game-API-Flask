@@ -107,4 +107,37 @@ if __name__ == '__main__':
 
     migrate = Migrate(app, db)
 
+    # TODO: move manager to separate file manage.py
+
+    # TODO: separate manager for updating badges
+    @manager.command
+    def insert_badges():
+        """Set Badges for every Player
+        Run only once, after applying migration.
+        """
+        from v1.models import Badges, Player
+
+        for player in Player.query.all():
+            player.badges = Badges()
+            db.session.add(player.badges)
+            db.session.commit()
+
+    @manager.command
+    def update_badges():
+        """This command will add new badges for every player.
+        If you need to update existent badges info (from column "default")
+        use "update_badges_info" command
+        """
+        # player.__table__._columns["locked"].default.arg
+        pass
+
+    @manager.command
+    def update_badges_info(*column_names):
+        """Updates existent values for badges.
+        New value will be taken from column "default".
+        You cant update user bounded values, such as: "received", "value"
+        :param column_names: column names that need update
+        """
+        pass
+
     manager.run()

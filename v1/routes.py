@@ -21,6 +21,8 @@ from PIL import Image
 import eventlet
 
 import config
+
+from v1.signals_definitions import game_badge_signal
 from .models import * # noqa
 from .helpers import * # noqa
 from .apis import * # noqa
@@ -1765,12 +1767,18 @@ class GameReportResource(restful.Resource):
         except IntegrityError:
             abort('You have already reported this game', problem='duplicate')
             return
+
+        # update badges for participants of this game
+        game_badge_signal.send(game)
+
         db.session.commit()
+
         notify_event(game, 'report', message='{user} reported {result}'.format(
             user=user.nickname,
             result=report.result,
         ))
         self.check_report(report, game)
+
         return marshal(report, self.fields)
 
     @require_auth

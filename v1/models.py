@@ -1,12 +1,16 @@
 from datetime import datetime, timedelta
 
 from sqlalchemy import or_, case, and_
+from sqlalchemy.orm import deferred, undefer_group, undefer, attributes
 from sqlalchemy.sql.expression import func
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+
 from flask import g
 
 from .main import db
 from .common import *
+
+from v1.badges import BADGES, Fifa15Badges
 
 import config
 
@@ -36,6 +40,10 @@ class Player(db.Model):
 
     balance = db.Column(db.Float, default=0)
     locked = db.Column(db.Float, default=0)
+    
+    def __init__(self):
+        self.badges = Badges()
+        db.session.add(self.badges)
 
     def report_for_game(self, game_id):
         return Report.query.filter(Report.game_id == game_id, Report.player_id == self.id).first()
@@ -411,6 +419,60 @@ class Player(db.Model):
     def get_id(self):  # flask login integration
         return str(self.id)
 
+    def get_badges_from_groups(self, *groups, return_ids=False):
+        """Loads player's Badges with given badges groups,
+        if self.badges was accessed it will be updated inplace.
+        Use this if action may be included inseveral badges of this group
+        """
+        query = db.session.query(Badges).filter(Badges.id == self.badges.id)
+
+        # TODO: use when sqlalchemy 1.0.12 will be released
+        # preferable way to work with "undefer_group", but
+        # in query undefers only last group
+        # e.g. query.options(undefer_group("g_1"), undefer_group("g_2"))
+        #       in this column only group "g_2" will be undeferred
+
+        # no need to load again from db inside one session
+        # undeferred_groups = [  # making groups loadable by this query
+        #     undefer_group(g_name)
+        #     for g_name in groups
+        #     if g_name not in self.badges.__dict__
+        # ]
+
+        # if undeferred_groups:
+        #     query.options(
+        #         # another not deferred columns will be loaded automatically
+        #         *undeferred_groups
+        #     ).all()
+
+        column_names = columns_from_groups(self.badges, *(g_name for g_name in groups))
+
+        undeffered_columns = (
+            undefer(c_name)
+            for c_name, c_group in column_names
+        )
+
+        if undeffered_columns:
+            query.options(
+                *undeffered_columns
+            ).first()
+
+        if return_ids:
+            return self.badges, column_names
+
+        return self.badges
+
+    def get_badges(self, *badges):
+        """Loads player's Badges with given badges"""
+        db.session.query(Badges).filter(
+            Badges.id == self.badges.id
+        ).options(
+            *(undefer(b_name) for b_name in badges)
+        ).first()
+
+        return self.badges
+
+
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     player_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
@@ -441,7 +503,6 @@ class Device(db.Model):
 
     def __repr__(self):
         return '<Device id={}, failed={}>'.format(self.id, self.failed)
-
 
 
 class Tournament(db.Model):
@@ -1044,4 +1105,67 @@ def fast_count(query):
     """
     return query.session.execute(fast_count_noexec(query)).scalar()
 
+
 from .helpers import notify_event  # dirty hack to avoid cyclic reference
+
+
+def columns_from_groups(instance, *groups):
+    """Returns list of (column name, group) pairs from given groups"""
+    state = attributes.instance_state(instance)
+    return [
+        (c.key, c.group) for c in state.mapper.column_attrs
+        if c.group in groups
+    ]
+
+
+class Badges(db.Model, Fifa15Badges):
+    """Model that store player's badges, e.g.
+    Naming:
+        "fifa15_xboxone_first_win" - badge id and attribute of this model
+            fifa15_xboxone - gametype (same as in poller)
+            first_win - unique name of badge for this game
+    """
+    __tablename__ = "badges"
+    id = db.Column(db.Integer, primary_key=True)
+
+    player_id = db.Column(db.Integer, db.ForeignKey("player.id"))
+    player = db.relationship(Player, backref=db.backref("badges", uselist=False, cascade="delete"))
+
+    # TODO: use this if want to deactivate some badges for all players
+    inactive_badges = []
+
+    # list of ids of recent updated badges, special for notifications
+    # must be cleaned after reading notification
+    player_badges_updated = deferred(db.Column(db.PickleType, nullable=False, default=set))
+
+    def update_for_notifications(self, *badges_ids):
+        # use this method to update badges_ids for notifications
+        t = self.player_badges_updated.copy()
+        t.update(badges_ids)
+        self.player_badges_updated = t
+
+    def clean_notifications(self):
+        # don forget to clean after notifying and commit
+        self.player_badges_updated = set()
+
+    # General badges
+    # TODO: create real badges, remove test badges
+    first_win = deferred(
+        db.Column(db.MutaleDictPickleType,
+                  default=BADGES["games_general_one_time"]["first_win"]["user_bounded"]),
+        group="games_general_one_time"
+    )
+
+    first_loss = deferred(
+        db.Column(db.MutaleDictPickleType,
+                  default=BADGES["games_general_one_time"]["first_loss"]["user_bounded"]),
+        group="games_general_one_time"
+    )
+
+    # played_100_games, etc.
+    played_10_games = deferred(
+        db.Column(db.MutaleDictPickleType,
+                  default=BADGES["games_general_count"]["played_10_games"]["user_bounded"]),
+        group="games_general_count"
+    )
+
