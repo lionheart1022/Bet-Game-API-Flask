@@ -6,13 +6,13 @@ from flask.ext.redis import FlaskRedis
 
 import config
 
-from .admin import init as init_admin
 
 app = Blueprint('v1', __name__)
 db = SQLAlchemy()
 api = restful.Api(prefix='/v1')
 socketio = SocketIO()
 redis = FlaskRedis()
+
 
 _before1req = []
 def before_first_request(func):
@@ -36,3 +36,4 @@ def init_app(flask_app):
 # now apply routes
 from . import routes
 from . import cas
+from .admin import init as init_admin

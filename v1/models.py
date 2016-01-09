@@ -37,6 +37,9 @@ class Player(db.Model):
     balance = db.Column(db.Float, default=0)
     locked = db.Column(db.Float, default=0)
 
+    def report_for_game(self, game_id):
+        return Report.query.filter(Report.game_id == game_id, Report.player_id == self.id).first()
+
     @property
     def available(self):
         return self.balance - self.locked
@@ -440,8 +443,6 @@ class Device(db.Model):
         return '<Device id={}, failed={}>'.format(self.id, self.failed)
 
 
-from .helpers import notify_event
-
 
 class Tournament(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -730,10 +731,27 @@ class Ticket(db.Model):
         self.game = game
         self.type = type
 
+    def chat_with(self, user_id):
+        for message in self.messages:
+            assert isinstance(message, ChatMessage)
+            if message.sender_id == user_id or message.receiver_id == user_id:
+                yield message
+
+    @property
+    def game_winner_nickname(self):
+        if self.open:
+            return None
+        if self.game.winner == 'draw':
+            return 'draw'
+        if self.game.winner == 'creator':
+            return self.game.creator.nickname
+        if self.game.winner == 'opponent':
+            return self.game.opponent.nickname
+
 class Report(db.Model):
     game_id = db.Column(db.Integer(), db.ForeignKey('game.id'), primary_key=True, index=True)
     player_id = db.Column(db.Integer(), db.ForeignKey(Player.id), primary_key=True, index=True)
-    ticket_id = db.Column(db.Integer(), db.ForeignKey(Ticket.id), primary_key=True, index=True)
+    ticket_id = db.Column(db.Integer(), db.ForeignKey(Ticket.id), nullable=True, index=True)
 
     game = db.relationship('Game', backref='reports')
     player = db.relationship(Player, backref='reports')
@@ -909,8 +927,6 @@ class ChatMessage(db.Model):
     receiver = db.relationship(Player, foreign_keys='ChatMessage.receiver_id')
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'), index=True)
     game = db.relationship(Game)
-    ticket_id = db.Column(db.Integer, db.ForeignKey('ticket.id'), index=True)
-    ticket = db.relationship(Ticket, backref='messages')
 
     admin_message = db.Column(db.Boolean, nullable=False, default=False, server_default='0')
 
@@ -918,6 +934,11 @@ class ChatMessage(db.Model):
     time = db.Column(db.DateTime, default=datetime.utcnow)
     has_attachment = db.Column(db.Boolean, default=False)
     viewed = db.Column(db.Boolean, default=False)
+
+    ticket_id = db.Column(db.Integer, db.ForeignKey('ticket.id'), index=True)
+    ticket = db.relationship(Ticket, backref=db.backref(
+        'messages', order_by=time.asc()
+    ))
 
     @hybrid_method
     def is_for(self, user):
@@ -1022,3 +1043,5 @@ def fast_count(query):
     Get count of queried items avoiding using subquery (like query.count() does)
     """
     return query.session.execute(fast_count_noexec(query)).scalar()
+
+from .helpers import notify_event  # dirty hack to avoid cyclic reference

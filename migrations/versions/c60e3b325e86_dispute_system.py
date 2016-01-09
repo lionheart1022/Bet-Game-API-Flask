@@ -21,20 +21,20 @@ def upgrade():
     sa.Column('open', sa.Boolean(), server_default='1', nullable=False),
     sa.Column('game_id', sa.Integer(), nullable=True),
     sa.Column('type', sa.Enum('reports_mismatch'), nullable=False),
-    sa.ForeignKeyConstraint(['game_id'], ['game.id'], ),
+    sa.ForeignKeyConstraint(['game_id'], ['game.id']),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('report',
     sa.Column('game_id', sa.Integer(), nullable=False),
     sa.Column('player_id', sa.Integer(), nullable=False),
-    sa.Column('ticket_id', sa.Integer(), nullable=False),
+    sa.Column('ticket_id', sa.Integer(), nullable=True),
     sa.Column('created', sa.DateTime(), nullable=False),
     sa.Column('modified', sa.DateTime(), nullable=True),
     sa.Column('result', sa.Enum('won', 'lost', 'draw'), nullable=False),
     sa.ForeignKeyConstraint(['game_id'], ['game.id'], ),
     sa.ForeignKeyConstraint(['player_id'], ['player.id'], ),
     sa.ForeignKeyConstraint(['ticket_id'], ['ticket.id'], ),
-    sa.PrimaryKeyConstraint('game_id', 'player_id', 'ticket_id')
+    sa.PrimaryKeyConstraint('game_id', 'player_id')
     )
     op.create_index(op.f('ix_report_game_id'), 'report', ['game_id'], unique=False)
     op.create_index(op.f('ix_report_player_id'), 'report', ['player_id'], unique=False)

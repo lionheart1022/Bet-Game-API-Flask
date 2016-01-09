@@ -1712,11 +1712,18 @@ class GameReportResource(restful.Resource):
 
     def check_report(self, report, game):
         report.match = report.check_reports()
-        if not report.match and not game.tickets:
-            ticket = Ticket(game, 'reports_mismatch')
-            db.session.add(ticket)
+        if not report.match:
+            ticket = None
+            for t in game.tickets:
+                if t.type == 'reports_mismatch':
+                    ticket = t
+            if not ticket:
+                ticket = Ticket(game, 'reports_mismatch')
+                db.session.add(ticket)
             db.session.flush()
             report.ticket = ticket
+            if report.other_report:
+                report.other_report.ticket = ticket
             db.session.commit()
             notify_event(game, 'report', message='reports don\' match, ticket {id} created'.format(
                 id=ticket.id
@@ -1728,10 +1735,14 @@ class GameReportResource(restful.Resource):
                     winner = report.player
                 if report.other_report.result == 'won':
                     winner = report.other_report.player
-                if winner:
-                    poller = Poller.findPoller(game.gametype)
-                    endtime = min(report.created, report.other_report.created)
-                    poller.gameDone(game, winner, endtime)
+                game_winner = 'draw'
+                if winner == game.creator:
+                    game_winner = 'creator'
+                if winner == game.opponent:
+                    game_winner = 'opponent'
+                poller = Poller.findPoller(game.gametype)
+                endtime = min(report.created, report.other_report.created)
+                poller.gameDone(game, game_winner, endtime)
 
     @property
     def result(self):
@@ -1957,6 +1968,7 @@ class ChatMessageResource(restful.Resource):
 
         game = None
         player = None
+        ticket = None
         if player_id:
             player = Player.find(player_id)
             if not player:
@@ -1971,9 +1983,8 @@ class ChatMessageResource(restful.Resource):
             game = game.root  # always attach messages to root game in session
         elif ticket_id:
             ticket = Ticket.query.get_or_404(game_id)
-            game = ticket.game
-            if not game:
-                raise NotFound('wrong ticket id')
+            if not ticket.game.is_game_player(user):
+                raise Forbidden('You cannot access this ticket', 403)
 
         parser = RequestParser()
         parser.add_argument('text', required=False)
@@ -1981,6 +1992,7 @@ class ChatMessageResource(restful.Resource):
 
         msg = ChatMessage()
         msg.game = game
+        msg.ticket = ticket
         msg.sender = user
         msg.receiver = player
         msg.text = args.text
