@@ -1912,7 +1912,7 @@ class ChatMessageResource(restful.Resource):
             if not game:
                 raise NotFound('wrong ticket id')
 
-        if not game.is_game_player(user):
+        if game and not game.is_game_player(user):
             abort('You cannot access this game', 403)
 
         if player:
