@@ -1465,7 +1465,7 @@ class GameResource(restful.Resource):
         if not poller or poller == DummyPoller:
             abort('Support for this game is coming soon!')
 
-        args.extend(self.post_parse_poller_args(poller))
+        args.update(self.post_parse_poller_args(poller))
 
         # check tournament-related settings
         if args.tournament:
