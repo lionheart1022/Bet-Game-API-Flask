@@ -1336,7 +1336,8 @@ class GameResource(restful.Resource):
         parser.add_argument('gametype', choices=Poller.all_gametypes,
                             required=False)
         parser.add_argument('bet', type=float, required=False)
-        parser.add_argument('tournament_id', type=Tournament.query.get_or_404, required=False)
+        parser.add_argument('tournament_id', type=Tournament.query.get_or_404,
+                            required=False, dest='tournament')
         return parser
 
     @classmethod
